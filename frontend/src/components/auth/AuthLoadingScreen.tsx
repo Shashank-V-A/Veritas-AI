@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { VeritasMark } from '@/components/brand/VeritasMark'
 import { APP_NAME } from '@/lib/constants'
 
 export function AuthLoadingScreen() {
@@ -10,19 +11,14 @@ export function AuthLoadingScreen() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="relative size-12">
-          <motion.div
-            className="absolute inset-0 rounded-full border border-black/15"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
-          />
-          <motion.div
-            className="absolute inset-1 rounded-full border-t border-foreground"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-          />
-        </div>
-        <p className="text-xl font-semibold text-foreground">{APP_NAME}</p>
+        <motion.div
+          className="size-14 border border-accent/25"
+          animate={{ opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <VeritasMark variant="on-light" />
+        </motion.div>
+        <p className="font-display text-xl text-foreground">{APP_NAME}</p>
       </motion.div>
     </div>
   )

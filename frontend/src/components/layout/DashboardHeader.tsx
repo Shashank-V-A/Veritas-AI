@@ -6,7 +6,7 @@ import { ROUTES } from '@/lib/constants'
 
 const PAGE_TITLES: Record<string, string> = {
   [ROUTES.dashboard]: 'Workspace',
-  [ROUTES.history]: 'Archive',
+  [ROUTES.history]: 'Case files',
 }
 
 interface DashboardHeaderProps {

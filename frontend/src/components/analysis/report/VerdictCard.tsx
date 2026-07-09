@@ -56,17 +56,25 @@ export function NeutralRewriteCard({ text }: NeutralRewriteCardProps) {
 
 interface Eli15CardProps {
   text: string
+  compact?: boolean
 }
 
-export function Eli15Card({ text }: Eli15CardProps) {
+export function Eli15Card({ text, compact }: Eli15CardProps) {
+  if (compact) {
+    return (
+      <div>
+        <p className="font-mono text-[10px] text-card-foreground/50">Plain-language brief</p>
+        <p className="mt-2 text-sm leading-relaxed text-card-foreground/80">{text}</p>
+      </div>
+    )
+  }
+
   return (
     <Card className="border-border bg-surface">
       <CardContent className="p-6">
         <div className="flex items-center gap-2">
           <Lightbulb className="size-4 text-accent-secondary" strokeWidth={1.75} />
-          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-            Explain like I&apos;m 15
-          </p>
+          <p className="font-mono text-[10px] text-muted-foreground">Plain-language brief</p>
         </div>
         <p className="mt-4 text-sm leading-relaxed text-foreground">{text}</p>
       </CardContent>

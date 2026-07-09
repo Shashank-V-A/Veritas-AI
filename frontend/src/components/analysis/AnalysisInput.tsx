@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, FileUp, X } from 'lucide-react'
 import { MAX_CONTENT_LENGTH } from '@/lib/constants'
 import { SOURCE_TYPE_OPTIONS } from '@/lib/sourceTypes'
@@ -10,12 +10,19 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAnalyze } from '@/hooks/useAnalyze'
 import { ApiClientError } from '@/services/api'
+import type { AnalysisPrefill } from '@/lib/sampleReport'
 
 interface AnalysisInputProps {
   className?: string
+  prefill?: AnalysisPrefill | null
+  onPrefillConsumed?: () => void
 }
 
-export function AnalysisInput({ className }: AnalysisInputProps) {
+export function AnalysisInput({
+  className,
+  prefill,
+  onPrefillConsumed,
+}: AnalysisInputProps) {
   const [content, setContent] = useState('')
   const [sourceType, setSourceType] = useState<SourceType>('article')
   const [title, setTitle] = useState('')
@@ -23,6 +30,17 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const analyze = useAnalyze()
+
+  useEffect(() => {
+    if (!prefill) return
+    setContent(prefill.content)
+    setSourceType(prefill.sourceType)
+    setTitle(prefill.title ?? '')
+    setPdfFile(null)
+    onPrefillConsumed?.()
+  }, [prefill, onPrefillConsumed])
+
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const isPdfMode = sourceType === 'pdf'
   const charCount = content.length
@@ -76,12 +94,12 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
 
   return (
     <div
-      className={cn('panel-gold overflow-hidden', className)}
+      className={cn('panel-parchment overflow-hidden', className)}
       data-onboarding="analysis-input"
     >
-      <div className="border-b border-black/10 px-5 py-4">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wide text-foreground/55">
-          Source type
+      <div className="border-b border-foreground/10 px-5 py-4">
+        <p className="mb-3 font-mono text-[10px] text-foreground/55">
+          Evidence type
         </p>
         <div className="flex flex-wrap gap-2" role="tablist" aria-label="Source type">
           {SOURCE_TYPE_OPTIONS.map((option) => (
@@ -97,8 +115,8 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
               className={cn(
                 'border px-3 py-1.5 text-xs transition-all',
                 sourceType === option.value
-                  ? 'border-black/30 bg-black/10 text-foreground'
-                  : 'border-transparent text-foreground/55 hover:border-black/15 hover:text-foreground',
+                  ? 'border-accent/30 bg-accent/10 text-foreground'
+                  : 'border-transparent text-foreground/55 hover:border-foreground/15 hover:text-foreground',
               )}
             >
               {option.label}
@@ -107,7 +125,7 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
         </div>
       </div>
 
-      <div className="border-b border-black/10 px-5 py-3">
+      <div className="border-b border-foreground/10 px-5 py-3">
         <Input
           placeholder="Headline or label (optional)"
           value={title}
@@ -122,8 +140,8 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
           className={cn(
             'mx-5 my-5 flex min-h-[260px] flex-col items-center justify-center border-2 border-dashed px-6 py-10 transition-colors md:min-h-[300px]',
             isDragging
-              ? 'border-black/40 bg-black/10'
-              : 'border-black/20 bg-black/5',
+              ? 'border-foreground/40 bg-foreground/10'
+              : 'border-foreground/20 bg-foreground/5',
           )}
           onDragOver={(e) => {
             e.preventDefault()
@@ -180,8 +198,9 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
           )}
         </div>
       ) : (
-        <Textarea
-          placeholder="Paste the content you want verified — article, thread, transcript, forward…"
+      <Textarea
+        ref={inputRef}
+        placeholder="Paste the content under investigation — article, thread, transcript, forward…"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -191,7 +210,7 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
         />
       )}
 
-      <div className="flex flex-col gap-4 border-t border-black/10 bg-black/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 border-t border-foreground/10 bg-foreground/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1">
           {!isPdfMode && (
             <p
@@ -224,7 +243,7 @@ export function AnalysisInput({ className }: AnalysisInputProps) {
           className="h-11 gap-2 bg-primary px-6 font-medium text-primary-foreground hover:bg-primary/90"
           data-onboarding="analyze-button"
         >
-          Run analysis
+          Run investigation
           <ArrowRight className="size-4" />
         </Button>
       </div>

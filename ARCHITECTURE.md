@@ -181,15 +181,17 @@ Tokens defined in `frontend/src/lib/tokens.ts` and mirrored in `tailwind.config.
 
 ```ts
 colors: {
-  gold: '#D4AF37',
-  black: '#000000',
-  background: '#D4AF37',      // Classic Gold
-  surface: '#000000',         // Black workspace panels
-  foreground: '#0A0A0A',      // Text on gold
-  accent: '#D4AF37',          // Highlights on dark surfaces
-  success: '#5A8F5A',
-  warning: '#D4AF37',
-  danger: '#C45C5C',
+  parchment: '#F4F0E6',
+  ink: '#1A1A1F',
+  charcoal: '#2C2C30',
+  background: '#F4F0E6',        // Warm parchment
+  surface: '#1A1A1F',           // Deep ink panels
+  foreground: '#2C2C30',         // Text on parchment
+  accent: '#8B2942',             // Oxblood — verdicts, stamps
+  accentSecondary: '#9A7B4F',    // Aged brass — highlights
+  success: '#2D5A4A',            // Forest — verified
+  warning: '#B8860B',            // Amber — disputed
+  danger: '#A63D3D',             // Rust — false/misleading
 }
 ```
 
@@ -636,7 +638,7 @@ Strategies: route-based code splitting, lazy-loaded Recharts, skeleton loaders, 
 | Google OAuth | Yes | Private analyses per user; JWT session cookies |
 | TanStack Query | Yes | Best-in-class server state for React |
 | shadcn/ui | Yes | Accessible primitives, full design control |
-| Gold + black theme | Yes | Classic gold `#D4AF37` + black `#000000` split layout |
+| Ink & Parchment theme | Yes | Parchment `#F4F0E6` + ink `#1A1A1F` + oxblood `#8B2942` forensic palette |
 
 ---
 

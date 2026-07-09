@@ -1,4 +1,4 @@
-import type { Claim } from '@/types'
+import type { Claim } from '@veritas/shared'
 import { ClaimCard } from '@/components/analysis/report/ClaimCard'
 
 interface ClaimBreakdownProps {
@@ -17,7 +17,7 @@ export function ClaimBreakdown({ claims }: ClaimBreakdownProps) {
   return (
     <div className="space-y-3">
       {claims.map((claim, index) => (
-        <ClaimCard key={`${claim.claim}-${index}`} claim={claim} index={index} />
+        <ClaimCard key={`${claim.claim}-${index}`} claim={claim} index={index} variant="dossier" />
       ))}
     </div>
   )

@@ -1,23 +1,55 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { CHART_COLORS } from '@/lib/chartColors'
-import { getTrustScoreColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface TrustScoreRingProps {
   score: number
   className?: string
+  variant?: 'default' | 'seal'
 }
 
-export function TrustScoreRing({ score, className }: TrustScoreRingProps) {
+function useCountUp(target: number, duration = 1200, enabled = true) {
+  const [value, setValue] = useState(0)
+
+  useEffect(() => {
+    if (!enabled) {
+      setValue(target)
+      return
+    }
+
+    let start: number | null = null
+    let frame: number
+
+    const step = (timestamp: number) => {
+      if (start === null) start = timestamp
+      const progress = Math.min((timestamp - start) / duration, 1)
+      setValue(Math.round(progress * target))
+      if (progress < 1) frame = requestAnimationFrame(step)
+    }
+
+    frame = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(frame)
+  }, [target, duration, enabled])
+
+  return value
+}
+
+export function TrustScoreRing({
+  score,
+  className,
+  variant = 'default',
+}: TrustScoreRingProps) {
   const reducedMotion = useReducedMotion()
-  const radius = 72
-  const stroke = 8
+  const displayScore = useCountUp(score, 1200, !reducedMotion)
+
+  const radius = variant === 'seal' ? 64 : 72
+  const stroke = 6
   const normalizedRadius = radius - stroke / 2
   const circumference = 2 * Math.PI * normalizedRadius
   const progress = Math.min(100, Math.max(0, score))
-  const strokeDashoffset =
-    circumference - (progress / 100) * circumference
+  const strokeDashoffset = circumference - (progress / 100) * circumference
 
   const ringColor =
     score >= 70
@@ -32,7 +64,10 @@ export function TrustScoreRing({ score, className }: TrustScoreRingProps) {
       role="img"
       aria-label={`Trust score ${score} out of 100`}
     >
-      <div className="relative size-44">
+      <div className={cn('relative', variant === 'seal' ? 'size-40' : 'size-44')}>
+        {variant === 'seal' && (
+          <div className="absolute inset-2 rounded-full border-2 border-dashed border-accent/30" />
+        )}
         <svg
           className="size-full -rotate-90"
           viewBox={`0 0 ${radius * 2} ${radius * 2}`}
@@ -65,15 +100,18 @@ export function TrustScoreRing({ score, className }: TrustScoreRingProps) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <motion.span
-            className={cn('text-4xl font-semibold tabular-nums', getTrustScoreColor(score))}
-            initial={reducedMotion ? false : { opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
+            className={cn(
+              'font-display tabular-nums text-accent',
+              variant === 'seal' ? 'text-4xl' : 'text-5xl',
+            )}
+            initial={reducedMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
           >
-            {score}
+            {displayScore}
           </motion.span>
-          <span className="text-[11px] uppercase tracking-widest text-muted">
-            Trust score
+          <span className="font-mono text-[9px] text-card-foreground/50">
+            TRUST / 100
           </span>
         </div>
       </div>

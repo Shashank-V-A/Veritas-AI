@@ -1,48 +1,23 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useState } from 'react'
-import { Shield, Sparkles } from 'lucide-react'
-import {
-  fadeIn,
-  revealLine,
-  slideLeft,
-  slideRight,
-  staggerContainer,
-} from '@/animations/variants'
+import { motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
+import { fadeIn, slideUp, staggerContainer } from '@/animations/variants'
+import { BeforeAfterDemo } from '@/components/landing/BeforeAfterDemo'
+import { HowItWorks } from '@/components/landing/HowItWorks'
+import { SampleReportPreview } from '@/components/landing/SampleReportPreview'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { AuthLoadingScreen } from '@/components/auth/AuthLoadingScreen'
-import { APP_NAME, APP_TAGLINE, ROUTES } from '@/lib/constants'
+import { Logo } from '@/components/layout/Logo'
+import { ROUTES } from '@/lib/constants'
+import { SAMPLE_REPORT } from '@/lib/sampleReport'
 import { useAuth } from '@/contexts/AuthContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-
-const PROOF_POINTS = [
-  'Claim-level verification',
-  'Bias & fallacy detection',
-  'Evidence-backed trust scores',
-  'Structured credibility reports',
-  'No chat — only analysis',
-]
-
-const STATS = [
-  { value: '12+', label: 'Signal dimensions' },
-  { value: '4s', label: 'Avg. report time' },
-  { value: '100', label: 'Trust score scale' },
-]
 
 export function LandingPage() {
   const { isAuthenticated, isLoading } = useAuth()
   const reducedMotion = useReducedMotion()
-  const [phraseIndex, setPhraseIndex] = useState(0)
   const [searchParams, setSearchParams] = useSearchParams()
   const authError = searchParams.get('auth_error')
-
-  useEffect(() => {
-    if (reducedMotion) return
-    const timer = window.setInterval(() => {
-      setPhraseIndex((i) => (i + 1) % PROOF_POINTS.length)
-    }, 3200)
-    return () => window.clearInterval(timer)
-  }, [reducedMotion])
 
   if (isLoading) {
     return <AuthLoadingScreen />
@@ -53,170 +28,157 @@ export function LandingPage() {
   }
 
   return (
-    <div className="grain relative min-h-svh overflow-hidden">
-      <div className="relative z-10 mx-auto grid min-h-svh max-w-[1400px] lg:grid-cols-2">
-        {/* Gold editorial panel */}
-        <motion.section
-          className="flex flex-col justify-between bg-background px-6 py-10 text-foreground md:px-12 md:py-14"
-          variants={reducedMotion ? undefined : staggerContainer}
-          initial={reducedMotion ? false : 'hidden'}
-          animate={reducedMotion ? false : 'visible'}
-        >
-          <motion.header variants={reducedMotion ? undefined : fadeIn}>
-            <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center border border-black/20 bg-black/5">
-                <Shield className="size-4 text-foreground" strokeWidth={1.5} />
-              </div>
-              <span className="text-xs font-medium uppercase tracking-wide text-foreground/60">
-                {APP_NAME}
-              </span>
-            </div>
-          </motion.header>
-
-          <div className="my-16 max-w-xl lg:my-0 lg:py-20">
-            <motion.p
-              variants={reducedMotion ? undefined : slideRight}
-              className="mb-4 text-xs font-semibold uppercase tracking-wide text-foreground/70"
-            >
-              Credibility intelligence
-            </motion.p>
-
-            <motion.h1
-              variants={reducedMotion ? undefined : slideRight}
-              className="text-balance text-4xl font-semibold leading-tight tracking-tight md:text-5xl lg:text-[3.5rem]"
-            >
-              {APP_TAGLINE}
-            </motion.h1>
-
-            <motion.div
-              variants={reducedMotion ? undefined : revealLine}
-              className="gold-line my-8 w-24 origin-left"
-            />
-
-            <motion.p
-              variants={reducedMotion ? undefined : slideRight}
-              className="max-w-md text-base leading-relaxed text-foreground/75 md:text-lg"
-            >
-              Paste any article, post, or transcript. Receive a forensic credibility
-              report — claims, bias, fallacies, evidence — built for decision-makers,
-              not chat addicts.
-            </motion.p>
-
-            <motion.div
-              variants={reducedMotion ? undefined : slideRight}
-              className="mt-10 h-8 overflow-hidden"
-            >
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={phraseIndex}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -12 }}
-                  transition={{ duration: 0.45 }}
-                  className="flex items-center gap-2 text-sm text-foreground/80"
-                >
-                  <Sparkles className="size-3.5 text-foreground" />
-                  {PROOF_POINTS[phraseIndex]}
-                </motion.p>
-              </AnimatePresence>
-            </motion.div>
-          </div>
-
-          <motion.footer
-            variants={reducedMotion ? undefined : fadeIn}
-            className="hidden items-end justify-between border-t border-black/10 pt-8 lg:flex"
+    <div className="min-h-svh">
+      {/* Hero */}
+      <section className="paper-parchment relative overflow-hidden px-6 py-16 md:px-12 md:py-24 lg:py-28">
+        <div className="relative z-10 mx-auto max-w-6xl">
+          <motion.div
+            variants={reducedMotion ? undefined : staggerContainer}
+            initial={reducedMotion ? false : 'hidden'}
+            animate={reducedMotion ? false : 'visible'}
           >
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <p className="text-3xl font-semibold text-foreground">{stat.value}</p>
-                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-foreground/55">
-                  {stat.label}
+            <motion.header
+              variants={reducedMotion ? undefined : fadeIn}
+              className="flex items-center justify-between gap-4"
+            >
+              <Logo
+                size="sm"
+                linkTo={ROUTES.home}
+                variant="on-light"
+                className="pointer-events-none sm:pointer-events-auto"
+              />
+              <GoogleSignInButton
+                size="sm"
+                variant="default"
+                className="hidden shadow-sm sm:inline-flex"
+                label="Sign in"
+              />
+            </motion.header>
+
+            <motion.div variants={reducedMotion ? undefined : slideUp} className="mt-16 max-w-3xl">
+              <p className="font-mono text-xs text-foreground/55">
+                Credibility intelligence · Forensic analysis
+              </p>
+              <h1 className="mt-4 font-display text-balance text-4xl leading-[1.1] text-foreground md:text-6xl lg:text-7xl">
+                Chatbots speculate.
+                <br />
+                Veritas investigates.
+              </h1>
+              <div className="accent-line my-8 w-32" />
+              <p className="max-w-xl text-base leading-relaxed text-foreground/75 md:text-lg">
+                Paste any article, post, or PDF. Receive a structured credibility dossier —
+                claims, bias, fallacies, evidence. Built for decision-makers, not chat addicts.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <a
+                  href="#sample-dossier"
+                  className="inline-flex h-11 items-center gap-2 bg-primary px-6 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                >
+                  View sample dossier
+                  <ArrowRight className="size-4" />
+                </a>
+                <p className="font-mono text-xs text-foreground/45">
+                  No sign-in required to preview
                 </p>
               </div>
-            ))}
-          </motion.footer>
-        </motion.section>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
 
-        {/* Black login panel */}
-        <motion.section
-          className="flex items-center justify-center bg-surface px-6 py-12 text-card-foreground md:px-12 lg:py-0"
-          variants={reducedMotion ? undefined : slideLeft}
-          initial={reducedMotion ? false : 'hidden'}
-          animate={reducedMotion ? false : 'visible'}
-        >
-          <div className="panel-dark w-full max-w-md p-8 md:p-10">
-            <p className="text-xs font-semibold uppercase tracking-wide text-accent">
-              Members only
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold leading-snug text-card-foreground md:text-3xl">
-              Enter the workspace
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed text-card-foreground/70">
-              Sign in to run analyses, access your report archive, and build a
-              personal credibility audit trail. Your data stays private to your
-              account.
-            </p>
+      {/* Before / After */}
+      <section className="border-t border-foreground/10 bg-background px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="font-display text-2xl text-foreground md:text-3xl">
+            Sensational input → forensic output
+          </h2>
+          <p className="mt-2 max-w-lg text-sm text-foreground/65">
+            See how Veritas deconstructs viral misinformation into evidence-backed findings.
+          </p>
+          <div className="mt-8">
+            <BeforeAfterDemo />
+          </div>
+        </div>
+      </section>
 
-            <div className="mt-8 space-y-4">
-              {authError && (
-                <div
-                  className="border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-card-foreground"
-                  role="alert"
-                >
-                  Sign-in failed: {authError.replace(/_/g, ' ')}
-                  <button
-                    type="button"
-                    className="ml-2 underline"
-                    onClick={() => setSearchParams({})}
-                  >
-                    Dismiss
-                  </button>
-                </div>
-              )}
-
-              <GoogleSignInButton
-                size="lg"
-                className="h-12 w-full border-accent/40 bg-accent text-primary hover:bg-accent/90 hover:text-primary"
-                label="Continue with Google"
-              />
-
-              <ul className="space-y-2.5 border-t border-accent/20 pt-6">
-                {[
-                  'Private analysis history',
-                  'Personal trust score archive',
-                  'Export-ready credibility reports',
-                ].map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-2.5 text-sm text-card-foreground/65"
-                  >
-                    <span className="size-1.5 shrink-0 rounded-full bg-accent" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+      {/* Sample dossier */}
+      <section
+        id="sample-dossier"
+        className="paper-ink border-t border-accent/20 px-6 py-16 md:px-12 md:py-20"
+      >
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="font-mono text-xs text-accent/60">Live preview</p>
+              <h2 className="mt-2 font-display text-2xl text-card-foreground md:text-3xl">
+                Sample credibility dossier
+              </h2>
+              <p className="mt-2 text-sm text-card-foreground/60">
+                Scroll the evidence log. This is what judges see — before they sign in.
+              </p>
             </div>
+            <span className="stamp border-accent text-accent">Classified sample</span>
+          </div>
+          <SampleReportPreview record={SAMPLE_REPORT} />
+        </div>
+      </section>
 
-            <p className="mt-8 text-center text-xs leading-relaxed text-card-foreground/45">
-              By continuing, you agree to use Veritas for verification — not
-              speculation.
+      {/* How it works */}
+      <section className="paper-parchment border-t border-foreground/10 px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-6xl">
+          <h2 className="font-display text-2xl text-foreground md:text-3xl">How it works</h2>
+          <div className="mt-10">
+            <HowItWorks />
+          </div>
+        </div>
+      </section>
+
+      {/* Sign in — secondary */}
+      <section className="paper-ink border-t border-accent/20 px-6 py-16 md:px-12">
+        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+          <div>
+            <h2 className="font-display text-2xl text-card-foreground md:text-3xl">
+              Ready to run your own investigation?
+            </h2>
+            <p className="mt-2 max-w-md text-sm text-card-foreground/65">
+              Sign in to analyze content, build your case archive, and export PDF dossiers.
             </p>
           </div>
-        </motion.section>
-      </div>
 
-      {/* Marquee strip */}
-      <div className="relative z-10 overflow-hidden border-t border-black/10 bg-background py-3">
-        <div className="animate-marquee flex w-max gap-12 whitespace-nowrap">
-          {[...PROOF_POINTS, ...PROOF_POINTS].map((point, i) => (
-            <span
-              key={`${point}-${i}`}
-              className="text-xs font-medium uppercase tracking-wide text-foreground/45"
-            >
-              {point}
-            </span>
-          ))}
+          <div className="w-full max-w-sm space-y-4">
+            {authError && (
+              <div
+                className="border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-card-foreground"
+                role="alert"
+              >
+                Sign-in failed: {authError.replace(/_/g, ' ')}
+                <button
+                  type="button"
+                  className="ml-2 underline"
+                  onClick={() => setSearchParams({})}
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
+            <GoogleSignInButton
+              size="lg"
+              variant="default"
+              className="h-12 w-full shadow-sm"
+              label="Continue with Google"
+            />
+            <p className="text-center font-mono text-[10px] text-card-foreground/40">
+              Private archive · PDF export · ⌘K command palette
+            </p>
+          </div>
         </div>
+      </section>
+
+      {/* Footer stat */}
+      <div className="border-t border-accent/20 bg-surface px-6 py-4 text-center">
+        <p className="font-mono text-xs text-accent-secondary/70">
+          12+ signal dimensions · 100-point trust scale · Mesh API powered
+        </p>
       </div>
     </div>
   )

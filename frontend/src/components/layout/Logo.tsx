@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { VeritasMark } from '@/components/brand/VeritasMark'
 import { cn } from '@/lib/utils'
 import { APP_NAME, ROUTES } from '@/lib/constants'
 
@@ -7,14 +8,14 @@ interface LogoProps {
   showText?: boolean
   size?: 'sm' | 'md' | 'lg'
   linkTo?: string
-  /** on-gold = black mark on gold bg; on-dark = gold mark on black bg */
-  variant?: 'on-gold' | 'on-dark'
+  /** on-light = mark on parchment; on-dark = mark on ink surface */
+  variant?: 'on-light' | 'on-dark'
 }
 
 const sizeMap = {
-  sm: { mark: 'size-7 text-sm', text: 'text-sm' },
-  md: { mark: 'size-8 text-base', text: 'text-base' },
-  lg: { mark: 'size-10 text-lg', text: 'text-xl' },
+  sm: { mark: 'size-7', text: 'text-sm' },
+  md: { mark: 'size-8', text: 'text-base' },
+  lg: { mark: 'size-10', text: 'text-xl' },
 }
 
 export function Logo({
@@ -22,10 +23,10 @@ export function Logo({
   showText = true,
   size = 'md',
   linkTo = ROUTES.dashboard,
-  variant = 'on-gold',
+  variant = 'on-light',
 }: LogoProps) {
   const sizes = sizeMap[size]
-  const isOnGold = variant === 'on-gold'
+  const isOnLight = variant === 'on-light'
 
   return (
     <Link
@@ -39,13 +40,13 @@ export function Logo({
       <div
         className={cn(
           sizes.mark,
-          'flex items-center justify-center border font-semibold transition-colors',
-          isOnGold
-            ? 'border-black/25 bg-black/5 text-foreground group-hover:border-black/40 group-hover:bg-black/10'
-            : 'border-accent/40 bg-accent/10 text-accent group-hover:border-accent/60 group-hover:bg-accent/15',
+          'shrink-0 overflow-hidden border transition-colors',
+          isOnLight
+            ? 'border-accent/30 group-hover:border-accent/50'
+            : 'border-accent-secondary/40 group-hover:border-accent-secondary/60',
         )}
       >
-        V
+        <VeritasMark variant={variant} bare />
       </div>
       {showText && (
         <div className="flex flex-col leading-tight">
@@ -53,15 +54,15 @@ export function Logo({
             className={cn(
               sizes.text,
               'font-semibold tracking-tight',
-              isOnGold ? 'text-foreground' : 'text-accent',
+              isOnLight ? 'text-foreground' : 'text-card-foreground',
             )}
           >
             {APP_NAME}
           </span>
           <span
             className={cn(
-              'mt-0.5 text-[10px] font-medium uppercase tracking-wide',
-              isOnGold ? 'text-foreground/60' : 'text-accent/60',
+              'mt-0.5 font-mono text-[10px]',
+              isOnLight ? 'text-foreground/55' : 'text-card-foreground/50',
             )}
           >
             Verify

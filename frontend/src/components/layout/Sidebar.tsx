@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 
 const navItems = [
   { label: 'Workspace', href: ROUTES.dashboard, icon: LayoutDashboard },
-  { label: 'Archive', href: ROUTES.history, icon: Clock },
+  { label: 'Case files', href: ROUTES.history, icon: Clock },
 ]
 
 interface SidebarProps {
@@ -35,8 +35,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
   const content = (
     <>
-      <div className="flex h-[4.5rem] items-center justify-between border-b border-black/10 px-5">
-        <Logo size="sm" linkTo={ROUTES.dashboard} variant="on-gold" />
+      <div className="flex h-[4.5rem] items-center justify-between border-b border-foreground/10 px-5">
+        <Logo size="sm" linkTo={ROUTES.dashboard} variant="on-light" />
         {onMobileClose && (
           <Button
             variant="ghost"
@@ -52,18 +52,18 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
       <div className="flex flex-1 flex-col p-4">
         <Button
-          className="mb-6 h-10 w-full justify-start gap-2.5 border border-black/15 bg-black/5 text-foreground hover:bg-black/10 hover:text-foreground"
+          className="mb-6 h-10 w-full justify-start gap-2.5 border border-foreground/15 bg-foreground/5 text-foreground hover:bg-foreground/10 hover:text-foreground"
           variant="ghost"
           asChild
           onClick={onMobileClose}
         >
           <Link to={ROUTES.dashboard}>
             <Plus className="size-4" />
-            New analysis
+            New investigation
           </Link>
         </Button>
 
-        <p className="mb-2 px-2 text-xs font-medium uppercase tracking-wide text-foreground/50">
+        <p className="mb-2 px-2 font-mono text-[10px] text-foreground/50">
           Navigate
         </p>
         <nav
@@ -99,7 +99,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   {isActive && (
                     <motion.span
                       layoutId="nav-active"
-                      className="absolute inset-0 border border-black/15 bg-black/5"
+                      className="absolute inset-0 border border-foreground/15 bg-foreground/5"
                       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                     />
                   )}
@@ -115,25 +115,29 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="space-y-3 border-t border-black/10 p-4">
+      <div className="space-y-3 border-t border-foreground/10 p-4">
+        <div className="flex items-center gap-2 px-2">
+          <span className="size-1.5 rounded-full bg-success" />
+          <span className="font-mono text-[10px] text-foreground/55">Mesh API · Online</span>
+        </div>
         <button
           type="button"
           onClick={() => {
             setOpen(true)
             onMobileClose?.()
           }}
-          className="flex w-full items-center gap-3 border border-black/10 bg-black/5 px-3 py-2.5 text-left text-sm text-foreground/60 transition-colors hover:border-black/20 hover:text-foreground"
+          className="flex w-full items-center gap-3 border border-foreground/10 bg-foreground/5 px-3 py-2.5 text-left text-sm text-foreground/60 transition-colors hover:border-foreground/20 hover:text-foreground"
           aria-label="Open command palette"
         >
           <Search className="size-4 shrink-0" strokeWidth={1.5} />
           <span className="flex-1">Quick search</span>
-          <kbd className="hidden border border-black/15 px-1.5 py-0.5 text-[10px] text-foreground/50 sm:inline-block">
+          <kbd className="hidden border border-foreground/15 px-1.5 py-0.5 text-[10px] text-foreground/50 sm:inline-block">
             ⌘K
           </kbd>
         </button>
 
         {user && (
-          <div className="flex items-center gap-3 border border-black/10 p-3">
+          <div className="flex items-center gap-3 border border-foreground/10 p-3">
             {user.avatar ? (
               <img
                 src={user.avatar}
@@ -141,7 +145,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                 className="size-9 object-cover"
               />
             ) : (
-              <div className="flex size-9 items-center justify-center border border-black/20 bg-black/5 text-xs font-medium text-foreground">
+              <div className="flex size-9 items-center justify-center border border-foreground/20 bg-foreground/5 text-xs font-medium text-foreground">
                 {getInitials(user.name, user.email)}
               </div>
             )}
@@ -170,7 +174,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
   return (
     <>
-      <aside className="hidden h-full w-[17.5rem] shrink-0 flex-col border-r border-black/10 bg-background md:flex">
+      <aside className="hidden h-full w-[17.5rem] shrink-0 flex-col border-r border-foreground/10 bg-background md:flex">
         {content}
       </aside>
 
@@ -178,7 +182,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         {mobileOpen && (
           <>
             <motion.div
-              className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
+              className="fixed inset-0 z-40 bg-foreground/70 backdrop-blur-sm md:hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -186,7 +190,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               aria-hidden="true"
             />
             <motion.aside
-              className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-black/10 bg-background md:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-foreground/10 bg-background md:hidden"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}

@@ -14,10 +14,8 @@ export function HistoryPage() {
         animate={reducedMotion ? false : 'visible'}
       >
         <motion.header variants={reducedMotion ? undefined : slideUp} className="mb-10">
-          <p className="text-xs font-semibold uppercase tracking-wide text-accent">
-            Archive
-          </p>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-card-foreground md:text-4xl">
+          <p className="font-mono text-xs text-accent/70">Case file archive</p>
+          <h1 className="mt-3 font-display text-3xl leading-tight text-card-foreground md:text-4xl">
             Your credibility dossiers
           </h1>
           <p className="mt-3 max-w-lg text-base leading-relaxed text-card-foreground/65">
