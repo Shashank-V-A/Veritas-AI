@@ -47,6 +47,8 @@ export interface AuthMeResponse {
 export type ErrorCode =
   | 'VALIDATION_ERROR'
   | 'NOT_FOUND'
+  | 'UNAUTHORIZED'
+  | 'RATE_LIMIT'
   | 'MESH_TIMEOUT'
   | 'MESH_ERROR'
   | 'MESH_NOT_CONFIGURED'

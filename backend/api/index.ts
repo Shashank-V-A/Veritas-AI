@@ -6,7 +6,7 @@ import { ensureDatabase } from '../db/init.js'
 import { getCorsOptions } from '../utils/cors.js'
 import { optionalAuth } from './middleware/auth.js'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
-import { rateLimiter } from './middleware/rateLimiter.js'
+import { rateLimiter, authRateLimiter, analyzeRateLimiter } from './middleware/rateLimiter.js'
 import { analyzeRouter } from './routes/analyze.js'
 import { authRouter } from './routes/auth.js'
 import { historyRouter } from './routes/history.js'
@@ -41,8 +41,8 @@ export function createApp() {
     })
   })
 
-  app.use('/api/auth', authRouter)
-  app.use('/api/analyze', requireAuth, analyzeRouter)
+  app.use('/api/auth', authRateLimiter, authRouter)
+  app.use('/api/analyze', requireAuth, analyzeRateLimiter, analyzeRouter)
   app.use('/api/history', requireAuth, historyRouter)
   app.use('/api/report', requireAuth, reportRouter)
 

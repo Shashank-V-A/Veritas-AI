@@ -2,10 +2,10 @@ import { API_BASE_URL } from '@/lib/constants'
 import type {
   AnalyzeRequest,
   AnalyzeResponse,
-  ApiError,
+  ApiErrorBody,
   AnalysisRecord,
   HistoryResponse,
-} from '@/types'
+} from '@veritas/shared'
 
 class ApiClientError extends Error {
   code: string
@@ -19,13 +19,25 @@ class ApiClientError extends Error {
   }
 }
 
+type UnauthorizedHandler = () => void
+
+let unauthorizedHandler: UnauthorizedHandler | null = null
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler) {
+  unauthorizedHandler = handler
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    let errorBody: ApiError | null = null
+    let errorBody: ApiErrorBody | null = null
     try {
-      errorBody = (await response.json()) as ApiError
+      errorBody = (await response.json()) as ApiErrorBody
     } catch {
       // response body is not JSON
+    }
+
+    if (response.status === 401) {
+      unauthorizedHandler?.()
     }
 
     throw new ApiClientError(
@@ -45,6 +57,19 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify(payload),
+    })
+    return handleResponse<AnalyzeResponse>(response)
+  },
+
+  async analyzePdf(file: File, title?: string): Promise<AnalyzeResponse> {
+    const formData = new FormData()
+    formData.append('pdf', file)
+    if (title?.trim()) formData.append('title', title.trim())
+
+    const response = await fetch(`${API_BASE_URL}/analyze/pdf`, {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
     })
     return handleResponse<AnalyzeResponse>(response)
   },
@@ -72,6 +97,39 @@ export const api = {
       credentials: 'include',
     })
     return handleResponse<AnalysisRecord>(response)
+  },
+
+  async exportReportPdf(id: string): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/report/${id}/export`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      let errorBody: ApiErrorBody | null = null
+      try {
+        errorBody = (await response.json()) as ApiErrorBody
+      } catch {
+        // not JSON
+      }
+
+      if (response.status === 401) unauthorizedHandler?.()
+
+      throw new ApiClientError(
+        errorBody?.error?.message ?? 'PDF export failed',
+        errorBody?.error?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      )
+    }
+
+    return response.blob()
+  },
+
+  async deleteReport(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/report/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    await handleResponse<{ ok: boolean }>(response)
   },
 }
 

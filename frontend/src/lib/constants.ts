@@ -10,4 +10,4 @@ export const ROUTES = {
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
-export const MAX_CONTENT_LENGTH = 50_000
+export { MAX_CONTENT_LENGTH } from '@veritas/shared'

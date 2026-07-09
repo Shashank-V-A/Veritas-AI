@@ -64,11 +64,23 @@ export const reportRepository = {
       throw new AppError('Report not found', 'NOT_FOUND')
     }
 
-    if (userId && row.userId && row.userId !== userId) {
-      throw new AppError('Report not found', 'NOT_FOUND')
+    if (userId) {
+      if (!row.userId || row.userId !== userId) {
+        throw new AppError('Report not found', 'NOT_FOUND')
+      }
     }
 
     return toAnalysisRecord(row)
+  },
+
+  async deleteById(id: string, userId: string): Promise<void> {
+    const row = await prisma.analysis.findUnique({ where: { id } })
+
+    if (!row || row.userId !== userId) {
+      throw new AppError('Report not found', 'NOT_FOUND')
+    }
+
+    await prisma.analysis.delete({ where: { id } })
   },
 
   async findHistory(params: {

@@ -1,0 +1,32 @@
+import { PDFParse } from 'pdf-parse'
+import { AppError } from '../../utils/errors.js'
+
+const MAX_PDF_BYTES = 10 * 1024 * 1024
+
+export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
+  if (buffer.length > MAX_PDF_BYTES) {
+    throw new AppError('PDF must be under 10 MB', 'VALIDATION_ERROR', 400)
+  }
+
+  const parser = new PDFParse({ data: buffer })
+
+  try {
+    const result = await parser.getText()
+    const text = result.text?.replace(/\s+/g, ' ').trim()
+
+    if (!text) {
+      throw new AppError(
+        'No extractable text found in PDF — try a text-based document',
+        'VALIDATION_ERROR',
+        400,
+      )
+    }
+
+    return text
+  } catch (error) {
+    if (error instanceof AppError) throw error
+    throw new AppError('Could not read PDF file', 'VALIDATION_ERROR', 400)
+  } finally {
+    await parser.destroy()
+  }
+}

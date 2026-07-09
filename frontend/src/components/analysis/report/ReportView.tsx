@@ -21,7 +21,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { formatRelativeDate } from '@/lib/format'
 import { getSourceTypeLabel } from '@/lib/sourceTypes'
 import { cn } from '@/lib/utils'
-import type { AnalysisRecord } from '@/types'
+import type { AnalysisRecord } from '@veritas/shared'
+import { useDeleteReport } from '@/hooks/useDeleteReport'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface ReportViewProps {
@@ -31,7 +32,15 @@ interface ReportViewProps {
 export function ReportView({ record }: ReportViewProps) {
   const reducedMotion = useReducedMotion()
   const [sourceExpanded, setSourceExpanded] = useState(false)
+  const deleteReport = useDeleteReport()
   const { report } = record
+
+  function handleDelete() {
+    const confirmed = window.confirm(
+      'Delete this analysis permanently? This cannot be undone.',
+    )
+    if (confirmed) deleteReport.mutate(record.id)
+  }
 
   return (
     <motion.div
@@ -54,7 +63,11 @@ export function ReportView({ record }: ReportViewProps) {
             {formatRelativeDate(record.createdAt)}
           </p>
         </div>
-        <ReportActions record={record} />
+        <ReportActions
+          record={record}
+          onDelete={handleDelete}
+          isDeleting={deleteReport.isPending}
+        />
       </motion.div>
 
       {/* Trust score + verdict */}

@@ -1,18 +1,19 @@
 import { useState } from 'react'
-import { Check, Copy, Share2 } from 'lucide-react'
-import type { AnalysisRecord } from '@/types'
-import {
-  getSourceTypeLabel,
-} from '@/lib/sourceTypes'
+import { Check, Copy, Download, Share2, Trash2 } from 'lucide-react'
+import type { AnalysisRecord } from '@veritas/shared'
+import { getSourceTypeLabel } from '@/lib/sourceTypes'
 import {
   formatRelativeDate,
   getClaimStatusLabel,
   getVerdictLabel,
 } from '@/lib/format'
 import { Button } from '@/components/ui/button'
+import { api, ApiClientError } from '@/services/api'
 
 interface ReportActionsProps {
   record: AnalysisRecord
+  onDelete?: () => void
+  isDeleting?: boolean
 }
 
 function buildReportText(record: AnalysisRecord): string {
@@ -41,8 +42,14 @@ function buildReportText(record: AnalysisRecord): string {
   return lines.join('\n')
 }
 
-export function ReportActions({ record }: ReportActionsProps) {
+export function ReportActions({
+  record,
+  onDelete,
+  isDeleting = false,
+}: ReportActionsProps) {
   const [copied, setCopied] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   async function handleCopy() {
     await navigator.clipboard.writeText(buildReportText(record))
@@ -65,20 +72,69 @@ export function ReportActions({ record }: ReportActionsProps) {
     }
   }
 
+  async function handleExportPdf() {
+    setExporting(true)
+    setExportError(null)
+    try {
+      const blob = await api.exportReportPdf(record.id)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${(record.title ?? 'veritas-report').replace(/[^a-z0-9-_]+/gi, '-').slice(0, 60)}.pdf`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      setExportError(
+        error instanceof ApiClientError ? error.message : 'PDF export failed',
+      )
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="outline" size="sm" className="gap-2" onClick={handleCopy}>
-        {copied ? (
-          <Check className="size-3.5 text-success" />
-        ) : (
-          <Copy className="size-3.5" />
+    <div className="flex flex-col items-end gap-2">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleCopy}>
+          {copied ? (
+            <Check className="size-3.5 text-success" />
+          ) : (
+            <Copy className="size-3.5" />
+          )}
+          {copied ? 'Copied' : 'Copy report'}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={() => void handleExportPdf()}
+          disabled={exporting}
+        >
+          <Download className="size-3.5" />
+          {exporting ? 'Exporting…' : 'Download PDF'}
+        </Button>
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
+          <Share2 className="size-3.5" />
+          Share
+        </Button>
+        {onDelete && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-danger/30 text-danger hover:bg-danger/10 hover:text-danger"
+            onClick={onDelete}
+            disabled={isDeleting}
+          >
+            <Trash2 className="size-3.5" />
+            {isDeleting ? 'Deleting…' : 'Delete'}
+          </Button>
         )}
-        {copied ? 'Copied' : 'Copy report'}
-      </Button>
-      <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
-        <Share2 className="size-3.5" />
-        Share
-      </Button>
+      </div>
+      {exportError && (
+        <p className="text-xs text-danger" role="alert">
+          {exportError}
+        </p>
+      )}
     </div>
   )
 }

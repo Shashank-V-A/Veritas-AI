@@ -2,12 +2,14 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   type ReactNode,
 } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/lib/constants'
+import { setUnauthorizedHandler } from '@/services/api'
 import { authApi, type AuthUser } from '@/services/auth'
 
 interface AuthContextValue {
@@ -47,6 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await logoutMutation.mutateAsync()
     navigate(ROUTES.home, { replace: true })
   }, [logoutMutation, navigate])
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      queryClient.setQueryData(['auth', 'me'], { user: null })
+      navigate(ROUTES.home, { replace: true })
+    })
+  }, [queryClient, navigate])
 
   const value = useMemo<AuthContextValue>(
     () => ({

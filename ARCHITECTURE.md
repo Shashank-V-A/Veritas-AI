@@ -181,21 +181,19 @@ Tokens defined in `frontend/src/lib/tokens.ts` and mirrored in `tailwind.config.
 
 ```ts
 colors: {
-  background: '#09090B',
-  surface: '#111113',
-  'surface-secondary': '#18181B',
-  border: '#27272A',
-  foreground: '#FAFAFA',
-  muted: '#A1A1AA',
-  accent: '#10B981',        // Deep Emerald
-  'accent-secondary': '#22D3EE', // Electric Cyan
-  success: '#22C55E',
-  warning: '#F59E0B',
-  danger: '#EF4444',
+  gold: '#D4AF37',
+  black: '#000000',
+  background: '#D4AF37',      // Classic Gold
+  surface: '#000000',         // Black workspace panels
+  foreground: '#0A0A0A',      // Text on gold
+  accent: '#D4AF37',          // Highlights on dark surfaces
+  success: '#5A8F5A',
+  warning: '#D4AF37',
+  danger: '#C45C5C',
 }
 ```
 
-Typography: **Inter** via `@fontsource/inter`. Scale: `text-sm` base, `text-2xl`/`text-3xl` for section headings — never oversized hero text.
+Typography: **Inter** via `@fontsource/inter`. Clean sans-serif headings (`font-semibold`), no decorative serif fonts.
 
 ### 4.5 Animation Strategy
 
@@ -224,6 +222,18 @@ Respect `prefers-reduced-motion`.
 ## 5. Backend Architecture
 
 ### 5.1 API Endpoints
+
+#### `GET /api/auth/google`
+
+Starts Google OAuth flow (redirect).
+
+#### `GET /api/auth/google/callback`
+
+Handles OAuth callback, sets session cookie, redirects to `/app`.
+
+#### `GET /api/auth/me` · `POST /api/auth/logout`
+
+Session check and sign-out.
 
 #### `POST /api/analyze`
 
@@ -286,9 +296,17 @@ Full report by ID.
 }
 ```
 
-#### `GET /api/report/:id/export` (Phase 2 polish)
+#### `GET /api/report/:id/export`
 
-Returns PDF binary.
+Returns PDF binary (`application/pdf`). Generated server-side via PDFKit.
+
+#### `DELETE /api/report/:id`
+
+Deletes an analysis owned by the authenticated user.
+
+#### `POST /api/analyze/pdf`
+
+Multipart upload (`pdf` field, max 10 MB). Extracts text with `pdf-parse`, then runs the analysis pipeline.
 
 ### 5.2 Service Layer
 
@@ -552,17 +570,18 @@ Vercel serverless is ephemeral. Strategy for MVP:
 
 ---
 
-## 10. Security Considerations (MVP)
+## 10. Security Considerations
 
 | Concern | Mitigation |
 |---------|------------|
 | API key exposure | Mesh key server-side only; never in frontend bundle |
-| Input injection | Zod validation, max length, HTML strip |
-| Rate limiting | Simple in-memory rate limiter per IP (MVP) |
-| CORS | Restrict to own origin in production |
+| Authentication | Google OAuth + JWT httpOnly cookies; `requireAuth` on analyze/history/report |
+| OAuth CSRF | State cookie validated on callback |
+| Input injection | Zod validation, max length, content sanitization |
+| Rate limiting | Per-route in-memory limiter (auth, analyze, general API); use Redis/KV for distributed limits in production |
+| CORS | Restrict to `FRONTEND_URL` in production |
+| Report access | Users can only read/delete their own analyses (`userId` enforced) |
 | Content safety | Mesh API handles model safety; log flagged content |
-
-No authentication for MVP per requirements.
 
 ---
 
@@ -614,10 +633,10 @@ Strategies: route-based code splitting, lazy-loaded Recharts, skeleton loaders, 
 | Monorepo | Yes | Shared types, single Vercel deploy |
 | Single AI call | Yes (MVP) | Faster to build, lower latency |
 | SQLite | Yes | Zero config, Prisma support, hackathon speed |
-| No auth | Yes | Per requirements; add Clerk/Auth.js later |
+| Google OAuth | Yes | Private analyses per user; JWT session cookies |
 | TanStack Query | Yes | Best-in-class server state for React |
 | shadcn/ui | Yes | Accessible primitives, full design control |
-| Dark mode only | Yes | Premium aesthetic, no theme toggle complexity |
+| Gold + black theme | Yes | Classic gold `#D4AF37` + black `#000000` split layout |
 
 ---
 
