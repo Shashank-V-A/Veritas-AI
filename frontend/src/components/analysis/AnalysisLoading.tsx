@@ -18,50 +18,59 @@ interface AnalysisLoadingProps {
 export function AnalysisLoading({ className }: AnalysisLoadingProps) {
   return (
     <div
-      className={cn('rounded-xl border border-border bg-surface p-6', className)}
+      className={cn('panel-gold p-8 md:p-10', className)}
       role="status"
       aria-live="polite"
       aria-label="Analysis in progress"
     >
-      <div className="mb-6 flex items-center gap-4">
-        <div className="relative size-14 shrink-0">
-          <div className="absolute inset-0 rounded-full border-2 border-border" />
-          <div className="absolute inset-0 animate-pulse rounded-full border-2 border-accent/40 border-t-accent" />
-          <div className="absolute inset-2 rounded-full bg-accent/5" />
+      <div className="mb-8 flex items-center gap-5">
+        <div className="relative size-16 shrink-0">
+          <motion.div
+            className="absolute inset-0 border border-black/15"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+          />
+          <motion.div
+            className="absolute inset-2 border-t border-foreground"
+            animate={{ rotate: -360 }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+          />
         </div>
-        <div className="flex-1 space-y-2">
-          <p className="text-sm font-medium text-foreground">
-            Analyzing content…
+        <div className="flex-1">
+          <p className="text-xl font-semibold text-foreground md:text-2xl">
+            Forensic analysis in progress
           </p>
-          <p className="text-xs text-muted-foreground">
-            This may take up to a minute
+          <p className="mt-1 text-sm text-foreground/65">
+            Building your credibility dossier — typically under a minute
           </p>
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 border-t border-border/50 pt-6">
         {ANALYSIS_STEPS.map((step, index) => (
           <motion.div
             key={step}
             className="flex items-center gap-3"
-            initial={{ opacity: 0.4 }}
-            animate={{ opacity: [0.4, 1, 0.4] }}
+            initial={{ opacity: 0.3, x: -8 }}
+            animate={{ opacity: [0.35, 1, 0.35], x: 0 }}
             transition={{
-              duration: 2,
+              duration: 2.2,
               repeat: Infinity,
-              delay: index * 0.3,
+              delay: index * 0.35,
             }}
           >
-            <div className="size-1.5 rounded-full bg-accent" />
-            <span className="text-xs text-muted-foreground">{step}</span>
+            <span className="size-1 shrink-0 bg-accent" />
+            <span className="text-xs tracking-wide text-muted-foreground">
+              {step}
+            </span>
           </motion.div>
         ))}
       </div>
 
-      <div className="mt-6 space-y-2">
-        <Skeleton className="h-3 w-full shimmer" />
-        <Skeleton className="h-3 w-4/5 shimmer" />
-        <Skeleton className="h-3 w-3/5 shimmer" />
+      <div className="mt-8 space-y-2">
+        <Skeleton className="h-2.5 w-full shimmer" />
+        <Skeleton className="h-2.5 w-4/5 shimmer" />
+        <Skeleton className="h-2.5 w-3/5 shimmer" />
       </div>
     </div>
   )

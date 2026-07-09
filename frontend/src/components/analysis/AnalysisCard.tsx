@@ -41,7 +41,7 @@ export function AnalysisCard({ item, index = 0, className }: AnalysisCardProps) 
         onMouseEnter={handlePrefetch}
         onFocus={handlePrefetch}
         className={cn(
-          'group flex items-center gap-4 rounded-xl border border-border bg-surface p-4 transition-colors hover:border-border hover:bg-surface-secondary/50',
+          'group relative flex items-center gap-4 border border-accent/20 bg-accent/5 p-4 transition-all hover:border-accent/40 hover:bg-accent/10',
           className,
         )}
       >
@@ -49,26 +49,26 @@ export function AnalysisCard({ item, index = 0, className }: AnalysisCardProps) 
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <p className="truncate text-sm font-medium text-foreground">
+            <p className="truncate text-sm font-medium text-card-foreground">
               {title}
             </p>
             <Badge
               variant="outline"
-              className="hidden shrink-0 border-border text-[10px] text-muted-foreground sm:inline-flex"
+              className="hidden shrink-0 border-accent/25 text-[10px] text-card-foreground/70 sm:inline-flex"
             >
               {getSourceTypeLabel(item.sourceType)}
             </Badge>
           </div>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+          <p className="mt-0.5 truncate text-xs text-card-foreground/60">
             {item.preview}
           </p>
-          <p className="mt-1 text-[11px] text-muted">
+          <p className="mt-1 text-[11px] text-card-foreground/45">
             {formatRelativeDate(item.createdAt)}
           </p>
         </div>
 
         <ChevronRight
-          className="size-4 shrink-0 text-muted opacity-0 transition-opacity group-hover:opacity-100"
+          className="size-4 shrink-0 text-card-foreground/40 opacity-0 transition-opacity group-hover:opacity-100"
           strokeWidth={1.75}
         />
       </Link>

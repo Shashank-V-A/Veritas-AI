@@ -53,11 +53,11 @@ Set these in **Vercel Project → Settings → Environment Variables**:
 1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), open your OAuth 2.0 Client ID (Web application).
 2. Under **Authorized JavaScript origins**, add:
    - `http://localhost:5173` (local — no trailing slash, no path)
-3. Under **Authorized redirect URIs**, add **exactly** (lowercase `http`, no trailing slash on paths):
-   - Local: `http://localhost:3001/api/auth/google/callback`
+3. Under **Authorized redirect URIs**, add **exactly** (lowercase `http`, no trailing slash):
+   - Local: `http://localhost:5173/api/auth/google/callback`
    - Production: `https://your-domain.vercel.app/api/auth/google/callback`
 
-   > **Important:** Do **not** use `http://localhost:5173/` — that is the frontend root, not the OAuth callback. Also fix JavaScript origins to lowercase `http://localhost:5173` (not `Http://`).
+   > **Important:** Do **not** use `http://localhost:5173/` (root only). The path must be `/api/auth/google/callback`. Also use lowercase `http://localhost:5173` for JavaScript origins (not `Http://`).
 
 4. Click **Save** and wait ~1 minute for Google to propagate changes.
 5. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `JWT_SECRET`, and `FRONTEND_URL` in `backend/.env` (local) or Vercel env vars (production).
@@ -68,10 +68,10 @@ If sign-in fails with `redirect_uri_mismatch`, compare:
 
 | What | Value |
 |------|-------|
-| App sends (from error details) | `http://localhost:3001/api/auth/google/callback` |
-| Google Console must have | `http://localhost:3001/api/auth/google/callback` |
+| App sends (from error details) | `http://localhost:5173/api/auth/google/callback` |
+| Google Console must have | `http://localhost:5173/api/auth/google/callback` |
 
-Remove incorrect entries like `http://localhost:5173/` from **Authorized redirect URIs**. Fix **Authorized JavaScript origins** to use lowercase `http://localhost:5173`.
+Remove incorrect entries like `http://localhost:5173/` from **Authorized redirect URIs**. The backend logs the exact redirect URI on startup.
 
 ## Architecture on Vercel
 

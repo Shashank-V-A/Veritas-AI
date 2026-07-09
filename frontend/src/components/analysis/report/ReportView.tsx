@@ -43,13 +43,13 @@ export function ReportView({ record }: ReportViewProps) {
       {/* Header */}
       <motion.div variants={slideUp} className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-widest text-accent">
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">
             Credibility report
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="mt-2 text-2xl font-semibold leading-snug tracking-tight text-card-foreground md:text-3xl">
             {record.title ?? 'Untitled analysis'}
           </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
+          <p className="mt-1.5 text-sm text-card-foreground/60">
             {getSourceTypeLabel(record.sourceType)} ·{' '}
             {formatRelativeDate(record.createdAt)}
           </p>

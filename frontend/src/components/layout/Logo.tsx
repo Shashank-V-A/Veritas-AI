@@ -1,48 +1,72 @@
 import { Link } from 'react-router-dom'
-import { ShieldCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { APP_NAME } from '@/lib/constants'
+import { APP_NAME, ROUTES } from '@/lib/constants'
 
 interface LogoProps {
   className?: string
   showText?: boolean
   size?: 'sm' | 'md' | 'lg'
+  linkTo?: string
+  /** on-gold = black mark on gold bg; on-dark = gold mark on black bg */
+  variant?: 'on-gold' | 'on-dark'
 }
 
 const sizeMap = {
-  sm: { icon: 'size-4', text: 'text-sm' },
-  md: { icon: 'size-5', text: 'text-base' },
-  lg: { icon: 'size-6', text: 'text-lg' },
+  sm: { mark: 'size-7 text-sm', text: 'text-sm' },
+  md: { mark: 'size-8 text-base', text: 'text-base' },
+  lg: { mark: 'size-10 text-lg', text: 'text-xl' },
 }
 
-export function Logo({ className, showText = true, size = 'md' }: LogoProps) {
+export function Logo({
+  className,
+  showText = true,
+  size = 'md',
+  linkTo = ROUTES.dashboard,
+  variant = 'on-gold',
+}: LogoProps) {
   const sizes = sizeMap[size]
+  const isOnGold = variant === 'on-gold'
 
   return (
     <Link
-      to="/"
+      to={linkTo}
       className={cn(
-        'group inline-flex items-center gap-2.5 transition-opacity hover:opacity-80',
+        'group inline-flex items-center gap-3 transition-opacity hover:opacity-90',
         className,
       )}
       aria-label={`${APP_NAME} home`}
     >
-      <div className="relative flex size-8 items-center justify-center rounded-lg border border-border bg-surface-secondary">
-        <ShieldCheck
-          className={cn(sizes.icon, 'text-accent')}
-          strokeWidth={1.75}
-        />
-        <div className="absolute inset-0 rounded-lg bg-accent/5 opacity-0 transition-opacity group-hover:opacity-100" />
+      <div
+        className={cn(
+          sizes.mark,
+          'flex items-center justify-center border font-semibold transition-colors',
+          isOnGold
+            ? 'border-black/25 bg-black/5 text-foreground group-hover:border-black/40 group-hover:bg-black/10'
+            : 'border-accent/40 bg-accent/10 text-accent group-hover:border-accent/60 group-hover:bg-accent/15',
+        )}
+      >
+        V
       </div>
       {showText && (
-        <span
-          className={cn(
-            sizes.text,
-            'font-semibold tracking-tight text-foreground',
-          )}
-        >
-          {APP_NAME}
-        </span>
+        <div className="flex flex-col leading-tight">
+          <span
+            className={cn(
+              sizes.text,
+              'font-semibold tracking-tight',
+              isOnGold ? 'text-foreground' : 'text-accent',
+            )}
+          >
+            {APP_NAME}
+          </span>
+          <span
+            className={cn(
+              'mt-0.5 text-[10px] font-medium uppercase tracking-wide',
+              isOnGold ? 'text-foreground/60' : 'text-accent/60',
+            )}
+          >
+            Verify
+          </span>
+        </div>
       )}
     </Link>
   )

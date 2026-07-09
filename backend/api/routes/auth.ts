@@ -56,27 +56,34 @@ authRouter.get('/google', (_req, res, next) => {
   }
 })
 
+function authErrorRedirect(res: Response, message: string) {
+  const url = new URL(getFrontendUrl())
+  url.searchParams.set('auth_error', message)
+  res.redirect(url.toString())
+}
+
 authRouter.get('/google/callback', async (req, res, next) => {
   try {
     const { code, state, error } = req.query
 
     if (error) {
-      throw new AppError(
-        typeof error === 'string' ? error : 'Google sign-in was cancelled',
-        'INTERNAL',
-        400,
-      )
+      const message =
+        typeof error === 'string' ? error : 'Google sign-in was cancelled'
+      authErrorRedirect(res, message)
+      return
     }
 
     if (typeof code !== 'string' || typeof state !== 'string') {
-      throw new AppError('Invalid OAuth callback', 'VALIDATION_ERROR', 400)
+      authErrorRedirect(res, 'Invalid OAuth callback')
+      return
     }
 
     const savedState = req.cookies?.[OAUTH_STATE_COOKIE]
     clearAuthCookie(res, OAUTH_STATE_COOKIE)
 
     if (!savedState || savedState !== state) {
-      throw new AppError('Invalid OAuth state', 'VALIDATION_ERROR', 400)
+      authErrorRedirect(res, 'Invalid OAuth state — try signing in again')
+      return
     }
 
     const profile = await exchangeGoogleCode(code)
@@ -92,6 +99,10 @@ authRouter.get('/google/callback', async (req, res, next) => {
     res.cookie(SESSION_COOKIE, token, sessionCookieOptions())
     res.redirect(`${getFrontendUrl()}/app`)
   } catch (error) {
+    if (error instanceof AppError) {
+      authErrorRedirect(res, error.message)
+      return
+    }
     next(error)
   }
 })

@@ -6,6 +6,8 @@ import {
   type ReactNode,
 } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '@/lib/constants'
 import { authApi, type AuthUser } from '@/services/auth'
 
 interface AuthContextValue {
@@ -20,6 +22,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const { data, isLoading } = useQuery({
     queryKey: ['auth', 'me'],
@@ -42,7 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await logoutMutation.mutateAsync()
-  }, [logoutMutation])
+    navigate(ROUTES.home, { replace: true })
+  }, [logoutMutation, navigate])
 
   const value = useMemo<AuthContextValue>(
     () => ({

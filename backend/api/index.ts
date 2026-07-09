@@ -11,6 +11,7 @@ import { analyzeRouter } from './routes/analyze.js'
 import { authRouter } from './routes/auth.js'
 import { historyRouter } from './routes/history.js'
 import { reportRouter } from './routes/report.js'
+import { requireAuth } from './middleware/auth.js'
 
 export function createApp() {
   const app = express()
@@ -41,9 +42,9 @@ export function createApp() {
   })
 
   app.use('/api/auth', authRouter)
-  app.use('/api/analyze', analyzeRouter)
-  app.use('/api/history', historyRouter)
-  app.use('/api/report', reportRouter)
+  app.use('/api/analyze', requireAuth, analyzeRouter)
+  app.use('/api/history', requireAuth, historyRouter)
+  app.use('/api/report', requireAuth, reportRouter)
 
   app.use(notFoundHandler)
   app.use(errorHandler)

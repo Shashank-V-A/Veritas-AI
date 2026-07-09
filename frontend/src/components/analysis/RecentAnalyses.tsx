@@ -26,7 +26,7 @@ export function RecentAnalyses({ limit = 5 }: RecentAnalysesProps) {
 
   if (isError) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-card-foreground/60">
         Could not load recent analyses.
       </p>
     )

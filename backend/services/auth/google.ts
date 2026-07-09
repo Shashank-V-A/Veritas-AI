@@ -8,12 +8,20 @@ export interface GoogleProfile {
   picture?: string
 }
 
+function getRedirectUri(): string {
+  const explicit = process.env.GOOGLE_CALLBACK_URL?.trim()
+  if (explicit) return explicit
+
+  const frontend = process.env.FRONTEND_URL?.trim() ?? 'http://localhost:5173'
+  return `${frontend.replace(/\/$/, '')}/api/auth/google/callback`
+}
+
 function getClient(): OAuth2Client {
   const clientId = process.env.GOOGLE_CLIENT_ID?.trim()
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
-  const redirectUri = process.env.GOOGLE_CALLBACK_URL?.trim()
+  const redirectUri = getRedirectUri()
 
-  if (!clientId || !clientSecret || !redirectUri) {
+  if (!clientId || !clientSecret) {
     throw new AppError(
       'Google OAuth is not configured',
       'INTERNAL',
@@ -22,6 +30,10 @@ function getClient(): OAuth2Client {
   }
 
   return new OAuth2Client(clientId, clientSecret, redirectUri)
+}
+
+export function getOAuthRedirectUri(): string {
+  return getRedirectUri()
 }
 
 export function getGoogleAuthUrl(state: string): string {

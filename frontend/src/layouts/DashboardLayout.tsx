@@ -13,13 +13,13 @@ export function DashboardLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   return (
-    <div className="flex h-svh overflow-hidden bg-background">
+    <div className="grain flex h-svh overflow-hidden bg-background">
       <Sidebar
         mobileOpen={mobileNavOpen}
         onMobileClose={() => setMobileNavOpen(false)}
       />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden bg-surface text-card-foreground">
         <DashboardHeader onMenuClick={() => setMobileNavOpen(true)} />
 
         <main className="flex flex-1 flex-col overflow-hidden">

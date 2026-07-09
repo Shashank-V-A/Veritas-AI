@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { slideUp } from '@/animations/variants'
+import { slideUp, staggerContainer } from '@/animations/variants'
 import { HistoryList } from '@/components/analysis/HistoryList'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
@@ -7,20 +7,28 @@ export function HistoryPage() {
   const reducedMotion = useReducedMotion()
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 md:px-8 md:py-12">
+    <div className="mx-auto max-w-5xl px-4 py-8 md:px-10 md:py-12">
       <motion.div
-        variants={reducedMotion ? undefined : slideUp}
+        variants={reducedMotion ? undefined : staggerContainer}
         initial={reducedMotion ? false : 'hidden'}
         animate={reducedMotion ? false : 'visible'}
       >
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          History
-        </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Browse your past credibility analyses.
-        </p>
+        <motion.header variants={reducedMotion ? undefined : slideUp} className="mb-10">
+          <p className="text-xs font-semibold uppercase tracking-wide text-accent">
+            Archive
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight text-card-foreground md:text-4xl">
+            Your credibility dossiers
+          </h1>
+          <p className="mt-3 max-w-lg text-base leading-relaxed text-card-foreground/65">
+            Every report you&apos;ve run — searchable, private, and tied to your
+            account.
+          </p>
+        </motion.header>
 
-        <HistoryList />
+        <motion.div variants={reducedMotion ? undefined : slideUp}>
+          <HistoryList />
+        </motion.div>
       </motion.div>
     </div>
   )

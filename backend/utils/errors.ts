@@ -1,6 +1,7 @@
 export type ErrorCode =
   | 'VALIDATION_ERROR'
   | 'NOT_FOUND'
+  | 'UNAUTHORIZED'
   | 'MESH_TIMEOUT'
   | 'MESH_ERROR'
   | 'MESH_NOT_CONFIGURED'
@@ -9,6 +10,7 @@ export type ErrorCode =
 const statusByCode: Record<ErrorCode, number> = {
   VALIDATION_ERROR: 400,
   NOT_FOUND: 404,
+  UNAUTHORIZED: 401,
   MESH_TIMEOUT: 502,
   MESH_ERROR: 502,
   MESH_NOT_CONFIGURED: 503,

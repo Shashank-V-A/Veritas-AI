@@ -35,6 +35,12 @@ const ReportPage = lazy(() =>
 const NotFoundPage = lazy(() =>
   import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
 )
+const ProtectedRoute = lazy(() =>
+  import('@/components/auth/ProtectedRoute').then((m) => ({
+    default: m.ProtectedRoute,
+  })),
+)
+
 const CommandPalette = lazy(() =>
   import('@/components/command/CommandPalette').then((m) => ({
     default: m.CommandPalette,
@@ -92,30 +98,32 @@ function AnimatedRoutes() {
             </ErrorBoundary>
           }
         >
-          <Route
-            index
-            element={
-              <Suspense fallback={<RouteFallback />}>
-                <DashboardPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="history"
-            element={
-              <Suspense fallback={<RouteFallback />}>
-                <HistoryPage />
-              </Suspense>
-            }
-          />
-          <Route
-            path="analysis/:id"
-            element={
-              <Suspense fallback={<RouteFallback />}>
-                <ReportPage />
-              </Suspense>
-            }
-          />
+          <Route element={<Suspense fallback={<DashboardRouteFallback />}><ProtectedRoute /></Suspense>}>
+            <Route
+              index
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <DashboardPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="history"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <HistoryPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="analysis/:id"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <ReportPage />
+                </Suspense>
+              }
+            />
+          </Route>
         </Route>
 
         <Route
@@ -134,16 +142,16 @@ function AnimatedRoutes() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider delayDuration={300}>
-          <CommandPaletteProvider>
-            <BrowserRouter>
+      <TooltipProvider delayDuration={300}>
+        <CommandPaletteProvider>
+          <BrowserRouter>
+            <AuthProvider>
               <AnimatedRoutes />
               <CommandPaletteLoader />
-            </BrowserRouter>
-          </CommandPaletteProvider>
-        </TooltipProvider>
-      </AuthProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </CommandPaletteProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   )
 }

@@ -47,10 +47,10 @@ export function ReportPage() {
         initial={reducedMotion ? false : 'hidden'}
         animate={reducedMotion ? false : 'visible'}
       >
-        <Button variant="ghost" size="sm" className="mb-6 gap-2" asChild>
+        <Button variant="ghost" size="sm" className="mb-8 gap-2 text-muted-foreground hover:text-accent" asChild>
           <Link to={ROUTES.dashboard}>
             <ArrowLeft className="size-4" />
-            Back to dashboard
+            Back to workspace
           </Link>
         </Button>
 

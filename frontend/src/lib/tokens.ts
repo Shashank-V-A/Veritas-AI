@@ -1,16 +1,19 @@
 export const colors = {
-  background: '#2B2D42',
-  surface: '#363856',
-  surfaceSecondary: '#4A4E69',
-  border: '#5C6078',
-  foreground: '#F8F6F2',
-  muted: '#B8BCCF',
-  mutedDark: '#8B8FA8',
-  accent: '#F6BD60',
-  accentSecondary: '#E8A84A',
-  success: '#8FBC8F',
-  warning: '#F6BD60',
-  danger: '#E07A5F',
+  gold: '#D4AF37',
+  black: '#000000',
+  background: '#D4AF37',
+  surface: '#000000',
+  surfaceSecondary: '#141414',
+  border: '#0A0A0A',
+  foreground: '#0A0A0A',
+  onDark: '#D4AF37',
+  muted: '#4A4A4A',
+  mutedDark: '#2E2E2E',
+  accent: '#D4AF37',
+  accentSecondary: '#B8962E',
+  success: '#5A8F5A',
+  warning: '#D4AF37',
+  danger: '#C45C5C',
 } as const
 
 export const typography = {
@@ -42,7 +45,7 @@ export const radii = {
 } as const
 
 export const shadows = {
-  subtle: '0 1px 2px rgba(43, 45, 66, 0.4)',
-  card: '0 4px 24px rgba(43, 45, 66, 0.35)',
-  elevated: '0 8px 32px rgba(43, 45, 66, 0.45)',
+  subtle: '0 1px 2px rgba(0, 0, 0, 0.5)',
+  card: '0 4px 24px rgba(0, 0, 0, 0.45)',
+  elevated: '0 8px 32px rgba(0, 0, 0, 0.55)',
 } as const

@@ -73,8 +73,8 @@ export function HeroSection() {
         className="pointer-events-none absolute inset-0"
         aria-hidden="true"
       >
-        <div className="absolute left-1/2 top-0 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-accent/[0.08] blur-3xl" />
-        <div className="absolute right-0 top-1/3 h-[320px] w-[320px] rounded-full bg-surface-secondary/40 blur-3xl" />
+        <div className="absolute left-1/2 top-0 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-accent/[0.06] blur-3xl" />
+        <div className="absolute right-0 top-1/3 h-[320px] w-[320px] rounded-full bg-accent/[0.03] blur-3xl" />
       </div>
 
       <motion.div

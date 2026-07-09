@@ -1,4 +1,3 @@
-import { LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -48,7 +47,6 @@ export function GoogleSignInButton({
         />
       </svg>
       {label}
-      <LogIn className="size-3.5 opacity-60" />
     </Button>
   )
 }

@@ -38,7 +38,7 @@ export function HistoryList() {
             setSearch(e.target.value)
             setPage(1)
           }}
-          className="border-border bg-surface pl-9"
+          className="border border-accent/20 bg-accent/5 pl-9 text-card-foreground placeholder:text-card-foreground/40"
           aria-label="Search analyses"
         />
       </div>
@@ -77,7 +77,7 @@ export function HistoryList() {
 
         {!isLoading && items.length > 0 && (
           <>
-            <p className="mb-4 text-xs text-muted-foreground">
+            <p className="mb-4 text-xs text-card-foreground/60">
               {data?.total} {data?.total === 1 ? 'analysis' : 'analyses'}
             </p>
             <div className="space-y-3">
@@ -96,7 +96,7 @@ export function HistoryList() {
                 >
                   Previous
                 </Button>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-card-foreground/60">
                   Page {page} of {totalPages}
                 </span>
                 <Button
