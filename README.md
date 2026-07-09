@@ -16,7 +16,7 @@ An AI-powered credibility analysis platform that evaluates news, social posts, t
 | 6 | Analysis pipeline | ✅ Complete |
 | 7 | Polish UI | ✅ Complete |
 | 8 | Optimize | ✅ Complete |
-| 9 | Vercel deployment | ⏳ Pending |
+| 9 | Vercel deployment | ✅ Complete |
 
 ## Tech Stack
 
@@ -27,8 +27,17 @@ An AI-powered credibility analysis platform that evaluates news, social posts, t
 
 ## Documentation
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for full system design.
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — System design
+- [DEPLOYMENT.md](./DEPLOYMENT.md) — Vercel deployment guide
 
 ## Environment
 
-Copy `.env.example` to `.env` and fill in your Mesh API credentials.
+Copy `.env.example` to `backend/.env` and fill in your Mesh API credentials.
+
+## Deploy
+
+```bash
+vercel --prod
+```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for full instructions and required environment variables.

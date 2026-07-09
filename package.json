@@ -15,9 +15,11 @@
     "build": "npm run build --workspace=@veritas/shared && npm run build --workspace=@veritas/backend && npm run build --workspace=frontend",
     "build:frontend": "npm run build --workspace=frontend",
     "build:backend": "npm run build --workspace=@veritas/backend",
+    "postinstall": "npm run db:generate --workspace=@veritas/backend",
     "db:push": "npm run db:push --workspace=@veritas/backend",
     "db:studio": "npm run db:studio --workspace=@veritas/backend",
-    "lint": "npm run lint --workspace=frontend"
+    "lint": "npm run lint --workspace=frontend",
+    "vercel-build": "npm run build"
   },
   "devDependencies": {
     "concurrently": "^9.2.0"

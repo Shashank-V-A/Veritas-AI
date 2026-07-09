@@ -603,7 +603,7 @@ Strategies: route-based code splitting, lazy-loaded Recharts, skeleton loaders, 
 | **6** | Analysis pipeline + report page (charts, cards) | ✅ Complete |
 | **7** | Polish UI (landing, animations, command palette, onboarding) | ✅ Complete |
 | **8** | Optimize (bundle, caching, error boundaries) | ✅ Complete |
-| **9** | Vercel deployment (vercel.json, env, build) | Pending |
+| **9** | Vercel deployment (vercel.json, env, build) | ✅ Complete |
 
 ---
 
@@ -633,4 +633,4 @@ Strategies: route-based code splitting, lazy-loaded Recharts, skeleton loaders, 
 
 ---
 
-*Architecture v1.0 — Step 8 complete. Optimized. Awaiting approval for Step 9: Vercel deployment.*
+*Architecture v1.0 — All 9 steps complete. Veritas AI is ready to deploy on Vercel.*

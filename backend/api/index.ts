@@ -1,7 +1,10 @@
 import cors from 'cors'
 import compression from 'compression'
 import express from 'express'
+import { ensureDatabase } from '../db/init.js'
+import { getCorsOptions } from '../utils/cors.js'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
+import { rateLimiter } from './middleware/rateLimiter.js'
 import { analyzeRouter } from './routes/analyze.js'
 import { historyRouter } from './routes/history.js'
 import { reportRouter } from './routes/report.js'
@@ -9,12 +12,27 @@ import { reportRouter } from './routes/report.js'
 export function createApp() {
   const app = express()
 
-  app.use(cors({ origin: true }))
+  app.set('trust proxy', 1)
+  app.use(cors(getCorsOptions()))
   app.use(compression())
   app.use(express.json({ limit: '1mb' }))
+  app.use(rateLimiter)
+
+  app.use(async (_req, _res, next) => {
+    try {
+      await ensureDatabase()
+      next()
+    } catch (error) {
+      next(error)
+    }
+  })
 
   app.get('/api/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'veritas-api' })
+    res.json({
+      status: 'ok',
+      service: 'veritas-api',
+      env: process.env.VERCEL ? 'vercel' : 'local',
+    })
   })
 
   app.use('/api/analyze', analyzeRouter)
@@ -27,4 +45,5 @@ export function createApp() {
   return app
 }
 
-export default createApp()
+const app = createApp()
+export default app
