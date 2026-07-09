@@ -45,6 +45,7 @@ Set these in **Vercel Project → Settings → Environment Variables**:
 | `GOOGLE_CALLBACK_URL` | `https://your-domain.vercel.app/api/auth/google/callback` | Production, Preview |
 | `JWT_SECRET` | long random string | Production, Preview |
 | `FRONTEND_URL` | `https://your-domain.vercel.app` | Production, Preview |
+| `PUBLIC_APP_URL` | `https://your-domain.vercel.app` (for share links) | Production, Preview |
 
 > **Never** add `MESH_API_KEY`, `GOOGLE_CLIENT_SECRET`, or `JWT_SECRET` to frontend-exposed variables.
 

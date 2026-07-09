@@ -1,0 +1,41 @@
+import { cn } from '@/lib/utils'
+import { formatRelativeDate, getTrustScoreColor } from '@/lib/format'
+import type { HistoryItem } from '@/types'
+
+interface MissionControlProps {
+  total: number
+  items: HistoryItem[]
+}
+
+export function MissionControl({ total, items }: MissionControlProps) {
+  if (total === 0) return null
+
+  const lastCase = items[0]
+  const avgTrust =
+    items.length > 0
+      ? Math.round(items.reduce((sum, item) => sum + item.trustScore, 0) / items.length)
+      : 0
+
+  return (
+    <div className="mt-6 flex flex-wrap gap-8 border-t border-accent/15 pt-5">
+      <div>
+        <p className="font-display text-3xl tabular-nums text-accent">{total}</p>
+        <p className="font-mono text-[10px] text-card-foreground/50">Case files opened</p>
+      </div>
+      {lastCase && (
+        <div>
+          <p className="font-display text-3xl text-card-foreground">
+            {formatRelativeDate(lastCase.createdAt)}
+          </p>
+          <p className="font-mono text-[10px] text-card-foreground/50">Last case filed</p>
+        </div>
+      )}
+      <div>
+        <p className={cn('font-display text-3xl tabular-nums', getTrustScoreColor(avgTrust))}>
+          {avgTrust}
+        </p>
+        <p className="font-mono text-[10px] text-card-foreground/50">Avg. trust score</p>
+      </div>
+    </div>
+  )
+}

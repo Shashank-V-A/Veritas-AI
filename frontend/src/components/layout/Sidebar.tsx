@@ -52,8 +52,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
 
       <div className="flex flex-1 flex-col p-4">
         <Button
-          className="mb-6 h-10 w-full justify-start gap-2.5 border border-foreground/15 bg-foreground/5 text-foreground hover:bg-foreground/10 hover:text-foreground"
-          variant="ghost"
+          className="mb-6 h-10 w-full justify-start gap-2.5 bg-primary text-primary-foreground hover:bg-primary/90"
           asChild
           onClick={onMobileClose}
         >
@@ -91,7 +90,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   className={cn(
                     'group relative flex items-center gap-3 px-3 py-2.5 text-sm transition-colors',
                     isActive
-                      ? 'text-foreground'
+                      ? 'file-tab-active text-foreground'
                       : 'text-foreground/55 hover:text-foreground',
                   )}
                   aria-current={isActive ? 'page' : undefined}
@@ -99,7 +98,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                   {isActive && (
                     <motion.span
                       layoutId="nav-active"
-                      className="absolute inset-0 border border-foreground/15 bg-foreground/5"
+                      className="absolute inset-0 border border-accent-secondary/20"
                       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                     />
                   )}

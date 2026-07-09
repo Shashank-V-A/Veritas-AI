@@ -12,24 +12,24 @@ const STEPS = [
   {
     title: 'Welcome to Veritas AI',
     description:
-      'Verify information before you trust it. We analyze content and produce professional credibility reports — not chat responses.',
+      'Verify information before you trust it. We analyze content and produce professional credibility dossiers — not chat responses.',
   },
   {
-    title: 'Paste any content',
+    title: 'File evidence through case intake',
     description:
-      'Articles, social posts, transcripts, WhatsApp forwards, or raw text. Select the source type for better analysis.',
+      'Paste articles, URLs, social posts, transcripts, or WhatsApp forwards. Pick a category and evidence type so Veritas calibrates the investigation.',
     highlight: 'analysis-input',
   },
   {
-    title: 'Get your report',
+    title: 'Submit for forensic analysis',
     description:
-      'Hit Analyze and receive a structured report with trust scores, claims, bias detection, and fallacy identification.',
+      'File your evidence through the intake form. Veritas builds a structured dossier with trust scores, claims, bias signals, and fallacy detection.',
     highlight: 'analyze-button',
   },
   {
-    title: 'Review your history',
+    title: 'Search your case archive',
     description:
-      'Every analysis is saved. Access past reports from the sidebar or press Ctrl+K to search quickly.',
+      'Every dossier is saved with a case ID. Access past reports from the sidebar or press Ctrl+K to search claims and case files. Press N to jump back to intake.',
     highlight: 'sidebar-nav',
   },
 ]

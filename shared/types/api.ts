@@ -1,15 +1,31 @@
-import type { CredibilityReport, SourceType } from './analysis.js'
+import type { CredibilityReport, SourceType, Verdict, AnalysisCategory } from './analysis.js'
 
 export interface AnalyzeRequest {
   content: string
   sourceType: SourceType
   title?: string
+  compareContent?: string
+  category?: AnalysisCategory
+}
+
+export interface UrlAnalyzeRequest {
+  url: string
+  title?: string
+  category?: AnalysisCategory
+  compareContent?: string
+}
+
+export interface AnalyzeMeta {
+  meshModel?: string
+  meshLatencyMs?: number
 }
 
 export interface AnalyzeResponse {
   id: string
   report: CredibilityReport
   createdAt: string
+  shareToken?: string
+  meta?: AnalyzeMeta
 }
 
 export interface HistoryResponse {
@@ -20,10 +36,31 @@ export interface HistoryResponse {
     sourceType: SourceType
     createdAt: string
     preview: string
+    verdict?: Verdict
+    category?: AnalysisCategory
   }>
   total: number
   page: number
   limit: number
+}
+
+export interface ShareLinkResponse {
+  shareToken: string
+  shareUrl: string
+}
+
+export interface PublicReportResponse {
+  id: string
+  title?: string
+  content?: string
+  sourceType: SourceType
+  trustScore: number
+  verdict: Verdict
+  category?: AnalysisCategory
+  report: CredibilityReport
+  createdAt: string
+  meshModel?: string
+  meshLatencyMs?: number
 }
 
 export interface ApiErrorBody {

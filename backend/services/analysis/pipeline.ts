@@ -15,6 +15,13 @@ export interface AnalysisInput {
   content: string
   sourceType: import('@veritas/shared').SourceType
   title?: string
+  compareContent?: string
+}
+
+export interface AnalysisPipelineResult {
+  report: CredibilityReport
+  meshModel: string
+  meshLatencyMs: number
 }
 
 function shouldUseStub(): boolean {
@@ -24,8 +31,11 @@ function shouldUseStub(): boolean {
   )
 }
 
-async function callMeshForReport(input: AnalysisInput): Promise<string> {
+async function callMeshForReport(
+  input: AnalysisInput,
+): Promise<{ content: string; model: string; latencyMs: number }> {
   const mesh = createMeshClient()
+  const startedAt = Date.now()
 
   const response = await mesh.complete({
     messages: [
@@ -46,9 +56,14 @@ async function callMeshForReport(input: AnalysisInput): Promise<string> {
   logger.info('Mesh API analysis complete', {
     model: response.model,
     usage: response.usage,
+    latencyMs: Date.now() - startedAt,
   })
 
-  return response.content
+  return {
+    content: response.content,
+    model: response.model,
+    latencyMs: Date.now() - startedAt,
+  }
 }
 
 async function callMeshForRepair(
@@ -79,40 +94,65 @@ async function callMeshForRepair(
   return response.content
 }
 
+async function parseWithRepair(
+  input: AnalysisInput,
+  raw: string,
+): Promise<CredibilityReport> {
+  try {
+    return parseCredibilityReport(raw)
+  } catch (firstError) {
+    const validationError = getValidationErrorMessage(raw)
+    logger.warn('Mesh response validation failed, attempting repair', {
+      validationError,
+    })
+
+    const repairedRaw = await callMeshForRepair(input, raw, validationError)
+
+    try {
+      return parseCredibilityReport(repairedRaw)
+    } catch {
+      throw firstError instanceof AppError
+        ? firstError
+        : new AppError(
+            'Mesh API returned invalid JSON after repair attempt',
+            'MESH_ERROR',
+            502,
+          )
+    }
+  }
+}
+
 /**
- * Analysis pipeline orchestrator.
+ * Analysis pipeline orchestrator with stage logging.
  * All AI inference routes through Mesh API — never call LLMs directly.
  */
-export async function runAnalysis(input: AnalysisInput): Promise<CredibilityReport> {
+export async function* runAnalysisWithStages(
+  input: AnalysisInput,
+): AsyncGenerator<string, AnalysisPipelineResult> {
+  yield 'prepare'
+
   if (shouldUseStub()) {
     logger.warn('Mesh API not configured — using development stub analyzer')
-    return createStubReport(input)
+    yield 'stub_analysis'
+    return {
+      report: createStubReport(input),
+      meshModel: 'stub',
+      meshLatencyMs: 0,
+    }
   }
 
   try {
-    const raw = await callMeshForReport(input)
+    yield 'mesh_request'
+    const meshResult = await callMeshForReport(input)
 
-    try {
-      return parseCredibilityReport(raw)
-    } catch (firstError) {
-      const validationError = getValidationErrorMessage(raw)
-      logger.warn('Mesh response validation failed, attempting repair', {
-        validationError,
-      })
+    yield 'parse'
+    const report = await parseWithRepair(input, meshResult.content)
 
-      const repairedRaw = await callMeshForRepair(input, raw, validationError)
-
-      try {
-        return parseCredibilityReport(repairedRaw)
-      } catch {
-        throw firstError instanceof AppError
-          ? firstError
-          : new AppError(
-              'Mesh API returned invalid JSON after repair attempt',
-              'MESH_ERROR',
-              502,
-            )
-      }
+    yield 'complete'
+    return {
+      report,
+      meshModel: meshResult.model,
+      meshLatencyMs: meshResult.latencyMs,
     }
   } catch (error) {
     if (error instanceof AppError) {
@@ -125,4 +165,20 @@ export async function runAnalysis(input: AnalysisInput): Promise<CredibilityRepo
 
     throw new AppError('Analysis pipeline failed', 'INTERNAL', 500)
   }
+}
+
+export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPipelineResult> {
+  const generator = runAnalysisWithStages(input)
+  let stage = await generator.next()
+
+  while (!stage.done) {
+    logger.debug('Analysis stage', { stage: stage.value })
+    stage = await generator.next()
+  }
+
+  if (!stage.value) {
+    throw new AppError('Analysis pipeline failed', 'INTERNAL', 500)
+  }
+
+  return stage.value
 }

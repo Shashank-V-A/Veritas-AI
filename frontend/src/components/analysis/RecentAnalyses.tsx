@@ -38,8 +38,13 @@ export function RecentAnalyses({ limit = 5 }: RecentAnalysesProps) {
     return (
       <EmptyState
         icon={FileText}
-        title="No analyses yet"
-        description="Your credibility reports will appear here after you run your first analysis."
+        title="No case files yet"
+        description="Submit evidence from the workspace, or open a sample case file to see how a dossier is structured."
+        action={
+          <Button variant="outline" size="sm" asChild className="border-accent/30">
+            <Link to={ROUTES.dashboard}>Go to workspace</Link>
+          </Button>
+        }
       />
     )
   }

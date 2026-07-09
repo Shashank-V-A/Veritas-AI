@@ -1,6 +1,5 @@
 import { useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
-import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants'
 
@@ -25,21 +24,17 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-accent/20 bg-surface px-4 md:hidden">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onMenuClick}
-          aria-label="Open navigation menu"
-          className="text-card-foreground hover:text-accent"
-        >
-          <Menu className="size-5" strokeWidth={1.5} />
-        </Button>
-        <Logo size="sm" showText={false} linkTo={ROUTES.dashboard} variant="on-dark" />
-      </div>
-      <span className="text-xs font-medium uppercase tracking-wide text-card-foreground/60">
-        {title}
-      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onMenuClick}
+        aria-label="Open navigation menu"
+        className="text-card-foreground hover:text-accent"
+      >
+        <Menu className="size-5" strokeWidth={1.5} />
+      </Button>
+      <span className="font-mono text-xs text-card-foreground/60">{title}</span>
+      <span className="w-9" aria-hidden="true" />
     </header>
   )
 }

@@ -1,3 +1,5 @@
+import type { CaseCategory } from '../constants/categories.js'
+
 export type SourceType =
   | 'article'
   | 'social'
@@ -10,6 +12,8 @@ export type SourceType =
 export type ClaimStatus = 'verified' | 'disputed' | 'unverified' | 'false'
 
 export type Verdict = 'credible' | 'mixed' | 'misleading' | 'unsupported'
+
+export type AnalysisCategory = CaseCategory
 
 export interface Claim {
   claim: string
@@ -77,6 +81,14 @@ export interface AnalysisRecord {
   trustScore: number
   report: CredibilityReport
   createdAt: string
+  shareToken?: string
+  category?: AnalysisCategory
+  parentId?: string
+  compareContent?: string
+  meshModel?: string
+  meshLatencyMs?: number
+  previousTrustScore?: number
+  previousVerdict?: Verdict
 }
 
 export interface HistoryItem {
@@ -86,4 +98,6 @@ export interface HistoryItem {
   sourceType: SourceType
   createdAt: string
   preview: string
+  verdict?: Verdict
+  category?: AnalysisCategory
 }

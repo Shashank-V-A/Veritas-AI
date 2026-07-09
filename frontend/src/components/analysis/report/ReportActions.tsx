@@ -1,123 +1,143 @@
 import { useState } from 'react'
-import { Check, Copy, Download, Share2, Trash2 } from 'lucide-react'
+import { Check, Download, FileText, Printer, RefreshCw, Share2, Trash2 } from 'lucide-react'
 import type { AnalysisRecord } from '@veritas/shared'
-import { getSourceTypeLabel } from '@/lib/sourceTypes'
-import {
-  formatRelativeDate,
-  getClaimStatusLabel,
-  getVerdictLabel,
-} from '@/lib/format'
+import { getFriendlyErrorMessage } from '@/lib/errorMessages'
+import { ROUTES } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
-import { api, ApiClientError } from '@/services/api'
+import { api } from '@/services/api'
 
 interface ReportActionsProps {
   record: AnalysisRecord
   onDelete?: () => void
   isDeleting?: boolean
-}
-
-function buildReportText(record: AnalysisRecord): string {
-  const { report } = record
-  const lines = [
-    `Veritas AI — Credibility Report`,
-    `Title: ${record.title ?? 'Untitled'}`,
-    `Source: ${getSourceTypeLabel(record.sourceType)}`,
-    `Date: ${formatRelativeDate(record.createdAt)}`,
-    ``,
-    `Trust Score: ${report.trustScore}/100`,
-    `Verdict: ${getVerdictLabel(report.verdict)}`,
-    ``,
-    `Summary`,
-    report.summary,
-    ``,
-    `Claims (${report.claims.length})`,
-    ...report.claims.map(
-      (c, i) =>
-        `${i + 1}. [${getClaimStatusLabel(c.status)}] ${c.claim} (${c.confidence}% confidence)`,
-    ),
-    ``,
-    `Explain like I'm 15`,
-    report.eli15,
-  ]
-  return lines.join('\n')
+  onReanalyze?: () => void
+  isReanalyzing?: boolean
+  readOnly?: boolean
 }
 
 export function ReportActions({
   record,
   onDelete,
   isDeleting = false,
+  onReanalyze,
+  isReanalyzing = false,
+  readOnly = false,
 }: ReportActionsProps) {
-  const [copied, setCopied] = useState(false)
-  const [exporting, setExporting] = useState(false)
+  const [shareCopied, setShareCopied] = useState(false)
+  const [exportingPdf, setExportingPdf] = useState(false)
+  const [exportingMd, setExportingMd] = useState(false)
+  const [sharing, setSharing] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(buildReportText(record))
-    setCopied(true)
-    window.setTimeout(() => setCopied(false), 2000)
-  }
+  const [shareError, setShareError] = useState<string | null>(null)
 
   async function handleShare() {
-    const url = window.location.href
-    if (navigator.share) {
-      await navigator.share({
-        title: record.title ?? 'Veritas AI Report',
-        text: record.report.summary,
-        url,
-      })
-    } else {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 2000)
+    setSharing(true)
+    setShareError(null)
+    try {
+      const { shareUrl } = await api.shareReport(record.id)
+      const fullUrl = shareUrl.startsWith('http')
+        ? shareUrl
+        : `${window.location.origin}${shareUrl.startsWith('/') ? shareUrl : ROUTES.share(shareUrl)}`
+      await navigator.clipboard.writeText(fullUrl)
+      setShareCopied(true)
+      window.setTimeout(() => setShareCopied(false), 2500)
+    } catch (error) {
+      setShareError(getFriendlyErrorMessage(error))
+    } finally {
+      setSharing(false)
     }
   }
 
   async function handleExportPdf() {
-    setExporting(true)
+    setExportingPdf(true)
     setExportError(null)
     try {
       const blob = await api.exportReportPdf(record.id)
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${(record.title ?? 'veritas-report').replace(/[^a-z0-9-_]+/gi, '-').slice(0, 60)}.pdf`
-      link.click()
-      URL.revokeObjectURL(url)
+      downloadBlob(blob, `${safeFilename(record.title)}.pdf`)
     } catch (error) {
-      setExportError(
-        error instanceof ApiClientError ? error.message : 'PDF export failed',
-      )
+      setExportError(getFriendlyErrorMessage(error))
     } finally {
-      setExporting(false)
+      setExportingPdf(false)
     }
   }
 
+  async function handleExportMarkdown() {
+    setExportingMd(true)
+    setExportError(null)
+    try {
+      const blob = await api.exportReportMarkdown(record.id)
+      downloadBlob(blob, `${safeFilename(record.title)}.md`)
+    } catch (error) {
+      setExportError(getFriendlyErrorMessage(error))
+    } finally {
+      setExportingMd(false)
+    }
+  }
+
+  function handlePrint() {
+    window.print()
+  }
+
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className="flex flex-col items-end gap-2 print:hidden">
       <div className="flex flex-wrap justify-end gap-2">
-        <Button variant="outline" size="sm" className="gap-2" onClick={handleCopy}>
-          {copied ? (
-            <Check className="size-3.5 text-success" />
-          ) : (
-            <Copy className="size-3.5" />
-          )}
-          {copied ? 'Copied' : 'Copy report'}
+        {!readOnly && onReanalyze && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={onReanalyze}
+            disabled={isReanalyzing}
+          >
+            <RefreshCw className={cnSpin(isReanalyzing)} />
+            {isReanalyzing ? 'Re-analyzing…' : 'Re-analyze'}
+          </Button>
+        )}
+        {!readOnly && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => void handleShare()}
+            disabled={sharing}
+          >
+            {shareCopied ? (
+              <Check className="size-3.5 text-success" />
+            ) : (
+              <Share2 className="size-3.5" />
+            )}
+            {shareCopied ? 'Link copied' : sharing ? 'Sharing…' : 'Share'}
+          </Button>
+        )}
+        {!readOnly && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => void handleExportMarkdown()}
+            disabled={exportingMd}
+          >
+            <FileText className="size-3.5" />
+            {exportingMd ? 'Exporting…' : 'Markdown'}
+          </Button>
+        )}
+        {!readOnly && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => void handleExportPdf()}
+            disabled={exportingPdf}
+          >
+            <Download className="size-3.5" />
+            {exportingPdf ? 'Exporting…' : 'PDF'}
+          </Button>
+        )}
+        <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint}>
+          <Printer className="size-3.5" />
+          Print
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={() => void handleExportPdf()}
-          disabled={exporting}
-        >
-          <Download className="size-3.5" />
-          {exporting ? 'Exporting…' : 'Download PDF'}
-        </Button>
-        <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
-          <Share2 className="size-3.5" />
-          Share
-        </Button>
-        {onDelete && (
+        {!readOnly && onDelete && (
           <Button
             variant="outline"
             size="sm"
@@ -130,11 +150,28 @@ export function ReportActions({
           </Button>
         )}
       </div>
-      {exportError && (
+      {(exportError || shareError) && (
         <p className="text-xs text-danger" role="alert">
-          {exportError}
+          {exportError ?? shareError}
         </p>
       )}
     </div>
   )
+}
+
+function safeFilename(title?: string): string {
+  return (title ?? 'veritas-report').replace(/[^a-z0-9-_]+/gi, '-').slice(0, 60)
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(url)
+}
+
+function cnSpin(active: boolean): string {
+  return active ? 'size-3.5 animate-spin' : 'size-3.5'
 }

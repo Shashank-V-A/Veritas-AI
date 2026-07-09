@@ -71,9 +71,17 @@ npm run dev:all
 
 ## Features
 
-- Paste text or upload PDF for credibility analysis
-- Structured reports: claims, bias, fallacies, trust score
-- PDF export of reports
+- Paste text, URL, or upload PDF for credibility analysis
+- **Guest live demo** on landing — one free investigation without sign-in
+- **Compare two sources** side-by-side for contradiction analysis
+- **Public share links** — share dossiers with OG preview at `/share/:token`
+- Structured reports: claims, bias, fallacies, trust score, neutral rewrite
+- PDF + Markdown export, print stylesheet
+- **Re-analyze** with verdict changelog (trust score delta)
+- Case categories, history filters, full-text search (⌘K)
+- Batch PDF intake (up to 5 files)
+- Bookmarklet: verify selected text from any page
+- PWA installable for kiosk demos
 - Private analysis history per user
 - Delete analyses from report view
 

@@ -20,6 +20,7 @@ export function ClaimCard({ claim, index, variant = 'default' }: ClaimCardProps)
 
   return (
     <motion.div
+      id={`claim-card-${index}`}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 }}

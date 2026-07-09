@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Clock,
@@ -6,8 +7,10 @@ import {
   LayoutDashboard,
   Plus,
 } from 'lucide-react'
-import { ROUTES } from '@/lib/constants'
+import { ROUTES, FOCUS_INTAKE_EVENT } from '@/lib/constants'
+import { formatCaseId } from '@/lib/caseId'
 import { useCommandPalette } from '@/contexts/CommandPaletteContext'
+import { useDebounce } from '@/hooks/useDebounce'
 import { useHistory } from '@/hooks/useHistory'
 import {
   CommandDialog,
@@ -23,36 +26,50 @@ import {
 export function CommandPalette() {
   const { open, setOpen } = useCommandPalette()
   const navigate = useNavigate()
-  const { data } = useHistory({ limit: 5 })
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 200)
+  const { data } = useHistory({
+    limit: 10,
+    search: debouncedSearch || undefined,
+  })
+
+  useEffect(() => {
+    if (!open) setSearch('')
+  }, [open])
 
   function run(action: () => void) {
     action()
     setOpen(false)
   }
 
+  function focusIntake() {
+    navigate(ROUTES.dashboard)
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent(FOCUS_INTAKE_EVENT))
+    }, 100)
+  }
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen} title="Command palette">
-      <CommandInput placeholder="Search commands and analyses..." />
+      <CommandInput
+        placeholder="Search case files and claims…"
+        value={search}
+        onValueChange={setSearch}
+      />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
 
         <CommandGroup heading="Actions">
-          <CommandItem
-            onSelect={() => run(() => navigate(ROUTES.dashboard))}
-          >
+          <CommandItem onSelect={() => run(focusIntake)}>
             <Plus className="size-4" />
             New analysis
             <CommandShortcut>N</CommandShortcut>
           </CommandItem>
-          <CommandItem
-            onSelect={() => run(() => navigate(ROUTES.history))}
-          >
+          <CommandItem onSelect={() => run(() => navigate(ROUTES.history))}>
             <Clock className="size-4" />
             View history
           </CommandItem>
-          <CommandItem
-            onSelect={() => run(() => navigate(ROUTES.dashboard))}
-          >
+          <CommandItem onSelect={() => run(() => navigate(ROUTES.dashboard))}>
             <LayoutDashboard className="size-4" />
             Dashboard
           </CommandItem>
@@ -65,18 +82,21 @@ export function CommandPalette() {
         {(data?.items.length ?? 0) > 0 && (
           <>
             <CommandSeparator />
-            <CommandGroup heading="Recent analyses">
+            <CommandGroup heading={debouncedSearch ? 'Search results' : 'Recent case files'}>
               {data?.items.map((item) => (
                 <CommandItem
                   key={item.id}
-                  onSelect={() =>
-                    run(() => navigate(ROUTES.analysis(item.id)))
-                  }
+                  onSelect={() => run(() => navigate(ROUTES.analysis(item.id)))}
                 >
                   <FileSearch className="size-4" />
-                  <span className="truncate">
-                    {item.title ?? item.preview}
-                  </span>
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate text-sm">
+                      {item.title ?? item.preview}
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      {formatCaseId(item.id)}
+                    </span>
+                  </div>
                   <CommandShortcut>{item.trustScore}</CommandShortcut>
                 </CommandItem>
               ))}
@@ -91,8 +111,8 @@ export function CommandPalette() {
             <CommandShortcut>Ctrl K</CommandShortcut>
           </CommandItem>
           <CommandItem disabled>
-            <span>Submit analysis</span>
-            <CommandShortcut>Ctrl Enter</CommandShortcut>
+            <span>Focus case intake</span>
+            <CommandShortcut>N</CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>

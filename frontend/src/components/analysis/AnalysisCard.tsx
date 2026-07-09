@@ -3,8 +3,10 @@ import { motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
 import { ChevronRight } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
+import { formatCaseId } from '@/lib/caseId'
 import { queryKeys } from '@/lib/queryKeys'
-import { formatRelativeDate } from '@/lib/format'
+import { getCategoryLabel } from '@/lib/categories'
+import { formatRelativeDate, getVerdictLabel } from '@/lib/format'
 import { getSourceTypeLabel } from '@/lib/sourceTypes'
 import { cn } from '@/lib/utils'
 import { api } from '@/services/api'
@@ -48,16 +50,35 @@ export function AnalysisCard({ item, index = 0, className }: AnalysisCardProps) 
         <TrustScoreBadge score={item.trustScore} />
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <p className="font-mono text-[10px] text-card-foreground/45">
+            {formatCaseId(item.id)}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             <p className="truncate text-sm font-medium text-card-foreground">
               {title}
             </p>
+            {item.verdict && (
+              <Badge
+                variant="outline"
+                className="hidden shrink-0 border-accent/25 text-[10px] text-card-foreground/70 sm:inline-flex"
+              >
+                {getVerdictLabel(item.verdict)}
+              </Badge>
+            )}
             <Badge
               variant="outline"
               className="hidden shrink-0 border-accent/25 text-[10px] text-card-foreground/70 sm:inline-flex"
             >
               {getSourceTypeLabel(item.sourceType)}
             </Badge>
+            {item.category && (
+              <Badge
+                variant="outline"
+                className="hidden shrink-0 border-accent/25 text-[10px] text-card-foreground/70 md:inline-flex"
+              >
+                {getCategoryLabel(item.category)}
+              </Badge>
+            )}
           </div>
           <p className="mt-0.5 truncate text-xs text-card-foreground/60">
             {item.preview}

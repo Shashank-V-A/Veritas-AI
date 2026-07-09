@@ -1,0 +1,17 @@
+{
+  "name": "Veritas AI",
+  "short_name": "Veritas",
+  "description": "Don't consume information. Verify it. Professional credibility analysis.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f0e6",
+  "theme_color": "#8B2942",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

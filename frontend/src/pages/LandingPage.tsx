@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-react'
 import { fadeIn, slideUp, staggerContainer } from '@/animations/variants'
 import { BeforeAfterDemo } from '@/components/landing/BeforeAfterDemo'
 import { HowItWorks } from '@/components/landing/HowItWorks'
+import { LiveInvestigationSection } from '@/components/landing/LiveInvestigationSection'
+import { ProblemStats } from '@/components/landing/ProblemStats'
 import { SampleReportPreview } from '@/components/landing/SampleReportPreview'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { AuthLoadingScreen } from '@/components/auth/AuthLoadingScreen'
@@ -101,6 +103,10 @@ export function LandingPage() {
         </div>
       </section>
 
+      <ProblemStats />
+
+      <LiveInvestigationSection />
+
       {/* Sample dossier */}
       <section
         id="sample-dossier"
@@ -134,7 +140,7 @@ export function LandingPage() {
       </section>
 
       {/* Sign in — secondary */}
-      <section className="paper-ink border-t border-accent/20 px-6 py-16 md:px-12">
+      <section id="sign-in-section" className="paper-ink border-t border-accent/20 px-6 py-16 md:px-12">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-8 md:flex-row md:items-center">
           <div>
             <h2 className="font-display text-2xl text-card-foreground md:text-3xl">

@@ -20,18 +20,29 @@ model User {
 }
 
 model Analysis {
-  id         String   @id @default(uuid())
-  title      String?
-  content    String
-  sourceType String   @default("raw")
-  trustScore Int
-  report     String
-  userId     String?
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id             String   @id @default(uuid())
+  title          String?
+  content        String
+  sourceType     String   @default("raw")
+  trustScore     Int
+  report         String
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  shareToken     String?  @unique
+  category       String?
+  parentId       String?
+  compareContent String?
+  meshModel      String?
+  meshLatencyMs  Int?
+  isGuest        Boolean  @default(false)
+  verdict        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([createdAt])
   @@index([trustScore])
   @@index([userId])
+  @@index([shareToken])
+  @@index([category])
+  @@index([verdict])
 }

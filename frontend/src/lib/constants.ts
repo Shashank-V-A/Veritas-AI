@@ -6,7 +6,11 @@ export const ROUTES = {
   dashboard: '/app',
   history: '/app/history',
   analysis: (id: string) => `/app/analysis/${id}`,
+  share: (token: string) => `/share/${token}`,
+  demo: '/#sample-dossier',
 } as const
+
+export const FOCUS_INTAKE_EVENT = 'veritas:focus-intake' as const
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
 

@@ -124,6 +124,9 @@ export const SAMPLE_ORIGINAL_SNIPPET =
 export const EXAMPLE_PROMPTS = [
   {
     label: 'Viral health claim',
+    category: 'HEALTH',
+    trustScore: 22,
+    riskLabel: 'High risk',
     sourceType: 'forward' as const,
     title: 'Health forward analysis',
     content:
@@ -131,6 +134,9 @@ export const EXAMPLE_PROMPTS = [
   },
   {
     label: 'Political post',
+    category: 'POLITICAL',
+    trustScore: 31,
+    riskLabel: 'High risk',
     sourceType: 'social' as const,
     title: 'Social post analysis',
     content:
@@ -138,9 +144,12 @@ export const EXAMPLE_PROMPTS = [
   },
   {
     label: 'News excerpt',
+    category: 'NEWS',
+    trustScore: 78,
+    riskLabel: 'Credible',
     sourceType: 'article' as const,
     title: 'Article analysis',
     content:
       'A new study suggests moderate coffee consumption may be linked to lower risk of certain heart conditions. Researchers analyzed data from 50,000 participants over 10 years, publishing findings in a peer-reviewed journal.',
   },
-]
+] as const

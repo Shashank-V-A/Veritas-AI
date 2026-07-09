@@ -35,6 +35,10 @@ const ReportPage = lazy(() =>
 const NotFoundPage = lazy(() =>
   import('@/pages/NotFoundPage').then((m) => ({ default: m.NotFoundPage })),
 )
+const PublicReportPage = lazy(() =>
+  import('@/pages/PublicReportPage').then((m) => ({ default: m.PublicReportPage })),
+)
+
 const ProtectedRoute = lazy(() =>
   import('@/components/auth/ProtectedRoute').then((m) => ({
     default: m.ProtectedRoute,
@@ -125,6 +129,17 @@ function AnimatedRoutes() {
             />
           </Route>
         </Route>
+
+        <Route
+          path="/share/:token"
+          element={
+            <ErrorBoundary fallbackTitle="Failed to load shared report">
+              <Suspense fallback={<RouteFallback />}>
+                <PublicReportPage />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
 
         <Route
           path="*"

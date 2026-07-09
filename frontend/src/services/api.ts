@@ -5,6 +5,9 @@ import type {
   ApiErrorBody,
   AnalysisRecord,
   HistoryResponse,
+  PublicReportResponse,
+  ShareLinkResponse,
+  UrlAnalyzeRequest,
 } from '@veritas/shared'
 
 class ApiClientError extends Error {
@@ -61,6 +64,25 @@ export const api = {
     return handleResponse<AnalyzeResponse>(response)
   },
 
+  async analyzeGuest(payload: AnalyzeRequest): Promise<AnalyzeResponse> {
+    const response = await fetch(`${API_BASE_URL}/analyze/guest`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    return handleResponse<AnalyzeResponse>(response)
+  },
+
+  async analyzeUrl(payload: UrlAnalyzeRequest): Promise<AnalyzeResponse> {
+    const response = await fetch(`${API_BASE_URL}/analyze/url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+    return handleResponse<AnalyzeResponse>(response)
+  },
+
   async analyzePdf(file: File, title?: string): Promise<AnalyzeResponse> {
     const formData = new FormData()
     formData.append('pdf', file)
@@ -78,11 +100,15 @@ export const api = {
     page?: number
     limit?: number
     search?: string
+    category?: string
+    verdict?: string
   }): Promise<HistoryResponse> {
     const searchParams = new URLSearchParams()
     if (params?.page) searchParams.set('page', String(params.page))
     if (params?.limit) searchParams.set('limit', String(params.limit))
     if (params?.search) searchParams.set('search', params.search)
+    if (params?.category) searchParams.set('category', params.category)
+    if (params?.verdict) searchParams.set('verdict', params.verdict)
 
     const query = searchParams.toString()
     const response = await fetch(
@@ -97,6 +123,27 @@ export const api = {
       credentials: 'include',
     })
     return handleResponse<AnalysisRecord>(response)
+  },
+
+  async getPublicReport(token: string): Promise<PublicReportResponse> {
+    const response = await fetch(`${API_BASE_URL}/public/report/${token}`)
+    return handleResponse<PublicReportResponse>(response)
+  },
+
+  async shareReport(id: string): Promise<ShareLinkResponse> {
+    const response = await fetch(`${API_BASE_URL}/report/${id}/share`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    return handleResponse<ShareLinkResponse>(response)
+  },
+
+  async reanalyzeReport(id: string): Promise<AnalyzeResponse> {
+    const response = await fetch(`${API_BASE_URL}/report/${id}/reanalyze`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    return handleResponse<AnalyzeResponse>(response)
   },
 
   async exportReportPdf(id: string): Promise<Blob> {
@@ -116,6 +163,31 @@ export const api = {
 
       throw new ApiClientError(
         errorBody?.error?.message ?? 'PDF export failed',
+        errorBody?.error?.code ?? 'UNKNOWN_ERROR',
+        response.status,
+      )
+    }
+
+    return response.blob()
+  },
+
+  async exportReportMarkdown(id: string): Promise<Blob> {
+    const response = await fetch(`${API_BASE_URL}/report/${id}/export/markdown`, {
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      let errorBody: ApiErrorBody | null = null
+      try {
+        errorBody = (await response.json()) as ApiErrorBody
+      } catch {
+        // not JSON
+      }
+
+      if (response.status === 401) unauthorizedHandler?.()
+
+      throw new ApiClientError(
+        errorBody?.error?.message ?? 'Markdown export failed',
         errorBody?.error?.code ?? 'UNKNOWN_ERROR',
         response.status,
       )

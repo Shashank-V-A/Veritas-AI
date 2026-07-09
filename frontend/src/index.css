@@ -164,6 +164,60 @@
     background: rgba(37, 37, 48, 0.6);
   }
 
+  .grain {
+    position: relative;
+  }
+
+  .grain::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    opacity: 0.4;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  .case-intake-panel {
+    position: relative;
+    background: #1a1a1f;
+    border: 1px solid rgba(139, 41, 66, 0.35);
+    box-shadow:
+      0 16px 48px rgba(26, 26, 31, 0.45),
+      inset 0 0 0 1px rgba(154, 123, 79, 0.12);
+  }
+
+  .case-intake-panel::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(154, 123, 79, 0.2);
+    z-index: 0;
+  }
+
+  .legal-pad {
+    background-image: linear-gradient(
+      to bottom,
+      transparent 1.5rem,
+      rgba(139, 41, 66, 0.08) 1.5rem
+    );
+    background-size: 100% 1.75rem;
+    border-left: 2px solid rgba(154, 123, 79, 0.35);
+    padding-left: 1.25rem;
+  }
+
+  .file-tab-active {
+    border-left: 2px solid #9a7b4f;
+    background: rgba(154, 123, 79, 0.08);
+  }
+
+  .evidence-tab-active {
+    border-color: rgba(139, 41, 66, 0.45);
+    background: rgba(139, 41, 66, 0.12);
+    color: #f0ede6;
+  }
+
   .stamp {
     border: 3px double currentColor;
     letter-spacing: 0.2em;
@@ -283,5 +337,40 @@
       transparent
     );
     height: 2px;
+  }
+
+  @media print {
+    body {
+      background: white !important;
+      color: #1a1a1f !important;
+    }
+
+    .grain::before,
+    .grain::after {
+      display: none !important;
+    }
+
+    nav,
+    aside,
+    header,
+    [data-print-hide] {
+      display: none !important;
+    }
+
+    .dossier-panel,
+    .case-intake-panel {
+      break-inside: avoid;
+      border: 1px solid #d8d2c4 !important;
+      box-shadow: none !important;
+      background: white !important;
+    }
+
+    .sticky {
+      position: static !important;
+    }
+
+    a[href]::after {
+      content: none !important;
+    }
   }
 }

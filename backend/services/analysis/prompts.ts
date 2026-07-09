@@ -157,17 +157,48 @@ export function buildUserPrompt(input: {
   content: string
   sourceType: SourceType
   title?: string
+  compareContent?: string
 }) {
   const sourceLabel = SOURCE_LABELS[input.sourceType]
   const titleLine = input.title ? `Title: ${input.title}\n` : ''
 
-  return `${titleLine}Source type: ${sourceLabel}
+  const forwardInstructions =
+    input.sourceType === 'forward'
+      ? `
+Forward-specific instructions:
+- Treat this as a viral messaging forward or chain message
+- Watch for urgency hooks, conspiracy framing, and "share before deleted" language
+- Identify anonymous authority claims ("doctors say", "they don't want you to know")
+- Flag health or financial promises that lack named credible sources
+`
+      : ''
 
+  const compareInstructions = input.compareContent
+    ? `
+Compare mode:
+- Analyze the PRIMARY content below for credibility
+- Use the COMPARISON content as a reference point — note agreements, contradictions, and framing differences
+- Highlight what each version adds, omits, or distorts relative to the other
+- Include comparison insights in summary, claims, and missingContext where relevant
+`
+    : ''
+
+  const comparisonBlock = input.compareContent
+    ? `
+
+---
+COMPARISON CONTENT (reference only):
+${input.compareContent}
+---`
+    : ''
+
+  return `${titleLine}Source type: ${sourceLabel}
+${forwardInstructions}${compareInstructions}
 Analyze the following content and return a complete credibility report as JSON:
 
 ---
 ${input.content}
----`
+---${comparisonBlock}`
 }
 
 export function buildRepairPrompt(invalidJson: string, validationError: string) {
