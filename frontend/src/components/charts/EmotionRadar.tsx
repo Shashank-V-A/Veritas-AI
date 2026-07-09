@@ -66,8 +66,8 @@ export function EmotionRadar({ emotion }: EmotionRadarProps) {
             <Radar
               name="Intensity"
               dataKey="value"
-              stroke={CHART_COLORS.cyan}
-              fill={CHART_COLORS.cyan}
+              stroke={CHART_COLORS.accent}
+              fill={CHART_COLORS.accent}
               fillOpacity={0.2}
               strokeWidth={2}
             />

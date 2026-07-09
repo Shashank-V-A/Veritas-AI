@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto'
-import { Router } from 'express'
+import { Router, type Response } from 'express'
 import {
   exchangeGoogleCode,
   getGoogleAuthUrl,
@@ -18,14 +18,27 @@ function getFrontendUrl(): string {
   return process.env.FRONTEND_URL ?? 'http://localhost:5173'
 }
 
-function sessionCookieOptions() {
+function cookieBaseOptions() {
+  const isProduction = process.env.NODE_ENV === 'production'
   return {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     sameSite: 'lax' as const,
-    maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
+    // Share session cookies across localhost ports in local dev.
+    ...(isProduction ? {} : { domain: 'localhost' }),
   }
+}
+
+function sessionCookieOptions() {
+  return {
+    ...cookieBaseOptions(),
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  }
+}
+
+function clearAuthCookie(res: Response, name: string) {
+  res.clearCookie(name, cookieBaseOptions())
 }
 
 export const authRouter = Router()
@@ -34,11 +47,8 @@ authRouter.get('/google', (_req, res, next) => {
   try {
     const state = randomBytes(24).toString('hex')
     res.cookie(OAUTH_STATE_COOKIE, state, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...cookieBaseOptions(),
       maxAge: 10 * 60 * 1000,
-      path: '/',
     })
     res.redirect(getGoogleAuthUrl(state))
   } catch (error) {
@@ -63,7 +73,7 @@ authRouter.get('/google/callback', async (req, res, next) => {
     }
 
     const savedState = req.cookies?.[OAUTH_STATE_COOKIE]
-    res.clearCookie(OAUTH_STATE_COOKIE, { path: '/' })
+    clearAuthCookie(res, OAUTH_STATE_COOKIE)
 
     if (!savedState || savedState !== state) {
       throw new AppError('Invalid OAuth state', 'VALIDATION_ERROR', 400)
@@ -95,7 +105,7 @@ authRouter.get('/me', (req, res) => {
 
   const session = verifySession(token)
   if (!session) {
-    res.clearCookie(SESSION_COOKIE, { path: '/' })
+    clearAuthCookie(res, SESSION_COOKIE)
     res.json({ user: null })
     return
   }
@@ -111,6 +121,6 @@ authRouter.get('/me', (req, res) => {
 })
 
 authRouter.post('/logout', (_req, res) => {
-  res.clearCookie(SESSION_COOKIE, { path: '/' })
+  clearAuthCookie(res, SESSION_COOKIE)
   res.json({ ok: true })
 })

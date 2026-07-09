@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { CHART_COLORS } from '@/lib/chartColors'
 import { getTrustScoreColor } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -19,7 +20,11 @@ export function TrustScoreRing({ score, className }: TrustScoreRingProps) {
     circumference - (progress / 100) * circumference
 
   const ringColor =
-    score >= 70 ? '#22C55E' : score >= 40 ? '#F59E0B' : '#EF4444'
+    score >= 70
+      ? CHART_COLORS.success
+      : score >= 40
+        ? CHART_COLORS.warning
+        : CHART_COLORS.danger
 
   return (
     <div
@@ -37,7 +42,7 @@ export function TrustScoreRing({ score, className }: TrustScoreRingProps) {
             cy={radius}
             r={normalizedRadius}
             fill="none"
-            stroke="#27272A"
+            stroke={CHART_COLORS.grid}
             strokeWidth={stroke}
           />
           <motion.circle

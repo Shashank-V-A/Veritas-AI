@@ -9,9 +9,9 @@ export interface GoogleProfile {
 }
 
 function getClient(): OAuth2Client {
-  const clientId = process.env.GOOGLE_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
-  const redirectUri = process.env.GOOGLE_CALLBACK_URL
+  const clientId = process.env.GOOGLE_CLIENT_ID?.trim()
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
+  const redirectUri = process.env.GOOGLE_CALLBACK_URL?.trim()
 
   if (!clientId || !clientSecret || !redirectUri) {
     throw new AppError(

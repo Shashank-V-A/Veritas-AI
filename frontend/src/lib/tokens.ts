@@ -1,16 +1,16 @@
 export const colors = {
-  background: '#09090B',
-  surface: '#111113',
-  surfaceSecondary: '#18181B',
-  border: '#27272A',
-  foreground: '#FAFAFA',
-  muted: '#A1A1AA',
-  mutedDark: '#71717A',
-  accent: '#10B981',
-  accentSecondary: '#22D3EE',
-  success: '#22C55E',
-  warning: '#F59E0B',
-  danger: '#EF4444',
+  background: '#2B2D42',
+  surface: '#363856',
+  surfaceSecondary: '#4A4E69',
+  border: '#5C6078',
+  foreground: '#F8F6F2',
+  muted: '#B8BCCF',
+  mutedDark: '#8B8FA8',
+  accent: '#F6BD60',
+  accentSecondary: '#E8A84A',
+  success: '#8FBC8F',
+  warning: '#F6BD60',
+  danger: '#E07A5F',
 } as const
 
 export const typography = {
@@ -42,7 +42,7 @@ export const radii = {
 } as const
 
 export const shadows = {
-  subtle: '0 1px 2px rgba(0, 0, 0, 0.4)',
-  card: '0 4px 24px rgba(0, 0, 0, 0.24)',
-  elevated: '0 8px 32px rgba(0, 0, 0, 0.32)',
+  subtle: '0 1px 2px rgba(43, 45, 66, 0.4)',
+  card: '0 4px 24px rgba(43, 45, 66, 0.35)',
+  elevated: '0 8px 32px rgba(43, 45, 66, 0.45)',
 } as const

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { CHART_COLORS } from '@/lib/chartColors'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 const MOCK_CLAIMS = [
@@ -97,7 +98,7 @@ export function DemoPreview() {
                       cy={radius}
                       r={normalizedRadius}
                       fill="none"
-                      stroke="#27272A"
+                      stroke={CHART_COLORS.grid}
                       strokeWidth={stroke}
                     />
                     <circle
@@ -105,7 +106,7 @@ export function DemoPreview() {
                       cy={radius}
                       r={normalizedRadius}
                       fill="none"
-                      stroke="#F59E0B"
+                      stroke={CHART_COLORS.accent}
                       strokeWidth={stroke}
                       strokeLinecap="round"
                       strokeDasharray={circumference}
