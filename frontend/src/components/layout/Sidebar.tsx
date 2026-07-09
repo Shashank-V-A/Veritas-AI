@@ -6,8 +6,11 @@ import { ROUTES } from '@/lib/constants'
 import { sidebarItem } from '@/animations/variants'
 import { useCommandPalette } from '@/contexts/CommandPaletteContext'
 import { Logo } from '@/components/layout/Logo'
+import { UserMenu } from '@/components/auth/UserMenu'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { useAuth } from '@/contexts/AuthContext'
 
 const navItems = [
   { label: 'Dashboard', href: ROUTES.dashboard, icon: LayoutDashboard },
@@ -22,6 +25,7 @@ interface SidebarProps {
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const location = useLocation()
   const { setOpen } = useCommandPalette()
+  const { isAuthenticated, isLoading } = useAuth()
 
   const content = (
     <>
@@ -94,7 +98,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border p-4 space-y-3">
+        {!isLoading && (
+          isAuthenticated ? <UserMenu /> : <GoogleSignInButton className="w-full" />
+        )}
         <button
           type="button"
           onClick={() => {

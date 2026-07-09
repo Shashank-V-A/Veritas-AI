@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
+import { UserMenu } from '@/components/auth/UserMenu'
 import { APP_TAGLINE, ROUTES } from '@/lib/constants'
 import { fadeIn, slideUp } from '@/animations/variants'
 import { Logo } from '@/components/layout/Logo'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/AuthContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 const navLinks = [
@@ -15,6 +18,7 @@ const navLinks = [
 
 export function NavBar() {
   const reducedMotion = useReducedMotion()
+  const { isAuthenticated, isLoading } = useAuth()
 
   return (
     <motion.header
@@ -42,12 +46,15 @@ export function NavBar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to={ROUTES.dashboard}>Sign in</Link>
-          </Button>
+          {!isLoading && !isAuthenticated && <GoogleSignInButton />}
+          {!isLoading && isAuthenticated && (
+            <div className="hidden md:block">
+              <UserMenu />
+            </div>
+          )}
           <Button size="sm" asChild>
             <Link to={ROUTES.dashboard}>
-              Get started
+              {isAuthenticated ? 'Dashboard' : 'Get started'}
               <ArrowRight className="size-3.5" />
             </Link>
           </Button>

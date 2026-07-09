@@ -8,6 +8,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String     @id @default(uuid())
+  googleId  String     @unique
+  email     String     @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  analyses  Analysis[]
+}
+
 model Analysis {
   id         String   @id @default(uuid())
   title      String?
@@ -15,9 +26,12 @@ model Analysis {
   sourceType String   @default("raw")
   trustScore Int
   report     String
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   @@index([createdAt])
   @@index([trustScore])
+  @@index([userId])
 }

@@ -24,6 +24,7 @@ analyzeRouter.post('/', async (req, res, next) => {
       sourceType: parsed.sourceType,
       title: parsed.title,
       report,
+      userId: req.user?.sub,
     })
 
     res.status(201).json({

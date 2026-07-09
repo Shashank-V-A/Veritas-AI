@@ -2,7 +2,7 @@ import type { CorsOptions } from 'cors'
 
 export function getCorsOptions(): CorsOptions {
   if (process.env.NODE_ENV !== 'production') {
-    return { origin: true }
+    return { origin: true, credentials: true }
   }
 
   const origins = new Set<string>()

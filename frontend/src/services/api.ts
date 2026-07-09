@@ -43,6 +43,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload),
     })
     return handleResponse<AnalyzeResponse>(response)
@@ -61,12 +62,15 @@ export const api = {
     const query = searchParams.toString()
     const response = await fetch(
       `${API_BASE_URL}/history${query ? `?${query}` : ''}`,
+      { credentials: 'include' },
     )
     return handleResponse<HistoryResponse>(response)
   },
 
   async getReport(id: string): Promise<AnalysisRecord> {
-    const response = await fetch(`${API_BASE_URL}/report/${id}`)
+    const response = await fetch(`${API_BASE_URL}/report/${id}`, {
+      credentials: 'include',
+    })
     return handleResponse<AnalysisRecord>(response)
   },
 }

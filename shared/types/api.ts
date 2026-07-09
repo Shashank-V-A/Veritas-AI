@@ -33,6 +33,17 @@ export interface ApiErrorBody {
   }
 }
 
+export interface AuthUser {
+  id: string
+  email: string
+  name?: string
+  avatar?: string
+}
+
+export interface AuthMeResponse {
+  user: AuthUser | null
+}
+
 export type ErrorCode =
   | 'VALIDATION_ERROR'
   | 'NOT_FOUND'

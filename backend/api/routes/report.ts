@@ -8,7 +8,7 @@ export const reportRouter = Router()
 reportRouter.get('/:id', cacheControl(300), async (req, res, next) => {
   try {
     const { id } = reportIdSchema.parse(req.params)
-    const record = await reportRepository.findById(id)
+    const record = await reportRepository.findById(id, req.user?.sub)
 
     res.json({
       id: record.id,

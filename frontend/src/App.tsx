@@ -8,6 +8,7 @@ import {
   RouteFallback,
 } from '@/components/RouteFallback'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { CommandPaletteProvider, useCommandPalette } from '@/contexts/CommandPaletteContext'
 import { queryClient } from '@/lib/queryClient'
 
@@ -133,14 +134,16 @@ function AnimatedRoutes() {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={300}>
-        <CommandPaletteProvider>
-          <BrowserRouter>
-            <AnimatedRoutes />
-            <CommandPaletteLoader />
-          </BrowserRouter>
-        </CommandPaletteProvider>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider delayDuration={300}>
+          <CommandPaletteProvider>
+            <BrowserRouter>
+              <AnimatedRoutes />
+              <CommandPaletteLoader />
+            </BrowserRouter>
+          </CommandPaletteProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   )
 }

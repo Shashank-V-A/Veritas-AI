@@ -12,6 +12,7 @@ interface SaveAnalysisInput {
   sourceType: SourceType
   title?: string
   report: CredibilityReport
+  userId?: string
 }
 
 function toAnalysisRecord(row: {
@@ -49,16 +50,21 @@ export const reportRepository = {
         sourceType: input.sourceType,
         trustScore: input.report.trustScore,
         report: JSON.stringify(input.report),
+        userId: input.userId,
       },
     })
 
     return toAnalysisRecord(row)
   },
 
-  async findById(id: string): Promise<AnalysisRecord> {
+  async findById(id: string, userId?: string): Promise<AnalysisRecord> {
     const row = await prisma.analysis.findUnique({ where: { id } })
 
     if (!row) {
+      throw new AppError('Report not found', 'NOT_FOUND')
+    }
+
+    if (userId && row.userId && row.userId !== userId) {
       throw new AppError('Report not found', 'NOT_FOUND')
     }
 
@@ -69,18 +75,27 @@ export const reportRepository = {
     page: number
     limit: number
     search?: string
+    userId?: string
   }): Promise<{ items: HistoryItem[]; total: number }> {
-    const { page, limit, search } = params
+    const { page, limit, search, userId } = params
     const skip = (page - 1) * limit
 
-    const where = search
-      ? {
-          OR: [
-            { title: { contains: search } },
-            { content: { contains: search } },
-          ],
-        }
-      : undefined
+    const filters = []
+
+    if (userId) {
+      filters.push({ userId })
+    }
+
+    if (search) {
+      filters.push({
+        OR: [
+          { title: { contains: search } },
+          { content: { contains: search } },
+        ],
+      })
+    }
+
+    const where = filters.length > 0 ? { AND: filters } : undefined
 
     const [rows, total] = await Promise.all([
       prisma.analysis.findMany({

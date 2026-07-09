@@ -8,7 +8,10 @@ export const historyRouter = Router()
 historyRouter.get('/', cacheControl(30), async (req, res, next) => {
   try {
     const query = historyQuerySchema.parse(req.query)
-    const { items, total } = await reportRepository.findHistory(query)
+    const { items, total } = await reportRepository.findHistory({
+      ...query,
+      userId: req.user?.sub,
+    })
 
     res.json({
       items,

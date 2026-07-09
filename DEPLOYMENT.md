@@ -40,8 +40,21 @@ Set these in **Vercel Project → Settings → Environment Variables**:
 | `MESH_MODEL` | `google/gemini-2.5-flash` | Production, Preview |
 | `DATABASE_URL` | `file:/tmp/veritas.db` | Production, Preview |
 | `VITE_API_BASE_URL` | `/api` | Production, Preview |
+| `GOOGLE_CLIENT_ID` | `...apps.googleusercontent.com` | Production, Preview |
+| `GOOGLE_CLIENT_SECRET` | `GOCSPX-...` | Production, Preview |
+| `GOOGLE_CALLBACK_URL` | `https://your-domain.vercel.app/api/auth/google/callback` | Production, Preview |
+| `JWT_SECRET` | long random string | Production, Preview |
+| `FRONTEND_URL` | `https://your-domain.vercel.app` | Production, Preview |
 
-> **Never** add `MESH_API_KEY` to frontend-exposed variables.
+> **Never** add `MESH_API_KEY`, `GOOGLE_CLIENT_SECRET`, or `JWT_SECRET` to frontend-exposed variables.
+
+## Google OAuth setup
+
+1. In [Google Cloud Console](https://console.cloud.google.com/apis/credentials), create an OAuth 2.0 Client ID (Web application).
+2. Add **Authorized redirect URIs**:
+   - Local: `http://localhost:5173/api/auth/google/callback`
+   - Production: `https://your-domain.vercel.app/api/auth/google/callback`
+3. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`, `JWT_SECRET`, and `FRONTEND_URL` in Vercel env vars.
 
 ## Architecture on Vercel
 
