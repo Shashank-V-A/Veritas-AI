@@ -2,12 +2,15 @@ import type { CredibilityReport } from '@veritas/shared'
 import { AppError } from '../../utils/errors.js'
 import { logger } from '../../utils/logger.js'
 import { createMeshClient } from '../mesh/client.js'
+import { buildSearchContext, searchWeb } from '../search/webSearch.js'
+import { syncAnalysisToGraph } from '../graph/neo4j.js'
 import {
   buildRepairPrompt,
   buildUserPrompt,
   CREDIBILITY_REPORT_JSON_SCHEMA,
   SYSTEM_PROMPT,
 } from './prompts.js'
+import { enrichReportWithSearch } from './enrich.js'
 import { getValidationErrorMessage, parseCredibilityReport } from './parser.js'
 import { createStubReport } from './stub.js'
 
@@ -16,6 +19,7 @@ export interface AnalysisInput {
   sourceType: import('@veritas/shared').SourceType
   title?: string
   compareContent?: string
+  searchContext?: string
 }
 
 export interface AnalysisPipelineResult {
@@ -129,26 +133,48 @@ async function parseWithRepair(
 export async function* runAnalysisWithStages(
   input: AnalysisInput,
 ): AsyncGenerator<string, AnalysisPipelineResult> {
-  yield 'prepare'
+  yield 'claim_extraction'
+
+  let pipelineInput = { ...input }
+
+  if (!input.searchContext) {
+    yield 'web_search'
+    const query = input.title ?? input.content.slice(0, 120).replace(/\s+/g, ' ')
+    const results = await searchWeb(query, 5)
+    pipelineInput = {
+      ...input,
+      searchContext: buildSearchContext(results),
+    }
+  }
 
   if (shouldUseStub()) {
     logger.warn('Mesh API not configured — using development stub analyzer')
-    yield 'stub_analysis'
+    yield 'verdict_synthesis'
+    const report = enrichReportWithSearch(createStubReport(pipelineInput), [])
     return {
-      report: createStubReport(input),
+      report,
       meshModel: 'stub',
       meshLatencyMs: 0,
     }
   }
 
   try {
-    yield 'mesh_request'
-    const meshResult = await callMeshForReport(input)
+    yield 'evidence_scan'
+    const meshResult = await callMeshForReport(pipelineInput)
 
-    yield 'parse'
-    const report = await parseWithRepair(input, meshResult.content)
+    yield 'bias_scan'
+    let report = await parseWithRepair(pipelineInput, meshResult.content)
 
-    yield 'complete'
+    yield 'fallacy_scan'
+    if (pipelineInput.searchContext) {
+      const results = await searchWeb(
+        pipelineInput.title ?? pipelineInput.content.slice(0, 80),
+        5,
+      )
+      report = enrichReportWithSearch(report, results)
+    }
+
+    yield 'dossier_compile'
     return {
       report,
       meshModel: meshResult.model,
@@ -170,15 +196,26 @@ export async function* runAnalysisWithStages(
 export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPipelineResult> {
   const generator = runAnalysisWithStages(input)
   let stage = await generator.next()
+  let result: AnalysisPipelineResult | undefined
 
   while (!stage.done) {
     logger.debug('Analysis stage', { stage: stage.value })
     stage = await generator.next()
   }
 
-  if (!stage.value) {
+  result = stage.value
+  if (!result) {
     throw new AppError('Analysis pipeline failed', 'INTERNAL', 500)
   }
 
-  return stage.value
+  return result
+}
+
+export async function runAnalysisAndSyncGraph(
+  analysisId: string,
+  input: AnalysisInput,
+): Promise<AnalysisPipelineResult> {
+  const result = await runAnalysis(input)
+  await syncAnalysisToGraph(analysisId, result.report)
+  return result
 }

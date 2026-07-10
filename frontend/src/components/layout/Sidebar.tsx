@@ -1,18 +1,21 @@
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, LayoutDashboard, LogOut, Plus, Search, X } from 'lucide-react'
+import { Clock, LayoutDashboard, LogOut, Plus, Search, Settings, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/lib/constants'
 import { sidebarItem } from '@/animations/variants'
 import { useCommandPalette } from '@/contexts/CommandPaletteContext'
 import { Logo } from '@/components/layout/Logo'
+import { ThemeToggle } from '@/components/layout/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 
 const navItems = [
-  { label: 'Workspace', href: ROUTES.dashboard, icon: LayoutDashboard },
-  { label: 'Case files', href: ROUTES.history, icon: Clock },
-]
+  { labelKey: 'nav.workspace', href: ROUTES.dashboard, icon: LayoutDashboard },
+  { labelKey: 'nav.caseFiles', href: ROUTES.history, icon: Clock },
+  { labelKey: 'nav.settings', href: ROUTES.settings, icon: Settings },
+] as const
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -30,6 +33,7 @@ function getInitials(name?: string, email?: string): string {
 
 export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const location = useLocation()
+  const { t } = useTranslation()
   const { setOpen } = useCommandPalette()
   const { user, logout } = useAuth()
 
@@ -58,7 +62,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         >
           <Link to={ROUTES.dashboard}>
             <Plus className="size-4" />
-            New investigation
+            {t('nav.newInvestigation')}
           </Link>
         </Button>
 
@@ -106,7 +110,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
                     className="relative size-4 shrink-0"
                     strokeWidth={1.5}
                   />
-                  <span className="relative">{item.label}</span>
+                  <span className="relative">{t(item.labelKey)}</span>
                 </Link>
               </motion.div>
             )
@@ -115,9 +119,12 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
       </div>
 
       <div className="space-y-3 border-t border-foreground/10 p-4">
-        <div className="flex items-center gap-2 px-2">
-          <span className="size-1.5 rounded-full bg-success" />
-          <span className="font-mono text-[10px] text-foreground/55">Mesh API · Online</span>
+        <div className="flex items-center justify-between px-2">
+          <div className="flex items-center gap-2">
+            <span className="size-1.5 rounded-full bg-success" />
+            <span className="font-mono text-[10px] text-foreground/55">Mesh API · Online</span>
+          </div>
+          <ThemeToggle />
         </div>
         <button
           type="button"

@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 import { motion } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
 import { slideUp } from '@/animations/variants'
@@ -9,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { ROUTES } from '@/lib/constants'
 import { usePublicReport } from '@/hooks/useHistory'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { getOgImageUrl } from '@/services/api'
 import type { AnalysisRecord } from '@veritas/shared'
 import type { PublicReportResponse } from '@veritas/shared'
 
@@ -51,8 +53,25 @@ export function PublicReportPage() {
   const reducedMotion = useReducedMotion()
   const { data, isLoading, isError } = usePublicReport(token)
 
+  const pageTitle = data?.title
+    ? `${data.title} — Veritas AI`
+    : 'Shared dossier — Veritas AI'
+  const description = data?.report.summary ?? 'Forensic credibility dossier from Veritas AI'
+  const ogImage = token ? getOgImageUrl(token) : undefined
+
   return (
     <div className="min-h-svh bg-surface">
+      <Helmet>
+        <title>{pageTitle}</title>
+        <meta name="description" content={description} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={description} />
+        {ogImage && <meta property="og:image" content={ogImage} />}
+        <meta property="og:type" content="article" />
+        <meta name="twitter:card" content="summary_large_image" />
+        {ogImage && <meta name="twitter:image" content={ogImage} />}
+      </Helmet>
+
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-8 md:py-12">
         <motion.div
           variants={reducedMotion ? undefined : slideUp}
@@ -61,7 +80,7 @@ export function PublicReportPage() {
         >
           <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
             <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-accent" asChild>
-              <Link to={ROUTES.home}>
+              <Link to={ROUTES.home} aria-label="Back to Veritas AI home">
                 <ArrowLeft className="size-4" />
                 Veritas AI
               </Link>

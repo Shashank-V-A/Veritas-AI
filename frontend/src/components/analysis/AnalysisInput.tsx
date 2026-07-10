@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, FileUp, Globe, Link2, SlidersHorizontal, X } from 'lucide-react'
+import { ArrowRight, FileUp, Globe, ImageIcon, Link2, SlidersHorizontal, Video, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { MAX_CONTENT_LENGTH, FOCUS_INTAKE_EVENT } from '@/lib/constants'
 import { CATEGORY_OPTIONS } from '@/lib/categories'
 import { generateIntakeCaseRef } from '@/lib/caseId'
@@ -8,6 +9,7 @@ import { SOURCE_TYPE_OPTIONS } from '@/lib/sourceTypes'
 import { cn } from '@/lib/utils'
 import type { AnalysisCategory, SourceType } from '@veritas/shared'
 import { AnalysisLoading } from '@/components/analysis/AnalysisLoading'
+import { ForwardRiskBadge } from '@/components/analysis/ForwardRiskBadge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -20,7 +22,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useAnalyze } from '@/hooks/useAnalyze'
 import type { AnalysisPrefill } from '@/lib/sampleReport'
 
-type InputMode = 'text' | 'url'
+type InputMode = 'text' | 'url' | 'youtube' | 'image'
 
 interface AnalysisInputProps {
   className?: string
@@ -35,29 +37,39 @@ export function AnalysisInput({
   onPrefillConsumed,
   id = 'analysis-intake',
 }: AnalysisInputProps) {
+  const { t } = useTranslation()
   const [inputMode, setInputMode] = useState<InputMode>('text')
   const [content, setContent] = useState('')
   const [url, setUrl] = useState('')
+  const [youtubeUrl, setYoutubeUrl] = useState('')
   const [sourceType, setSourceType] = useState<SourceType>('article')
   const [category, setCategory] = useState<AnalysisCategory>('news')
   const [title, setTitle] = useState('')
   const [compareMode, setCompareMode] = useState(false)
   const [compareContent, setCompareContent] = useState('')
   const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [mobileTypesOpen, setMobileTypesOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const analyze = useAnalyze()
   const caseRef = useMemo(() => generateIntakeCaseRef(), [])
 
   useEffect(() => {
     if (!prefill) return
-    setInputMode('text')
-    setContent(prefill.content)
+    if (prefill.url) {
+      setInputMode('url')
+      setUrl(prefill.url)
+    } else {
+      setInputMode('text')
+      setContent(prefill.content)
+    }
     setSourceType(prefill.sourceType)
     setTitle(prefill.title ?? '')
     setPdfFile(null)
+    setImageFile(null)
     onPrefillConsumed?.()
   }, [prefill, onPrefillConsumed])
 
@@ -73,13 +85,19 @@ export function AnalysisInput({
 
   const isPdfMode = sourceType === 'pdf' && inputMode === 'text'
   const isUrlMode = inputMode === 'url'
+  const isYoutubeMode = inputMode === 'youtube'
+  const isImageMode = inputMode === 'image'
   const charCount = content.length
   const isOverLimit = charCount > MAX_CONTENT_LENGTH
-  const canSubmit = isUrlMode
-    ? url.trim().length > 0 && !analyze.isPending
-    : isPdfMode
-      ? Boolean(pdfFile) && !analyze.isPending
-      : content.trim().length > 0 && !isOverLimit && !analyze.isPending
+  const canSubmit = isYoutubeMode
+    ? youtubeUrl.trim().length > 0 && !analyze.isPending
+    : isImageMode
+      ? Boolean(imageFile) && !analyze.isPending
+      : isUrlMode
+        ? url.trim().length > 0 && !analyze.isPending
+        : isPdfMode
+          ? Boolean(pdfFile) && !analyze.isPending
+          : content.trim().length > 0 && !isOverLimit && !analyze.isPending
 
   function handleSubmit() {
     if (!canSubmit) return
@@ -88,6 +106,20 @@ export function AnalysisInput({
       title: title.trim() || undefined,
       category,
       compareContent: compareMode && compareContent.trim() ? compareContent.trim() : undefined,
+    }
+
+    if (isYoutubeMode) {
+      analyze.mutateYoutube({
+        url: youtubeUrl.trim(),
+        title: shared.title,
+        category: shared.category,
+      })
+      return
+    }
+
+    if (isImageMode && imageFile) {
+      analyze.mutateImage({ file: imageFile, title: shared.title })
+      return
     }
 
     if (isUrlMode) {
@@ -108,7 +140,7 @@ export function AnalysisInput({
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (isPdfMode || isUrlMode) return
+    if (isPdfMode || isUrlMode || isYoutubeMode || isImageMode) return
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canSubmit) {
       e.preventDefault()
       handleSubmit()
@@ -129,6 +161,22 @@ export function AnalysisInput({
     setIsDragging(false)
     const file = e.dataTransfer.files[0]
     if (file) handleFileSelect(file)
+  }
+
+  function handleImageSelect(file: File | null) {
+    if (!file) {
+      setImageFile(null)
+      return
+    }
+    if (!file.type.startsWith('image/')) return
+    setImageFile(file)
+  }
+
+  function handleImageDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (file) handleImageSelect(file)
   }
 
   function renderSourceTypeTabs(compact = false) {
@@ -182,7 +230,7 @@ export function AnalysisInput({
             {renderSourceTypeTabs()}
           </div>
 
-          {!isPdfMode && !isUrlMode && (
+          {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
             <div className="mt-6 border-t border-accent/10 pt-4">
               <p className="font-mono text-[10px] text-card-foreground/45">Character count</p>
               <p
@@ -247,7 +295,37 @@ export function AnalysisInput({
                 )}
               >
                 <Globe className="size-3.5" />
-                URL
+                {t('intake.url')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === 'youtube'}
+                onClick={() => setInputMode('youtube')}
+                className={cn(
+                  'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
+                  inputMode === 'youtube'
+                    ? 'border-accent/40 bg-accent/10 text-card-foreground'
+                    : 'border-transparent text-card-foreground/55',
+                )}
+              >
+                <Video className="size-3.5" />
+                {t('intake.youtube')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={inputMode === 'image'}
+                onClick={() => setInputMode('image')}
+                className={cn(
+                  'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
+                  inputMode === 'image'
+                    ? 'border-accent/40 bg-accent/10 text-card-foreground'
+                    : 'border-transparent text-card-foreground/55',
+                )}
+              >
+                <ImageIcon className="size-3.5" />
+                {t('intake.image')}
               </button>
             </div>
 
@@ -316,7 +394,91 @@ export function AnalysisInput({
             </p>
           )}
 
-          {isUrlMode ? (
+          {inputMode === 'text' && content.trim().length >= 40 && (
+            <div className="border-b border-accent/10 px-5 py-2 md:px-6">
+              <ForwardRiskBadge content={content} />
+            </div>
+          )}
+
+          {isYoutubeMode ? (
+            <div className="px-5 py-5 md:px-6">
+              <div className="flex items-center gap-2 border border-accent/20 bg-accent/5 px-3 py-2">
+                <Video className="size-4 shrink-0 text-card-foreground/50" />
+                <Input
+                  placeholder={t('intake.youtubePlaceholder')}
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  className="border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
+                  aria-label="YouTube URL to analyze"
+                />
+              </div>
+              <p className="mt-2 text-xs text-card-foreground/45">
+                Veritas will extract the transcript and analyze claims.
+              </p>
+            </div>
+          ) : isImageMode ? (
+            <div
+              className={cn(
+                'mx-5 my-5 flex min-h-[240px] flex-col items-center justify-center border-2 border-dashed px-6 py-10 transition-colors md:mx-6 md:min-h-[280px]',
+                isDragging
+                  ? 'border-accent-secondary/50 bg-accent/10'
+                  : 'border-accent/25 bg-accent/5',
+              )}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDragging(true)
+              }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleImageDrop}
+            >
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleImageSelect(e.target.files?.[0] ?? null)}
+                aria-label="Upload image file"
+              />
+
+              {imageFile ? (
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <ImageIcon className="size-8 text-card-foreground" strokeWidth={1.5} />
+                  <p className="text-sm font-medium text-card-foreground">{imageFile.name}</p>
+                  <p className="text-xs text-card-foreground/55">
+                    {(imageFile.size / 1024 / 1024).toFixed(2)} MB · Image
+                  </p>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1 text-card-foreground/70"
+                    onClick={() => {
+                      setImageFile(null)
+                      if (imageInputRef.current) imageInputRef.current.value = ''
+                    }}
+                  >
+                    <X className="size-3.5" />
+                    Remove file
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <ImageIcon className="size-8 text-card-foreground/50" strokeWidth={1.5} />
+                  <p className="text-sm text-card-foreground/75">
+                    Drag & drop a screenshot or meme, or{' '}
+                    <button
+                      type="button"
+                      className="font-medium text-accent-secondary underline"
+                      onClick={() => imageInputRef.current?.click()}
+                    >
+                      browse files
+                    </button>
+                  </p>
+                  <p className="text-xs text-card-foreground/45">PNG, JPG, WebP · max 10 MB</p>
+                </div>
+              )}
+            </div>
+          ) : isUrlMode ? (
             <div className="px-5 py-5 md:px-6">
               <div className="flex items-center gap-2 border border-accent/20 bg-accent/5 px-3 py-2">
                 <Link2 className="size-4 shrink-0 text-card-foreground/50" />
@@ -409,7 +571,7 @@ export function AnalysisInput({
 
           <div className="mt-auto flex flex-col gap-4 border-t border-accent/15 bg-accent/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
             <div className="flex flex-col gap-1">
-              {!isPdfMode && !isUrlMode && (
+              {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
                 <p
                   className={cn(
                     'text-xs tabular-nums lg:hidden',
@@ -424,7 +586,7 @@ export function AnalysisInput({
                   {getFriendlyErrorMessage(analyze.error)}
                 </p>
               )}
-              {!isPdfMode && !isUrlMode && (
+              {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
                 <p className="hidden text-[11px] text-card-foreground/45 sm:block">
                   ⌘ + Enter to file for analysis
                 </p>
@@ -437,8 +599,9 @@ export function AnalysisInput({
               size="lg"
               className="h-11 gap-2 bg-primary px-6 font-medium text-primary-foreground hover:bg-primary/90"
               data-onboarding="analyze-button"
+              aria-label={t('intake.fileForAnalysis')}
             >
-              File for analysis
+              {t('intake.fileForAnalysis')}
               <ArrowRight className="size-4" />
             </Button>
           </div>

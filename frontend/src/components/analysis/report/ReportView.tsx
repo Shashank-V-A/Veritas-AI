@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { staggerContainer, slideUp } from '@/animations/variants'
 import { EmotionRadar } from '@/components/charts/EmotionRadar'
 import { BiasMeter } from '@/components/analysis/report/BiasMeter'
+import { CaseAnnotations } from '@/components/analysis/report/CaseAnnotations'
 import { ClaimBreakdown } from '@/components/analysis/report/ClaimBreakdown'
+import { ClaimGraph } from '@/components/analysis/report/ClaimGraph'
 import { ClaimHighlightedSource } from '@/components/analysis/report/ClaimHighlightedSource'
+import { ClaimTimeline } from '@/components/analysis/report/ClaimTimeline'
+import { ConfidenceIntervalBar } from '@/components/analysis/report/ConfidenceInterval'
+import { DomainReputationBadge } from '@/components/analysis/report/DomainReputationBadge'
 import { FallacyList } from '@/components/analysis/report/FallacyList'
 import { MeshAttribution } from '@/components/analysis/report/MeshAttribution'
 import { MissingContextCard } from '@/components/analysis/report/MissingContextCard'
+import { ScheduleRecheckButton } from '@/components/analysis/report/ScheduleRecheckButton'
+import { SourceLineage } from '@/components/analysis/report/SourceLineage'
 import { Eli15Card } from '@/components/analysis/report/VerdictCard'
 import { ReasoningTimeline } from '@/components/analysis/report/ReasoningTimeline'
 import { ReportActions } from '@/components/analysis/report/ReportActions'
@@ -34,6 +42,7 @@ interface ReportViewProps {
 }
 
 export function ReportView({ record, readOnly = false }: ReportViewProps) {
+  const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
   const [sourceExpanded, setSourceExpanded] = useState(false)
   const deleteReport = useDeleteReport()
@@ -98,6 +107,21 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
         />
       </motion.div>
 
+      {record.sourceUrl && (
+        <motion.div variants={slideUp}>
+          <DomainReputationBadge sourceUrl={record.sourceUrl} />
+        </motion.div>
+      )}
+
+      {!readOnly && (
+        <motion.div variants={slideUp}>
+          <ScheduleRecheckButton
+            analysisId={record.id}
+            sourceUrl={record.sourceUrl}
+          />
+        </motion.div>
+      )}
+
       <motion.div variants={slideUp}>
         <MeshAttribution model={record.meshModel} latencyMs={record.meshLatencyMs} />
       </motion.div>
@@ -109,10 +133,46 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
         <div className="dossier-panel p-6 md:p-8 print:break-inside-avoid">
           <p className="font-mono text-[10px] text-card-foreground/50">Investigation summary</p>
           <p className="mt-3 text-base leading-relaxed text-card-foreground/85">{report.summary}</p>
+          {report.confidenceInterval && (
+            <div className="mt-6">
+              <p className="font-mono text-[10px] text-card-foreground/50">
+                {t('report.confidenceInterval')}
+              </p>
+              <ConfidenceIntervalBar
+                score={report.trustScore}
+                interval={report.confidenceInterval}
+                className="mt-2"
+              />
+            </div>
+          )}
           <div className="case-rule my-6" />
           <Eli15Card text={report.eli15} compact />
         </div>
       </motion.div>
+
+      {report.claimRelations && report.claimRelations.length > 0 && (
+        <motion.div variants={slideUp}>
+          <ReportSection title={t('report.claimGraph')} description="How claims relate to each other">
+            <ClaimGraph claims={report.claims} relations={report.claimRelations} />
+          </ReportSection>
+        </motion.div>
+      )}
+
+      {report.sourceLineage && report.sourceLineage.length > 0 && (
+        <motion.div variants={slideUp}>
+          <ReportSection title={t('report.sourceLineage')} description="Tracing claims to sources">
+            <SourceLineage items={report.sourceLineage} />
+          </ReportSection>
+        </motion.div>
+      )}
+
+      {report.claimTimeline && report.claimTimeline.length > 0 && (
+        <motion.div variants={slideUp}>
+          <ReportSection title={t('report.claimTimeline')} description="When claims appeared and were debunked">
+            <ClaimTimeline events={report.claimTimeline} />
+          </ReportSection>
+        </motion.div>
+      )}
 
       <motion.div variants={slideUp}>
         <ReportSection
@@ -171,6 +231,18 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
         <motion.div variants={slideUp}>
           <ReportSection title="Further reading" description="Verification resources">
             <SuggestedReading sources={report.suggestedReading} />
+          </ReportSection>
+        </motion.div>
+      )}
+
+      {!readOnly && (
+        <motion.div variants={slideUp}>
+          <ReportSection title={t('report.annotations')} description="Notes and verdict appeals">
+            <CaseAnnotations
+              analysisId={record.id}
+              claims={report.claims}
+              readOnly={readOnly}
+            />
           </ReportSection>
         </motion.div>
       )}

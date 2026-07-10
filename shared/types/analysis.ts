@@ -71,6 +71,11 @@ export interface CredibilityReport {
   verdict: Verdict
   suggestedReading: SuggestedSource[]
   reasoningTimeline: TimelineEvent[]
+  /** Post-pipeline enrichment */
+  sourceLineage?: import('./extensions.js').SourceLineageItem[]
+  claimRelations?: import('./extensions.js').ClaimRelation[]
+  confidenceInterval?: import('./extensions.js').ConfidenceInterval
+  claimTimeline?: import('./extensions.js').ClaimTimelineEvent[]
 }
 
 export interface AnalysisRecord {
@@ -89,6 +94,8 @@ export interface AnalysisRecord {
   meshLatencyMs?: number
   previousTrustScore?: number
   previousVerdict?: Verdict
+  sourceUrl?: string
+  forwardRisk?: number
 }
 
 export interface HistoryItem {

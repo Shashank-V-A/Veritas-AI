@@ -33,6 +33,25 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
     onSuccess: handleSuccess,
   })
 
+  const youtubeMutation = useMutation({
+    mutationFn: ({
+      url,
+      title,
+      category,
+    }: {
+      url: string
+      title?: string
+      category?: AnalyzeRequest['category']
+    }) => api.analyzeYoutube(url, { title, category }),
+    onSuccess: handleSuccess,
+  })
+
+  const imageMutation = useMutation({
+    mutationFn: ({ file, title }: { file: File; title?: string }) =>
+      api.analyzeImage(file, title),
+    onSuccess: handleSuccess,
+  })
+
   const reanalyzeMutation = useMutation({
     mutationFn: (id: string) => api.reanalyzeReport(id),
     onSuccess: handleSuccess,
@@ -42,24 +61,32 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
     textMutation.isPending ||
     urlMutation.isPending ||
     pdfMutation.isPending ||
+    youtubeMutation.isPending ||
+    imageMutation.isPending ||
     reanalyzeMutation.isPending
 
   const isError =
     textMutation.isError ||
     urlMutation.isError ||
     pdfMutation.isError ||
+    youtubeMutation.isError ||
+    imageMutation.isError ||
     reanalyzeMutation.isError
 
   const error =
     textMutation.error ??
     urlMutation.error ??
     pdfMutation.error ??
+    youtubeMutation.error ??
+    imageMutation.error ??
     reanalyzeMutation.error
 
   return {
     mutate: textMutation.mutate,
     mutateUrl: urlMutation.mutate,
     mutatePdf: pdfMutation.mutate,
+    mutateYoutube: youtubeMutation.mutate,
+    mutateImage: imageMutation.mutate,
     reanalyze: reanalyzeMutation.mutate,
     isPending,
     isError,

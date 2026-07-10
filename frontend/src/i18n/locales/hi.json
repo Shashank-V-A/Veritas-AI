@@ -1,0 +1,60 @@
+{
+  "app": {
+    "name": "Veritas AI",
+    "tagline": "जानकारी न ग्रहण करें। सत्यापित करें।"
+  },
+  "nav": {
+    "workspace": "कार्यक्षेत्र",
+    "caseFiles": "केस फ़ाइलें",
+    "settings": "सेटिंग्स",
+    "newInvestigation": "नई जाँच",
+    "skipToContent": "मुख्य सामग्री पर जाएँ"
+  },
+  "intake": {
+    "pasteText": "टेक्स्ट चिपकाएँ",
+    "url": "URL",
+    "youtube": "YouTube",
+    "image": "छवि",
+    "fileForAnalysis": "विश्लेषण के लिए दाखिल करें",
+    "headline": "शीर्षक (वैकल्पिक)",
+    "contentPlaceholder": "जाँच के लिए सामग्री चिपकाएँ — लेख, थ्रेड, ट्रांसक्रिप्ट, फ़ॉरवर्ड…",
+    "youtubePlaceholder": "https://youtube.com/watch?v=…",
+    "forwardRisk": "फ़ॉरवर्ड जोखिम"
+  },
+  "report": {
+    "scheduleRecheck": "पुनः जाँच निर्धारित करें",
+    "scheduled": "पुनः जाँच निर्धारित",
+    "claimGraph": "दावा संबंध",
+    "sourceLineage": "स्रोत वंश",
+    "confidenceInterval": "विश्वास स्कोर सीमा",
+    "claimTimeline": "दावा समयरेखा",
+    "annotations": "केस नोट्स",
+    "addNote": "नोट जोड़ें",
+    "appeal": "निर्णय पर आपत्ति",
+    "domainReputation": "डोमेन प्रतिष्ठा"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "apiKeys": "API कुंजियाँ",
+    "generateKey": "API कुंजी बनाएँ",
+    "teams": "टीमें",
+    "createTeam": "टीम बनाएँ",
+    "theme": "थीम",
+    "language": "भाषा"
+  },
+  "theme": {
+    "light": "पार्चमेंट",
+    "dark": "स्याही",
+    "toggle": "थीम बदलें"
+  },
+  "judge": {
+    "title": "जज मोड",
+    "sample": "नमूना केस"
+  },
+  "common": {
+    "loading": "लोड हो रहा है…",
+    "error": "कुछ गलत हो गया",
+    "save": "सहेजें",
+    "cancel": "रद्द करें"
+  }
+}

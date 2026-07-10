@@ -22,6 +22,10 @@ export type {
   AuthUser,
   AuthMeResponse,
   ErrorCode,
+  ClaimRelation,
+  ClaimTimelineEvent,
+  ConfidenceInterval,
+  SourceLineageItem,
 } from '@veritas/shared'
 
 /** @deprecated Use ApiErrorBody from @veritas/shared */

@@ -56,6 +56,6 @@ export const credibilityReportSchema = z.object({
   verdict: z.enum(['credible', 'mixed', 'misleading', 'unsupported']),
   suggestedReading: z.array(suggestedSourceSchema),
   reasoningTimeline: z.array(timelineEventSchema),
-})
+}).passthrough()
 
 export type CredibilityReportSchema = z.infer<typeof credibilityReportSchema>

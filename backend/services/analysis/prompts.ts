@@ -158,6 +158,7 @@ export function buildUserPrompt(input: {
   sourceType: SourceType
   title?: string
   compareContent?: string
+  searchContext?: string
 }) {
   const sourceLabel = SOURCE_LABELS[input.sourceType]
   const titleLine = input.title ? `Title: ${input.title}\n` : ''
@@ -192,8 +193,16 @@ ${input.compareContent}
 ---`
     : ''
 
+  const searchBlock = input.searchContext
+    ? `
+
+WEB SEARCH RESULTS (use for suggestedReading URLs and evidence — prefer these real sources):
+${input.searchContext}
+`
+    : ''
+
   return `${titleLine}Source type: ${sourceLabel}
-${forwardInstructions}${compareInstructions}
+${forwardInstructions}${compareInstructions}${searchBlock}
 Analyze the following content and return a complete credibility report as JSON:
 
 ---

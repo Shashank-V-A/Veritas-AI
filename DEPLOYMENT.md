@@ -46,6 +46,16 @@ Set these in **Vercel Project → Settings → Environment Variables**:
 | `JWT_SECRET` | long random string | Production, Preview |
 | `FRONTEND_URL` | `https://your-domain.vercel.app` | Production, Preview |
 | `PUBLIC_APP_URL` | `https://your-domain.vercel.app` (for share links) | Production, Preview |
+| `TURSO_AUTH_TOKEN` | Turso token (if using libSQL URL) | Production, Preview |
+| `TAVILY_API_KEY` | Optional — better web search citations | Production, Preview |
+| `CRON_SECRET` | Random string — Vercel cron auth | Production |
+| `RESEND_API_KEY` | Optional — weekly email digest | Production |
+| `NEO4J_URI` | Optional — knowledge graph sync | Production, Preview |
+
+> **Production DB:** Use Turso instead of `/tmp` SQLite so case files survive cold starts:
+> 1. Create a DB at [turso.tech](https://turso.tech)
+> 2. Set `DATABASE_URL=libsql://your-db.turso.io` and `TURSO_AUTH_TOKEN`
+> 3. Run `npm run db:push` locally against Turso, or push schema via Turso CLI
 
 > **Never** add `MESH_API_KEY`, `GOOGLE_CLIENT_SECRET`, or `JWT_SECRET` to frontend-exposed variables.
 
@@ -93,7 +103,18 @@ Vercel serverless functions use ephemeral `/tmp` storage:
 
 - Data persists **within a warm instance** but may reset on cold starts
 - Schema is auto-created on first request via `ensureDatabase()`
-- For production persistence, migrate to [Turso](https://turso.tech) with the same Prisma schema
+- **Recommended:** use [Turso](https://turso.tech) — set `DATABASE_URL=libsql://...` and `TURSO_AUTH_TOKEN`. Prisma uses `@prisma/adapter-libsql` automatically.
+
+## Scheduled jobs
+
+`vercel.json` defines cron routes (require `CRON_SECRET` env var):
+
+| Path | Schedule | Purpose |
+|------|----------|---------|
+| `/api/cron/recheck` | Every 6 hours | Re-run due scheduled URL re-checks |
+| `/api/cron/digest` | Mondays 09:00 UTC | Weekly case-file email digest |
+
+Vercel sends `Authorization: Bearer <CRON_SECRET>` when `CRON_SECRET` is set.
 
 ## Build pipeline
 

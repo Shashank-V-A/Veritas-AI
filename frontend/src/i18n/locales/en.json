@@ -1,0 +1,60 @@
+{
+  "app": {
+    "name": "Veritas AI",
+    "tagline": "Don't consume information. Verify it."
+  },
+  "nav": {
+    "workspace": "Workspace",
+    "caseFiles": "Case files",
+    "settings": "Settings",
+    "newInvestigation": "New investigation",
+    "skipToContent": "Skip to main content"
+  },
+  "intake": {
+    "pasteText": "Paste text",
+    "url": "URL",
+    "youtube": "YouTube",
+    "image": "Image",
+    "fileForAnalysis": "File for analysis",
+    "headline": "Headline or label (optional)",
+    "contentPlaceholder": "Paste the content under investigation — article, thread, transcript, forward…",
+    "youtubePlaceholder": "https://youtube.com/watch?v=…",
+    "forwardRisk": "Forward risk"
+  },
+  "report": {
+    "scheduleRecheck": "Schedule recheck",
+    "scheduled": "Recheck scheduled",
+    "claimGraph": "Claim relationships",
+    "sourceLineage": "Source lineage",
+    "confidenceInterval": "Trust score range",
+    "claimTimeline": "Claim timeline",
+    "annotations": "Case notes",
+    "addNote": "Add note",
+    "appeal": "Appeal verdict",
+    "domainReputation": "Domain reputation"
+  },
+  "settings": {
+    "title": "Settings",
+    "apiKeys": "API keys",
+    "generateKey": "Generate API key",
+    "teams": "Teams",
+    "createTeam": "Create team",
+    "theme": "Theme",
+    "language": "Language"
+  },
+  "theme": {
+    "light": "Parchment",
+    "dark": "Ink",
+    "toggle": "Toggle theme"
+  },
+  "judge": {
+    "title": "Judge mode",
+    "sample": "Sample case"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "save": "Save",
+    "cancel": "Cancel"
+  }
+}

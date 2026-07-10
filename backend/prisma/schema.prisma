@@ -9,14 +9,18 @@ datasource db {
 }
 
 model User {
-  id        String     @id @default(uuid())
-  googleId  String     @unique
-  email     String     @unique
-  name      String?
-  avatar    String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  analyses  Analysis[]
+  id            String             @id @default(uuid())
+  googleId      String             @unique
+  email         String             @unique
+  name          String?
+  avatar        String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  analyses      Analysis[]
+  apiKeys       ApiKey[]
+  teamMembers   TeamMember[]
+  annotations   CaseAnnotation[]
+  scheduledJobs ScheduledRecheck[]
 }
 
 model Analysis {
@@ -24,25 +28,100 @@ model Analysis {
   title          String?
   content        String
   sourceType     String   @default("raw")
+  sourceUrl      String?
   trustScore     Int
   report         String
   userId         String?
   user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  teamId         String?
+  team           Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
   shareToken     String?  @unique
   category       String?
   parentId       String?
   compareContent String?
   meshModel      String?
   meshLatencyMs  Int?
+  forwardRisk    Int?
   isGuest        Boolean  @default(false)
   verdict        String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  annotations    CaseAnnotation[]
 
   @@index([createdAt])
   @@index([trustScore])
   @@index([userId])
+  @@index([teamId])
   @@index([shareToken])
   @@index([category])
   @@index([verdict])
+  @@index([sourceUrl])
+}
+
+model DomainReputation {
+  domain        String   @id
+  caseCount     Int      @default(0)
+  lowTrustCount Int      @default(0)
+  avgTrustScore Float    @default(0)
+  updatedAt     DateTime @updatedAt
+}
+
+model ApiKey {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyHash    String    @unique
+  name       String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Team {
+  id        String       @id @default(uuid())
+  name      String
+  createdAt DateTime     @default(now())
+  members   TeamMember[]
+  analyses  Analysis[]
+}
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+model CaseAnnotation {
+  id         String   @id @default(uuid())
+  analysisId String
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  claimIndex Int?
+  note       String
+  createdAt  DateTime @default(now())
+
+  @@index([analysisId])
+}
+
+model ScheduledRecheck {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceUrl  String?
+  analysisId String?
+  runAt      DateTime
+  completed  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  @@index([runAt, completed])
+  @@index([userId])
 }

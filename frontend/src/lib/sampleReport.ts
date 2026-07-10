@@ -6,6 +6,7 @@ export interface AnalysisPrefill {
   content: string
   sourceType: SourceType
   title?: string
+  url?: string
 }
 
 export const SAMPLE_REPORT: AnalysisRecord = {

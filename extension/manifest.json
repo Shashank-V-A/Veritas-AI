@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Veritas AI",
+  "description": "Verify page content with Veritas AI credibility analysis",
+  "version": "1.0.0",
+  "permissions": ["activeTab", "contextMenus", "scripting", "storage"],
+  "host_permissions": ["http://localhost:5173/*", "http://localhost:3001/*", "https://*/*"],
+  "action": {
+    "default_title": "Verify with Veritas",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

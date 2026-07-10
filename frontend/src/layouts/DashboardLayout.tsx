@@ -22,7 +22,7 @@ export function DashboardLayout() {
       <div className="flex flex-1 flex-col overflow-hidden bg-surface text-card-foreground">
         <DashboardHeader onMenuClick={() => setMobileNavOpen(true)} />
 
-        <main className="flex flex-1 flex-col overflow-hidden">
+        <main id="main-content" className="flex flex-1 flex-col overflow-hidden">
           <motion.div
             className="flex-1 overflow-y-auto"
             variants={reducedMotion ? undefined : pageTransition}

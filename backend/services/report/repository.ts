@@ -25,6 +25,9 @@ interface SaveAnalysisInput {
   meshLatencyMs?: number
   isGuest?: boolean
   shareToken?: string
+  sourceUrl?: string
+  forwardRisk?: number
+  teamId?: string
 }
 
 type AnalysisRow = {
@@ -42,6 +45,8 @@ type AnalysisRow = {
   meshModel?: string | null
   meshLatencyMs?: number | null
   verdict?: string | null
+  sourceUrl?: string | null
+  forwardRisk?: number | null
 }
 
 function toAnalysisRecord(row: AnalysisRow): AnalysisRecord {
@@ -59,6 +64,8 @@ function toAnalysisRecord(row: AnalysisRow): AnalysisRecord {
     compareContent: row.compareContent ?? undefined,
     meshModel: row.meshModel ?? undefined,
     meshLatencyMs: row.meshLatencyMs ?? undefined,
+    sourceUrl: row.sourceUrl ?? undefined,
+    forwardRisk: row.forwardRisk ?? undefined,
   }
 }
 
@@ -91,6 +98,9 @@ export const reportRepository = {
         isGuest: input.isGuest ?? false,
         shareToken:
           input.shareToken ?? (input.isGuest ? createShareToken() : undefined),
+        sourceUrl: input.sourceUrl,
+        forwardRisk: input.forwardRisk,
+        teamId: input.teamId,
       },
     })
 

@@ -5,6 +5,8 @@ export const ROUTES = {
   home: '/',
   dashboard: '/app',
   history: '/app/history',
+  settings: '/app/settings',
+  judge: '/judge',
   analysis: (id: string) => `/app/analysis/${id}`,
   share: (token: string) => `/share/${token}`,
   demo: '/#sample-dossier',

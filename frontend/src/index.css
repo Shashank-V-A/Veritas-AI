@@ -68,6 +68,34 @@
     line-height: 1.5;
   }
 
+  html.dark body {
+    color-scheme: dark;
+  }
+
+  html:not(.dark) body {
+    color-scheme: light;
+  }
+
+  html:not(.dark) {
+    --color-background: #f4f0e6;
+    --color-foreground: #2c2c30;
+    --color-surface: #fafaf8;
+    --color-surface-secondary: #f0ede6;
+    --color-card-foreground: #2c2c30;
+    --color-border: #d8d2c4;
+    --color-muted-foreground: #5c5a55;
+  }
+
+  html.dark {
+    --color-background: #1a1a1f;
+    --color-foreground: #f0ede6;
+    --color-surface: #1a1a1f;
+    --color-surface-secondary: #252530;
+    --color-card-foreground: #f0ede6;
+    --color-border: rgba(139, 41, 66, 0.35);
+    --color-muted-foreground: #8a8580;
+  }
+
   ::selection {
     @apply bg-accent/20 text-foreground;
   }
@@ -84,6 +112,18 @@
 
   .text-balance {
     text-wrap: balance;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
   }
 
   .paper-parchment {

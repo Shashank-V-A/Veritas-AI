@@ -19,6 +19,12 @@ import { historyRouter } from './routes/history.js'
 import { publicReportRouter } from './routes/publicReport.js'
 import { reportRouter } from './routes/report.js'
 import { requireAuth } from './middleware/auth.js'
+import { domainRouter } from './routes/domain.js'
+import { annotationsRouter } from './routes/annotations.js'
+import { cronRouter, scheduleRouter } from './routes/cron.js'
+import { ogRouter } from './routes/og.js'
+import { teamsRouter } from './routes/teams.js'
+import { v1Router } from './routes/v1.js'
 
 export function createApp() {
   const app = express()
@@ -53,6 +59,13 @@ export function createApp() {
   app.use('/api/analyze', requireAuth, analyzeRateLimiter, analyzeRouter)
   app.use('/api/public/report', publicReportRouter)
   app.use('/api/history', requireAuth, historyRouter)
+  app.use('/api/og', ogRouter)
+  app.use('/api/v1', v1Router)
+  app.use('/api/teams', teamsRouter)
+  app.use('/api/cron', cronRouter)
+  app.use('/api/schedule', scheduleRouter)
+  app.use('/api/domain', domainRouter)
+  app.use('/api/annotations', annotationsRouter)
   app.use('/api/report', requireAuth, reportRouter)
 
   app.use(notFoundHandler)

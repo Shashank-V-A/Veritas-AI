@@ -1,14 +1,17 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { HelmetProvider } from 'react-helmet-async'
 import { AnimatePresence } from 'framer-motion'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { AppShell } from '@/components/layout/AppShell'
 import {
   DashboardRouteFallback,
   RouteFallback,
 } from '@/components/RouteFallback'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ThemeProvider } from '@/contexts/ThemeContext'
 import { CommandPaletteProvider, useCommandPalette } from '@/contexts/CommandPaletteContext'
 import { queryClient } from '@/lib/queryClient'
 
@@ -37,6 +40,12 @@ const NotFoundPage = lazy(() =>
 )
 const PublicReportPage = lazy(() =>
   import('@/pages/PublicReportPage').then((m) => ({ default: m.PublicReportPage })),
+)
+const JudgeModePage = lazy(() =>
+  import('@/pages/JudgeModePage').then((m) => ({ default: m.JudgeModePage })),
+)
+const SettingsPage = lazy(() =>
+  import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
 
 const ProtectedRoute = lazy(() =>
@@ -127,8 +136,27 @@ function AnimatedRoutes() {
                 </Suspense>
               }
             />
+            <Route
+              path="settings"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <SettingsPage />
+                </Suspense>
+              }
+            />
           </Route>
         </Route>
+
+        <Route
+          path="/judge"
+          element={
+            <ErrorBoundary fallbackTitle="Failed to load judge mode">
+              <Suspense fallback={<RouteFallback />}>
+                <JudgeModePage />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
 
         <Route
           path="/share/:token"
@@ -156,17 +184,23 @@ function AnimatedRoutes() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={300}>
-        <CommandPaletteProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <AnimatedRoutes />
-              <CommandPaletteLoader />
-            </AuthProvider>
-          </BrowserRouter>
-        </CommandPaletteProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <TooltipProvider delayDuration={300}>
+            <CommandPaletteProvider>
+              <BrowserRouter>
+                <AuthProvider>
+                  <AppShell>
+                    <AnimatedRoutes />
+                  </AppShell>
+                  <CommandPaletteLoader />
+                </AuthProvider>
+              </BrowserRouter>
+            </CommandPaletteProvider>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   )
 }

@@ -23,8 +23,14 @@ export function DashboardPage() {
 
   useEffect(() => {
     const query = searchParams.get('q')?.trim()
-    if (!query) return
-    setPrefill({ content: query, sourceType: 'raw', title: 'Bookmarklet intake' })
+    if (query) {
+      setPrefill({ content: query, sourceType: 'raw', title: 'Bookmarklet intake' })
+      return
+    }
+    const url = searchParams.get('url')?.trim()
+    if (url) {
+      setPrefill({ content: '', sourceType: 'article', title: 'Page verification', url })
+    }
   }, [searchParams])
 
   function handleSampleSelect(example: (typeof EXAMPLE_PROMPTS)[number]) {

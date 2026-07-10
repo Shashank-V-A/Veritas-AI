@@ -23,7 +23,7 @@ An AI-powered credibility analysis platform that evaluates news, social posts, t
 
 - **Frontend:** React, Vite, TypeScript, TailwindCSS, shadcn/ui, Framer Motion, Recharts, Inter
 - **Backend:** Node.js, Express (Vercel serverless)
-- **Database:** SQLite + Prisma
+- **Database:** SQLite + Prisma (local); **Turso/libSQL** for production persistence
 - **AI:** Mesh API (exclusive provider)
 - **Auth:** Google OAuth + JWT session cookies
 
@@ -71,19 +71,40 @@ npm run dev:all
 
 ## Features
 
-- Paste text, URL, or upload PDF for credibility analysis
+### Core analysis
+- Paste text, URL, PDF, **YouTube transcript**, or **image/meme** upload
 - **Guest live demo** on landing — one free investigation without sign-in
 - **Compare two sources** side-by-side for contradiction analysis
-- **Public share links** — share dossiers with OG preview at `/share/:token`
+- **Public share links** with dynamic OG images at `/api/og/share/:token`
 - Structured reports: claims, bias, fallacies, trust score, neutral rewrite
-- PDF + Markdown export, print stylesheet
-- **Re-analyze** with verdict changelog (trust score delta)
-- Case categories, history filters, full-text search (⌘K)
-- Batch PDF intake (up to 5 files)
-- Bookmarklet: verify selected text from any page
-- PWA installable for kiosk demos
-- Private analysis history per user
-- Delete analyses from report view
+- **Real-time web search** enriches suggested reading (Tavily or DuckDuckGo fallback)
+- PDF + Markdown export, print stylesheet, **re-analyze** with verdict changelog
+
+### India / social signals
+- **Forward parser** — detects WhatsApp/Telegram forward patterns, forward-risk badge
+- **Domain reputation cache** — “This domain appeared in N low-trust cases”
+
+### Report depth (Tier C)
+- Interactive **claim graph**, **source lineage**, **claim timeline**
+- **Confidence intervals** on trust score
+- **Case annotations** and **verdict appeal** (re-run single claim)
+- **Scheduled re-check** — re-investigate a URL after N days
+
+### Platform & B2B
+- **API keys** — `POST /api/v1/analyze` for third-party integrations
+- **Team / newsroom mode** — shared workspace
+- **Judge mode** kiosk at `/judge` for demo loops
+- **Chrome extension** (`extension/`) — verify page or selection from any site
+- Bookmarklet, PWA, command palette (⌘K), history filters
+
+### UX
+- Dark/light theme toggle, **Hindi i18n** (`en` / `hi`)
+- Skip link + reduced-motion support for accessibility
+
+### Optional integrations
+- **Turso** — persistent DB across Vercel cold starts
+- **Neo4j** — knowledge graph sync stub (`NEO4J_URI`)
+- **Email digest** — weekly case summary cron (`RESEND_API_KEY`)
 
 ## Documentation
 
