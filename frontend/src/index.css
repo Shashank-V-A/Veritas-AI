@@ -91,9 +91,14 @@
     --color-foreground: #f0ede6;
     --color-surface: #1a1a1f;
     --color-surface-secondary: #252530;
+    --color-card: #252530;
     --color-card-foreground: #f0ede6;
     --color-border: rgba(139, 41, 66, 0.35);
-    --color-muted-foreground: #8a8580;
+    --color-muted: #3a3a42;
+    --color-muted-foreground: #c4bfb4;
+    --color-secondary: #252530;
+    --color-secondary-foreground: #f0ede6;
+    --color-input: #252530;
   }
 
   ::selection {

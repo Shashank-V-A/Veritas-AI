@@ -44,7 +44,7 @@ export function EmotionRadar({ emotion }: EmotionRadarProps) {
     <div>
       <div className="mb-3 flex items-center justify-between">
         <p className="text-xs text-muted-foreground">Dominant emotion</p>
-        <span className="rounded-full border border-border bg-surface-secondary px-2.5 py-0.5 text-xs capitalize text-foreground">
+        <span className="rounded-full border border-oxblood/40 bg-oxblood/20 px-2.5 py-0.5 text-xs capitalize text-white">
           {emotion.dominant}
         </span>
       </div>
