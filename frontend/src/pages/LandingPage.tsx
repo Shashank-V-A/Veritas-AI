@@ -1,14 +1,13 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowRight, Play } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { fadeIn, slideUp, staggerContainer } from '@/animations/variants'
 import { DetectiveBoard } from '@/components/landing/DetectiveBoard'
 import { HowItWorks } from '@/components/landing/HowItWorks'
 import { LandingFeatures } from '@/components/landing/LandingFeatures'
 import { LandingHeader } from '@/components/landing/LandingHeader'
-import { LandingIconRail } from '@/components/landing/LandingIconRail'
+import { HowItsDifferent } from '@/components/landing/HowItsDifferent'
 import { LandingStats } from '@/components/landing/LandingStats'
-import { LiveInvestigationSection } from '@/components/landing/LiveInvestigationSection'
 import { SampleReportPreview } from '@/components/landing/SampleReportPreview'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { AuthLoadingScreen } from '@/components/auth/AuthLoadingScreen'
@@ -31,19 +30,12 @@ export function LandingPage() {
     return <Navigate to={ROUTES.dashboard} replace />
   }
 
-  function startInvestigation() {
-    document.getElementById('live-investigation')?.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <div className="min-h-svh bg-[#090909] text-[#F5F5F5]">
-      <LandingIconRail />
+      <LandingHeader onStart={login} />
 
-      <div className="lg:pl-12">
-        <LandingHeader onStart={login} />
-
-        {/* Hero */}
-        <section className="relative overflow-hidden px-6 pb-16 pt-10 md:px-12 md:pb-20 md:pt-14 lg:px-16">
+      {/* Hero */}
+      <section className="relative overflow-hidden px-6 pb-16 pt-10 md:px-12 md:pb-20 md:pt-14 lg:px-16">
           {/* Subtle slate texture */}
           <div
             className="pointer-events-none absolute inset-0 opacity-60"
@@ -107,17 +99,10 @@ export function LandingPage() {
                   <ArrowRight className="size-4" strokeWidth={2} />
                 </button>
                 <a
-                  href="#live-investigation"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    startInvestigation()
-                  }}
+                  href="#about"
                   className="inline-flex items-center gap-2 font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  <span className="flex size-8 items-center justify-center border border-border">
-                    <Play className="size-3 fill-current" />
-                  </span>
-                  Watch demo
+                  View sample dossier
                 </a>
               </motion.div>
             </motion.div>
@@ -133,13 +118,9 @@ export function LandingPage() {
         </section>
 
         <LandingStats />
+        <HowItsDifferent />
         <HowItWorks />
         <LandingFeatures />
-
-        {/* Live demo — preserves guest analyze functionality */}
-        <div id="live-investigation" className="border-t border-border">
-          <LiveInvestigationSection />
-        </div>
 
         {/* Sample dossier */}
         <section
@@ -215,12 +196,28 @@ export function LandingPage() {
           </div>
         </section>
 
-        <footer className="border-t border-border px-6 py-6 text-center">
-          <p className="font-mono text-[11px] text-muted-foreground">
-            Veritas AI · Don&apos;t consume information. Verify it.
-          </p>
+        <footer className="border-t border-border py-5">
+          <div className="footer-marquee" aria-label="Veritas AI tagline">
+            <div className="footer-marquee__track">
+              {Array.from({ length: 2 }).map((_, loop) => (
+                <p
+                  key={loop}
+                  className="footer-marquee__item font-mono text-[11px] tracking-[0.04em] text-muted-foreground"
+                  aria-hidden={loop > 0}
+                >
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <span key={i}>
+                      Veritas AI · Don&apos;t consume information. Verify it.
+                      <span className="mx-8 text-accent/40" aria-hidden>
+                        ◆
+                      </span>
+                    </span>
+                  ))}
+                </p>
+              ))}
+            </div>
+          </div>
         </footer>
-      </div>
     </div>
   )
 }

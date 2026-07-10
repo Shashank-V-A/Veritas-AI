@@ -32,15 +32,6 @@ export const urlAnalyzeRequestSchema = z.object({
   category: z.enum(CASE_CATEGORIES).optional(),
 })
 
-export const guestAnalyzeRequestSchema = z.object({
-  content: z
-    .string()
-    .max(MAX_CONTENT_LENGTH, `Content must be under ${MAX_CONTENT_LENGTH} characters`)
-    .optional(),
-  sourceType: z.enum(SOURCE_TYPES).default('forward'),
-  title: z.string().max(200).optional(),
-})
-
 export const historyQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),

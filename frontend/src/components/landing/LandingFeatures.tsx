@@ -158,10 +158,10 @@ export function LandingFeatures() {
             ))}
           </ul>
           <a
-            href="#live-investigation"
+            href="#about"
             className="mt-8 inline-flex items-center gap-2 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-accent transition-opacity hover:opacity-80"
           >
-            Explore features
+            View sample dossier
             <LayoutDashboard className="size-3.5" strokeWidth={1.5} />
           </a>
         </motion.div>

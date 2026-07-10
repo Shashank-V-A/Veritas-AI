@@ -148,15 +148,6 @@ export const api = {
     return handleResponse<AnalyzeResponse>(response)
   },
 
-  async analyzeGuest(payload: AnalyzeRequest): Promise<AnalyzeResponse> {
-    const response = await fetch(`${API_BASE_URL}/analyze/guest`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    return handleResponse<AnalyzeResponse>(response)
-  },
-
   async analyzeUrl(payload: UrlAnalyzeRequest): Promise<AnalyzeResponse> {
     const response = await fetch(`${API_BASE_URL}/analyze/url`, {
       method: 'POST',
@@ -247,20 +238,6 @@ export const api = {
     return handleResponse<CaseAnnotation>(response)
   },
 
-  async appealClaim(
-    analysisId: string,
-    claimIndex: number,
-    reason?: string,
-  ): Promise<{ ok: boolean; message: string }> {
-    const response = await fetch(`${API_BASE_URL}/annotations/${analysisId}/appeal`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ claimIndex, reason }),
-    })
-    return handleResponse<{ ok: boolean; message: string }>(response)
-  },
-
   async createTeam(name: string): Promise<Team> {
     const response = await fetch(`${API_BASE_URL}/teams`, {
       method: 'POST',
@@ -314,7 +291,7 @@ export const api = {
     const query = searchParams.toString()
     const response = await fetch(
       `${API_BASE_URL}/history${query ? `?${query}` : ''}`,
-      { credentials: 'include' },
+      { credentials: 'include', cache: 'no-store' },
     )
     return handleResponse<HistoryResponse>(response)
   },
@@ -401,6 +378,7 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/report/${id}`, {
       method: 'DELETE',
       credentials: 'include',
+      cache: 'no-store',
     })
     await handleResponse<{ ok: boolean }>(response)
   },

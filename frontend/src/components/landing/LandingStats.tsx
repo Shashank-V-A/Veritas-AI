@@ -10,7 +10,6 @@ const STATS = [
 export function LandingStats() {
   return (
     <section
-      id="product"
       className="border-y border-white/[0.08] bg-[#111111]"
       aria-label="Platform statistics"
     >

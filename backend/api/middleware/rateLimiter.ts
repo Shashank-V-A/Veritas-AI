@@ -68,10 +68,3 @@ export const authRateLimiter = createRateLimiter({ maxRequests: 20, windowMs: 60
 
 /** Stricter limit for analysis (expensive) */
 export const analyzeRateLimiter = createRateLimiter({ maxRequests: 10, windowMs: 60_000 })
-
-/** Guest analysis — 3 per hour per IP in production */
-export const guestAnalyzeRateLimiter = createRateLimiter({
-  maxRequests: 3,
-  windowMs: 60 * 60 * 1000,
-  devMultiplier: 20,
-})

@@ -369,6 +369,38 @@
     }
   }
 
+  .footer-marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .footer-marquee__track {
+    display: flex;
+    width: max-content;
+    animation: footer-marquee 28s linear infinite;
+  }
+
+  .footer-marquee__item {
+    flex-shrink: 0;
+    padding-inline: 3rem;
+    white-space: nowrap;
+  }
+
+  @keyframes footer-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-marquee__track {
+      animation: none;
+    }
+  }
+
   .pressable {
     transition:
       transform 160ms ease,

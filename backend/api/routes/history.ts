@@ -5,7 +5,7 @@ import { historyQuerySchema } from '../../utils/validation.js'
 
 export const historyRouter = Router()
 
-historyRouter.get('/', cacheControl(30), async (req, res, next) => {
+historyRouter.get('/', cacheControl(0), async (req, res, next) => {
   try {
     const query = historyQuerySchema.parse(req.query)
     const { items, total } = await reportRepository.findHistory({

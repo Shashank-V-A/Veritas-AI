@@ -4,10 +4,9 @@ import { APP_NAME, ROUTES } from '@/lib/constants'
 import { Link } from 'react-router-dom'
 
 const NAV = [
-  { label: 'Product', href: '#product' },
+  { label: "How It's Different", href: '#product' },
   { label: 'How it works', href: '#how-it-works' },
   { label: 'Features', href: '#features' },
-  { label: 'Pricing', href: '#sign-in-section' },
   { label: 'About', href: '#about' },
 ] as const
 

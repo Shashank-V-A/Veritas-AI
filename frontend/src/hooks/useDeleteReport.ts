@@ -44,7 +44,10 @@ export function useDeleteReport(options: UseDeleteReportOptions = {}) {
       })
     },
     onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['history'] })
+      await queryClient.invalidateQueries({
+        queryKey: ['history'],
+        refetchType: 'all',
+      })
     },
     onSuccess: () => {
       if (redirect) {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { History, Search } from 'lucide-react'
+import { History, Search, ChevronDown } from 'lucide-react'
 import { ROUTES } from '@/lib/constants'
 import { CATEGORY_OPTIONS } from '@/lib/categories'
 import type { Verdict } from '@veritas/shared'
@@ -47,7 +47,7 @@ export function HistoryList() {
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
           <Search
-            className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"
+            className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             strokeWidth={1.75}
           />
           <Input
@@ -57,41 +57,65 @@ export function HistoryList() {
               setSearch(e.target.value)
               setPage(1)
             }}
-            className="border border-accent/20 bg-accent/5 pl-9 text-card-foreground placeholder:text-card-foreground/40"
+            className="border border-border bg-elevated pl-9 text-foreground placeholder:text-muted-foreground"
             aria-label="Search analyses"
           />
         </div>
-        <select
-          value={category}
-          onChange={(e) => {
-            setCategory(e.target.value)
-            setPage(1)
-          }}
-          className="h-9 border border-accent/20 bg-accent/5 px-3 text-sm text-card-foreground"
-          aria-label="Filter by category"
-        >
-          <option value="">All categories</option>
-          {CATEGORY_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
+        <div className="relative shrink-0 sm:w-44">
+          <select
+            value={category}
+            onChange={(e) => {
+              setCategory(e.target.value)
+              setPage(1)
+            }}
+            className="h-9 w-full appearance-none rounded-md border border-border bg-elevated py-0 pl-3 pr-9 text-sm text-foreground [color-scheme:dark]"
+            aria-label="Filter by category"
+          >
+            <option value="" className="bg-elevated text-foreground">
+              All categories
             </option>
-          ))}
-        </select>
-        <select
-          value={verdict}
-          onChange={(e) => {
-            setVerdict(e.target.value)
-            setPage(1)
-          }}
-          className="h-9 border border-accent/20 bg-accent/5 px-3 text-sm text-card-foreground"
-          aria-label="Filter by verdict"
-        >
-          {VERDICT_FILTERS.map((opt) => (
-            <option key={opt.value || 'all'} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+            {CATEGORY_OPTIONS.map((opt) => (
+              <option
+                key={opt.value}
+                value={opt.value}
+                className="bg-elevated text-foreground"
+              >
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            strokeWidth={1.75}
+            aria-hidden
+          />
+        </div>
+        <div className="relative shrink-0 sm:w-40">
+          <select
+            value={verdict}
+            onChange={(e) => {
+              setVerdict(e.target.value)
+              setPage(1)
+            }}
+            className="h-9 w-full appearance-none rounded-md border border-border bg-elevated py-0 pl-3 pr-9 text-sm text-foreground [color-scheme:dark]"
+            aria-label="Filter by verdict"
+          >
+            {VERDICT_FILTERS.map((opt) => (
+              <option
+                key={opt.value || 'all'}
+                value={opt.value}
+                className="bg-elevated text-foreground"
+              >
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            className="pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            strokeWidth={1.75}
+            aria-hidden
+          />
+        </div>
       </div>
 
       <div className="mt-6">

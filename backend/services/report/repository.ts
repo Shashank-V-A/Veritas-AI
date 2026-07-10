@@ -226,13 +226,20 @@ export const reportRepository = {
   async deleteById(id: string, userId: string): Promise<void> {
     const row = await prisma.analysis.findUnique({ where: { id } })
 
-    if (!row || row.userId !== userId) {
+    if (!row) {
       throw new AppError('Report not found', 'NOT_FOUND')
     }
 
-    // Clear optional schedule refs that are not FK-cascaded
-    await prisma.scheduledRecheck.deleteMany({ where: { analysisId: id } })
-    await prisma.analysis.delete({ where: { id } })
+    // Allow owner, or orphaned rows (userId null) so signed-in users can clean them up
+    if (row.userId && row.userId !== userId) {
+      throw new AppError('Report not found', 'NOT_FOUND')
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.caseAnnotation.deleteMany({ where: { analysisId: id } })
+      await tx.scheduledRecheck.deleteMany({ where: { analysisId: id } })
+      await tx.analysis.delete({ where: { id } })
+    })
   },
 
   async findHistory(params: {

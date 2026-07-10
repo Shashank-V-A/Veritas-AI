@@ -237,7 +237,7 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
 
       {!readOnly && (
         <motion.div variants={slideUp}>
-          <ReportSection title={t('report.annotations')} description="Notes and verdict appeals">
+          <ReportSection title={t('report.annotations')} description="Private notes on this case">
             <CaseAnnotations
               analysisId={record.id}
               claims={report.claims}

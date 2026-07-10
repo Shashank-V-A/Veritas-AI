@@ -94,22 +94,3 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
     isReanalyzing: reanalyzeMutation.isPending,
   }
 }
-
-export function useGuestAnalyze(options?: {
-  onSuccess?: (data: { id: string; shareToken?: string }) => void
-}) {
-  const mutation = useMutation({
-    mutationFn: (payload: AnalyzeRequest) => api.analyzeGuest(payload),
-    onSuccess: (data) => {
-      options?.onSuccess?.({ id: data.id, shareToken: data.shareToken })
-    },
-  })
-
-  return {
-    mutate: mutation.mutate,
-    isPending: mutation.isPending,
-    isError: mutation.isError,
-    error: mutation.error,
-    data: mutation.data,
-  }
-}

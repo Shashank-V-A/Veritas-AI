@@ -46,29 +46,3 @@ annotationsRouter.post('/:analysisId', async (req, res, next) => {
     next(error)
   }
 })
-
-annotationsRouter.post('/:analysisId/appeal', async (req, res, next) => {
-  try {
-    const record = await reportRepository.findById(req.params.analysisId, req.user!.sub)
-    const claimIndex = Number(req.body?.claimIndex)
-    if (Number.isNaN(claimIndex) || !record.report.claims[claimIndex]) {
-      res.status(400).json({ error: { code: 'VALIDATION_ERROR', message: 'Invalid claimIndex' } })
-      return
-    }
-
-    const reason = typeof req.body?.reason === 'string' ? req.body.reason : 'User disputed claim'
-
-    await prisma.caseAnnotation.create({
-      data: {
-        analysisId: record.id,
-        userId: req.user!.sub,
-        claimIndex,
-        note: `VERDICT APPEAL: ${reason}`,
-      },
-    })
-
-    res.json({ ok: true, message: 'Appeal recorded. Re-analyze the case to refresh claim assessment.' })
-  } catch (error) {
-    next(error)
-  }
-})

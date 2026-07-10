@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQueryClient } from '@tanstack/react-query'
@@ -14,6 +15,7 @@ import { api } from '@/services/api'
 import type { HistoryItem } from '@/types'
 import { TrustScoreBadge } from '@/components/analysis/TrustScoreBadge'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useDeleteReport } from '@/hooks/useDeleteReport'
 
 interface AnalysisCardProps {
@@ -26,6 +28,7 @@ export function AnalysisCard({ item, index = 0, className }: AnalysisCardProps) 
   const title = item.title ?? item.preview
   const queryClient = useQueryClient()
   const deleteReport = useDeleteReport({ redirect: false })
+  const [confirming, setConfirming] = useState(false)
 
   function handlePrefetch() {
     void queryClient.prefetchQuery({
@@ -35,14 +38,24 @@ export function AnalysisCard({ item, index = 0, className }: AnalysisCardProps) 
     })
   }
 
-  function handleDelete(e: React.MouseEvent<HTMLButtonElement>) {
+  function requestDelete(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    const confirmed = window.confirm(
-      'Delete this case file permanently? This cannot be undone.',
-    )
-    if (!confirmed) return
-    deleteReport.mutate(item.id)
+    setConfirming(true)
+  }
+
+  function cancelDelete(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    setConfirming(false)
+  }
+
+  function confirmDelete(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    deleteReport.mutate(item.id, {
+      onSettled: () => setConfirming(false),
+    })
   }
 
   return (
@@ -118,7 +131,7 @@ export function AnalysisCard({ item, index = 0, className }: AnalysisCardProps) 
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40',
               'disabled:pointer-events-none disabled:opacity-45',
             )}
-            onClick={handleDelete}
+            onClick={requestDelete}
             disabled={deleteReport.isPending}
             aria-label={`Delete case file ${formatCaseId(item.id)}`}
             title="Delete case file"
@@ -131,6 +144,35 @@ export function AnalysisCard({ item, index = 0, className }: AnalysisCardProps) 
           </button>
         </div>
       </div>
+
+      {confirming && (
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-danger/25 bg-danger/5 px-4 py-2.5">
+          <p className="text-xs text-foreground">
+            Delete this case file permanently?
+          </p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8"
+              onClick={cancelDelete}
+              disabled={deleteReport.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="h-8 border-danger/40 bg-danger text-white hover:bg-danger/90"
+              onClick={confirmDelete}
+              disabled={deleteReport.isPending}
+            >
+              {deleteReport.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        </div>
+      )}
 
       {deleteReport.isError && (
         <p className="border-t border-danger/20 px-4 py-2 text-xs text-danger" role="alert">
