@@ -35,12 +35,11 @@
   },
   "settings": {
     "title": "सेटिंग्स",
-    "apiKeys": "API कुंजियाँ",
-    "generateKey": "API कुंजी बनाएँ",
-    "teams": "टीमें",
-    "createTeam": "टीम बनाएँ",
-    "theme": "थीम",
-    "language": "भाषा"
+    "language": "भाषा",
+    "languageHint": "जांच कार्यक्षेत्र की भाषा चुनें।",
+    "account": "खाता",
+    "logoutHint": "इस डिवाइस पर कार्यक्षेत्र से साइन आउट करें।",
+    "logout": "साइन आउट"
   },
   "theme": {
     "light": "पार्चमेंट",

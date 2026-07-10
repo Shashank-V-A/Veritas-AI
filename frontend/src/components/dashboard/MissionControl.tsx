@@ -17,24 +17,24 @@ export function MissionControl({ total, items }: MissionControlProps) {
       : 0
 
   return (
-    <div className="mt-6 flex flex-wrap gap-8 border-t border-accent/15 pt-5">
+    <div className="mt-6 flex flex-wrap gap-8 border-t border-border pt-5">
       <div>
         <p className="font-display text-3xl tabular-nums text-accent">{total}</p>
-        <p className="font-mono text-[10px] text-card-foreground/50">Case files opened</p>
+        <p className="meta-label mt-1">Case files opened</p>
       </div>
       {lastCase && (
         <div>
-          <p className="font-display text-3xl text-card-foreground">
+          <p className="font-display text-3xl text-foreground">
             {formatRelativeDate(lastCase.createdAt)}
           </p>
-          <p className="font-mono text-[10px] text-card-foreground/50">Last case filed</p>
+          <p className="meta-label mt-1">Last case filed</p>
         </div>
       )}
       <div>
         <p className={cn('font-display text-3xl tabular-nums', getTrustScoreColor(avgTrust))}>
           {avgTrust}
         </p>
-        <p className="font-mono text-[10px] text-card-foreground/50">Avg. trust score</p>
+        <p className="meta-label mt-1">Avg. trust score</p>
       </div>
     </div>
   )

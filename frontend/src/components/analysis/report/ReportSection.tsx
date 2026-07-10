@@ -17,12 +17,10 @@ export function ReportSection({
 }: ReportSectionProps) {
   return (
     <section id={id} className={cn('scroll-mt-24', className)}>
-      <div className="mb-5 border-b border-accent/15 pb-3">
-        <h2 className="font-display text-xl text-card-foreground">{title}</h2>
+      <div className="mb-5 border-b border-border pb-3">
+        <h2 className="font-display text-xl text-foreground">{title}</h2>
         {description && (
-          <p className="mt-1 font-mono text-[10px] text-card-foreground/50">
-            {description}
-          </p>
+          <p className="meta-label mt-1.5">{description}</p>
         )}
       </div>
       {children}

@@ -61,11 +61,11 @@ export function Logo({
           </span>
           <span
             className={cn(
-              'mt-0.5 font-mono text-[10px]',
-              isOnLight ? 'text-foreground/55' : 'text-card-foreground/50',
+              'mt-0.5 font-mono text-[10px] uppercase tracking-widest',
+              isOnLight ? 'text-muted-foreground' : 'text-muted-foreground',
             )}
           >
-            Verify
+            Investigate
           </span>
         </div>
       )}

@@ -39,7 +39,7 @@ export function ProblemStats() {
               whileInView={reducedMotion ? undefined : 'visible'}
               viewport={{ once: true, margin: '-40px' }}
               transition={{ delay: index * 0.08 }}
-              className="border border-foreground/10 bg-parchment p-6"
+              className="border border-foreground/10 bg-surface p-6"
             >
               <p className="font-display text-4xl text-oxblood md:text-5xl">{stat.value}</p>
               <p className="mt-3 text-sm leading-relaxed text-foreground/75">{stat.label}</p>

@@ -29,7 +29,7 @@ const STEPS = [
   {
     title: 'Search your case archive',
     description:
-      'Every dossier is saved with a case ID. Access past reports from the sidebar or press Ctrl+K to search claims and case files. Press N to jump back to intake.',
+      'Every dossier is saved with a case ID. Access past reports from the sidebar Case files section. Press N to jump back to intake.',
     highlight: 'sidebar-nav',
   },
 ]

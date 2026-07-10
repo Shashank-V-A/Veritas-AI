@@ -24,17 +24,16 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   }
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-accent/20 bg-surface px-4 md:hidden">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-surface px-4 md:hidden">
       <Button
         variant="ghost"
         size="icon"
         onClick={onMenuClick}
         aria-label="Open navigation menu"
-        className="text-card-foreground hover:text-accent"
       >
         <Menu className="size-5" strokeWidth={1.5} />
       </Button>
-      <span className="font-mono text-xs text-card-foreground/60">{title}</span>
+      <span className="meta-label">{title}</span>
       <span className="w-9" aria-hidden="true" />
     </header>
   )

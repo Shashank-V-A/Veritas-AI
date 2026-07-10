@@ -13,14 +13,14 @@ export function SuggestedReading({ sources }: SuggestedReadingProps) {
       {sources.map((source) => (
         <div
           key={`${source.title}-${source.reason}`}
-          className="rounded-xl border border-border bg-surface-secondary/60 p-4 transition-colors hover:bg-surface-secondary"
+          className="rounded-md border border-border bg-elevated p-4 transition-colors duration-200 hover:border-accent/35"
         >
           {source.url ? (
             <a
               href={source.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="group inline-flex items-center gap-1.5 text-sm font-medium text-ink hover:text-oxblood dark:text-white dark:hover:text-brass"
+              className="group inline-flex items-center gap-1.5 text-sm font-medium text-foreground hover:text-accent"
             >
               {source.title}
               <ExternalLink
@@ -29,9 +29,9 @@ export function SuggestedReading({ sources }: SuggestedReadingProps) {
               />
             </a>
           ) : (
-            <p className="text-sm font-medium text-ink dark:text-white">{source.title}</p>
+            <p className="text-sm font-medium text-foreground">{source.title}</p>
           )}
-          <p className="mt-1 text-xs leading-relaxed text-ink/80 dark:text-white/90">
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {source.reason}
           </p>
         </div>

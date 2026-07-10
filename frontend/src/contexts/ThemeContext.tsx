@@ -2,13 +2,12 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
   type ReactNode,
 } from 'react'
 
-export type Theme = 'light' | 'dark'
+/** Product is ink-only — parchment / light desk is retired. */
+export type Theme = 'dark'
 
 const STORAGE_KEY = 'veritas-theme'
 
@@ -20,43 +19,35 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
-function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark'
-  const stored = localStorage.getItem(STORAGE_KEY)
-  if (stored === 'light' || stored === 'dark') return stored
-  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
-}
-
-function applyTheme(theme: Theme) {
+function applyInkTheme() {
+  if (typeof document === 'undefined') return
   const root = document.documentElement
-  if (theme === 'dark') {
-    root.classList.add('dark')
-    root.dataset.theme = 'ink'
-  } else {
-    root.classList.remove('dark')
-    root.dataset.theme = 'parchment'
+  root.classList.add('dark')
+  root.dataset.theme = 'intel'
+  try {
+    localStorage.setItem(STORAGE_KEY, 'dark')
+  } catch {
+    /* ignore */
   }
 }
 
+// Lock ink before first paint when the module loads
+applyInkTheme()
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme)
+  applyInkTheme()
 
-  useEffect(() => {
-    applyTheme(theme)
-    localStorage.setItem(STORAGE_KEY, theme)
-  }, [theme])
-
-  const setTheme = useCallback((next: Theme) => {
-    setThemeState(next)
+  const setTheme = useCallback((_next: Theme) => {
+    applyInkTheme()
   }, [])
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'))
+    applyInkTheme()
   }, [])
 
   const value = useMemo(
-    () => ({ theme, setTheme, toggleTheme }),
-    [theme, setTheme, toggleTheme],
+    () => ({ theme: 'dark' as const, setTheme, toggleTheme }),
+    [setTheme, toggleTheme],
   )
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

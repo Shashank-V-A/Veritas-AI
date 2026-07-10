@@ -35,12 +35,11 @@
   },
   "settings": {
     "title": "Settings",
-    "apiKeys": "API keys",
-    "generateKey": "Generate API key",
-    "teams": "Teams",
-    "createTeam": "Create team",
-    "theme": "Theme",
-    "language": "Language"
+    "language": "Language",
+    "languageHint": "Choose the language for the investigation workspace.",
+    "account": "Account",
+    "logoutHint": "Sign out of this workspace on this device.",
+    "logout": "Sign out"
   },
   "theme": {
     "light": "Parchment",

@@ -1,49 +1,81 @@
 import { motion } from 'framer-motion'
-import { FileSearch, Scale, Stamp } from 'lucide-react'
+import { ArrowRight, FileText, Fingerprint, FolderOpen, Network } from 'lucide-react'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 const STEPS = [
   {
-    icon: FileSearch,
-    title: 'Submit evidence',
-    description: 'Paste text, upload a PDF, or try a sample claim.',
+    n: '01',
+    icon: FolderOpen,
+    title: 'Submit',
+    description: 'Paste text, upload files, or share a link.',
   },
   {
-    icon: Scale,
-    title: 'Forensic analysis',
-    description: 'Claims, bias, fallacies, and manipulation signals — not chat.',
+    n: '02',
+    icon: Fingerprint,
+    title: 'Investigate',
+    description: 'Veritas AI extracts claims and gathers evidence.',
   },
   {
-    icon: Stamp,
-    title: 'Credibility dossier',
-    description: 'Trust score, verdict, and exportable case file.',
+    n: '03',
+    icon: Network,
+    title: 'Analyze',
+    description: 'Evaluate credibility, detect bias, and identify fallacies.',
   },
-]
+  {
+    n: '04',
+    icon: FileText,
+    title: 'Report',
+    description: 'Get a detailed investigation report.',
+  },
+] as const
 
 export function HowItWorks() {
   const reducedMotion = useReducedMotion()
 
   return (
-    <div className="grid gap-6 md:grid-cols-3">
-      {STEPS.map((step, index) => (
-        <motion.div
-          key={step.title}
-          initial={reducedMotion ? false : { opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: index * 0.1 }}
-          className="relative border-t-2 border-accent/25 pt-5"
-        >
-          <span className="font-mono text-[10px] text-foreground/45">
-            Step {String(index + 1).padStart(2, '0')}
-          </span>
-          <step.icon className="mt-4 size-5 text-foreground" strokeWidth={1.5} />
-          <h3 className="mt-3 font-display text-xl text-foreground">{step.title}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-foreground/65">
-            {step.description}
-          </p>
-        </motion.div>
-      ))}
-    </div>
+    <section id="how-it-works" className="px-6 py-20 md:px-12 md:py-24">
+      <div className="mx-auto max-w-6xl">
+        <p className="font-sans text-[11px] font-medium uppercase tracking-[0.22em] text-accent">
+          How it works
+        </p>
+        <h2 className="mt-3 font-display text-3xl font-semibold text-foreground md:text-5xl">
+          From Information to Truth
+        </h2>
+
+        <div className="relative mt-14 grid gap-8 md:grid-cols-4 md:gap-4">
+          {/* Connector line */}
+          <div
+            className="pointer-events-none absolute left-0 right-0 top-8 hidden h-px border-t border-dashed border-accent/30 md:block"
+            aria-hidden
+          />
+
+          {STEPS.map((step, index) => (
+            <motion.div
+              key={step.n}
+              initial={reducedMotion ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.08, duration: 0.3 }}
+              className="relative"
+            >
+              <div className="relative z-10 flex size-16 items-center justify-center border border-accent/40 bg-[#0a0a0a]">
+                <step.icon className="size-6 text-accent" strokeWidth={1.25} />
+              </div>
+              <p className="mt-5 font-mono text-[10px] text-accent/70">{step.n}</p>
+              <h3 className="mt-1 font-display text-2xl font-semibold text-foreground">
+                {step.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+              {index < STEPS.length - 1 && (
+                <ArrowRight
+                  className="absolute -right-2 top-5 hidden size-4 text-accent/40 md:block lg:-right-1"
+                  strokeWidth={1.25}
+                />
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }

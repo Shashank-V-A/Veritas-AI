@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut'
 
 interface CommandPaletteContextValue {
   open: boolean
@@ -22,8 +21,6 @@ export function CommandPaletteProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false)
 
   const toggle = useCallback(() => setOpen((v) => !v), [])
-
-  useKeyboardShortcut('k', toggle, { metaOrCtrl: true })
 
   const value = useMemo(
     () => ({ open, setOpen, toggle }),

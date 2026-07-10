@@ -199,7 +199,7 @@ export function AnalysisInput({
             compact ? 'w-full' : '',
             isActive
               ? 'evidence-tab-active'
-              : 'border-transparent text-card-foreground/55 hover:border-accent/20 hover:text-card-foreground',
+              : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
           )}
         >
           <Icon className="size-3.5 shrink-0" strokeWidth={1.5} />
@@ -220,8 +220,8 @@ export function AnalysisInput({
       data-onboarding="analysis-input"
     >
       <div className="relative z-10 grid lg:grid-cols-[13.5rem_1fr]">
-        <aside className="hidden border-b border-accent/15 p-4 lg:block lg:border-b-0 lg:border-r">
-          <p className="font-mono text-[10px] text-card-foreground/45">Evidence type</p>
+        <aside className="hidden border-b border-border p-4 lg:block lg:border-b-0 lg:border-r">
+          <p className="font-mono text-[10px] text-muted-foreground">Evidence type</p>
           <div
             className="mt-3 flex flex-col gap-1"
             role="tablist"
@@ -231,16 +231,16 @@ export function AnalysisInput({
           </div>
 
           {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
-            <div className="mt-6 border-t border-accent/10 pt-4">
-              <p className="font-mono text-[10px] text-card-foreground/45">Character count</p>
+            <div className="mt-6 border-t border-border pt-4">
+              <p className="font-mono text-[10px] text-muted-foreground">Character count</p>
               <p
                 className={cn(
                   'mt-1 font-mono text-sm tabular-nums',
-                  isOverLimit ? 'text-danger' : 'text-card-foreground/70',
+                  isOverLimit ? 'text-danger' : 'text-muted-foreground',
                 )}
               >
                 {charCount.toLocaleString()}
-                <span className="text-card-foreground/40">
+                <span className="text-muted-foreground">
                   {' '}
                   / {MAX_CONTENT_LENGTH.toLocaleString()}
                 </span>
@@ -250,13 +250,13 @@ export function AnalysisInput({
         </aside>
 
         <div className="flex min-w-0 flex-col">
-          <div className="border-b border-accent/15 px-5 py-4 md:px-6">
+          <div className="border-b border-border px-5 py-4 md:px-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="font-mono text-[10px] text-accent-secondary/80">
                   Case intake · {caseRef}
                 </p>
-                <p className="mt-1 font-mono text-xs text-card-foreground/55">
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
                   Status · Pending submission
                 </p>
               </div>
@@ -265,7 +265,7 @@ export function AnalysisInput({
             <div className="accent-line-on-dark mt-4 w-24" />
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 border-b border-accent/10 px-5 py-3 md:px-6">
+          <div className="flex flex-wrap items-center gap-2 border-b border-border px-5 py-3 md:px-6">
             <div className="flex gap-1" role="tablist" aria-label="Input mode">
               <button
                 type="button"
@@ -275,8 +275,8 @@ export function AnalysisInput({
                 className={cn(
                   'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
                   inputMode === 'text'
-                    ? 'border-accent/40 bg-accent/10 text-card-foreground'
-                    : 'border-transparent text-card-foreground/55',
+                    ? 'border-accent/40 bg-accent/10 text-foreground'
+                    : 'border-transparent text-muted-foreground',
                 )}
               >
                 <FileUp className="size-3.5" />
@@ -290,8 +290,8 @@ export function AnalysisInput({
                 className={cn(
                   'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
                   inputMode === 'url'
-                    ? 'border-accent/40 bg-accent/10 text-card-foreground'
-                    : 'border-transparent text-card-foreground/55',
+                    ? 'border-accent/40 bg-accent/10 text-foreground'
+                    : 'border-transparent text-muted-foreground',
                 )}
               >
                 <Globe className="size-3.5" />
@@ -305,8 +305,8 @@ export function AnalysisInput({
                 className={cn(
                   'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
                   inputMode === 'youtube'
-                    ? 'border-accent/40 bg-accent/10 text-card-foreground'
-                    : 'border-transparent text-card-foreground/55',
+                    ? 'border-accent/40 bg-accent/10 text-foreground'
+                    : 'border-transparent text-muted-foreground',
                 )}
               >
                 <Video className="size-3.5" />
@@ -320,8 +320,8 @@ export function AnalysisInput({
                 className={cn(
                   'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
                   inputMode === 'image'
-                    ? 'border-accent/40 bg-accent/10 text-card-foreground'
-                    : 'border-transparent text-card-foreground/55',
+                    ? 'border-accent/40 bg-accent/10 text-foreground'
+                    : 'border-transparent text-muted-foreground',
                 )}
               >
                 <ImageIcon className="size-3.5" />
@@ -333,7 +333,7 @@ export function AnalysisInput({
               type="button"
               variant="ghost"
               size="sm"
-              className="ml-auto gap-1.5 text-xs text-card-foreground/70 lg:hidden"
+              className="ml-auto gap-1.5 text-xs text-muted-foreground lg:hidden"
               onClick={() => setMobileTypesOpen(true)}
             >
               <SlidersHorizontal className="size-3.5" />
@@ -341,30 +341,30 @@ export function AnalysisInput({
             </Button>
           </div>
 
-          <div className="grid gap-3 border-b border-accent/10 px-5 py-3 sm:grid-cols-2 md:px-6">
+          <div className="grid gap-3 border-b border-border px-5 py-3 sm:grid-cols-2 md:px-6">
             <Input
               placeholder="Headline or label (optional)"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="h-9 border-0 bg-transparent px-0 text-sm text-card-foreground shadow-none placeholder:text-card-foreground/35 focus-visible:ring-0"
+              className="h-9 border-0 bg-transparent px-0 text-sm text-foreground shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0"
               aria-label="Analysis title"
             />
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as AnalysisCategory)}
-              className="h-9 border-0 bg-transparent text-sm text-card-foreground focus:outline-none"
+              className="h-9 border-0 bg-transparent text-sm text-foreground focus:outline-none"
               aria-label="Content category"
             >
               {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-surface text-card-foreground">
+                <option key={opt.value} value={opt.value} className="bg-surface text-foreground">
                   {opt.label}
                 </option>
               ))}
             </select>
           </div>
 
-          <div className="flex items-center gap-3 border-b border-accent/10 px-5 py-2 md:px-6">
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-card-foreground/70">
+          <div className="flex items-center gap-3 border-b border-border px-5 py-2 md:px-6">
+            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
               <input
                 type="checkbox"
                 checked={compareMode}
@@ -376,34 +376,34 @@ export function AnalysisInput({
           </div>
 
           {compareMode && (
-            <div className="border-b border-accent/10 px-5 py-3 md:px-6">
+            <div className="border-b border-border px-5 py-3 md:px-6">
               <Textarea
                 placeholder="Paste rebuttal, fact-check, or alternate source for side-by-side comparison…"
                 value={compareContent}
                 onChange={(e) => setCompareContent(e.target.value)}
-                className="min-h-[100px] resize-none border border-accent/20 bg-accent/5 text-sm text-card-foreground placeholder:text-card-foreground/35"
+                className="min-h-[100px] resize-none border border-border bg-elevated/50 text-sm text-foreground placeholder:text-muted-foreground/60"
                 aria-label="Compare content"
               />
             </div>
           )}
 
           {sourceType === 'forward' && inputMode === 'text' && (
-            <p className="border-b border-accent/10 px-5 py-2 text-xs text-card-foreground/55 md:px-6">
+            <p className="border-b border-border px-5 py-2 text-xs text-muted-foreground md:px-6">
               Forwards often mix urgency, ALL CAPS, and unverified claims. Paste the full message
               including any attribution chain for best results.
             </p>
           )}
 
           {inputMode === 'text' && content.trim().length >= 40 && (
-            <div className="border-b border-accent/10 px-5 py-2 md:px-6">
+            <div className="border-b border-border px-5 py-2 md:px-6">
               <ForwardRiskBadge content={content} />
             </div>
           )}
 
           {isYoutubeMode ? (
             <div className="px-5 py-5 md:px-6">
-              <div className="flex items-center gap-2 border border-accent/20 bg-accent/5 px-3 py-2">
-                <Video className="size-4 shrink-0 text-card-foreground/50" />
+              <div className="flex items-center gap-2 border border-border bg-elevated/50 px-3 py-2">
+                <Video className="size-4 shrink-0 text-muted-foreground" />
                 <Input
                   placeholder={t('intake.youtubePlaceholder')}
                   value={youtubeUrl}
@@ -412,7 +412,7 @@ export function AnalysisInput({
                   aria-label="YouTube URL to analyze"
                 />
               </div>
-              <p className="mt-2 text-xs text-card-foreground/45">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Veritas will extract the transcript and analyze claims.
               </p>
             </div>
@@ -422,7 +422,7 @@ export function AnalysisInput({
                 'mx-5 my-5 flex min-h-[240px] flex-col items-center justify-center border-2 border-dashed px-6 py-10 transition-colors md:mx-6 md:min-h-[280px]',
                 isDragging
                   ? 'border-accent-secondary/50 bg-accent/10'
-                  : 'border-accent/25 bg-accent/5',
+                  : 'border-border bg-elevated/50',
               )}
               onDragOver={(e) => {
                 e.preventDefault()
@@ -442,16 +442,16 @@ export function AnalysisInput({
 
               {imageFile ? (
                 <div className="flex flex-col items-center gap-3 text-center">
-                  <ImageIcon className="size-8 text-card-foreground" strokeWidth={1.5} />
-                  <p className="text-sm font-medium text-card-foreground">{imageFile.name}</p>
-                  <p className="text-xs text-card-foreground/55">
+                  <ImageIcon className="size-8 text-foreground" strokeWidth={1.5} />
+                  <p className="text-sm font-medium text-foreground">{imageFile.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {(imageFile.size / 1024 / 1024).toFixed(2)} MB · Image
                   </p>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="gap-1 text-card-foreground/70"
+                    className="gap-1 text-muted-foreground"
                     onClick={() => {
                       setImageFile(null)
                       if (imageInputRef.current) imageInputRef.current.value = ''
@@ -463,8 +463,8 @@ export function AnalysisInput({
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3 text-center">
-                  <ImageIcon className="size-8 text-card-foreground/50" strokeWidth={1.5} />
-                  <p className="text-sm text-card-foreground/75">
+                  <ImageIcon className="size-8 text-muted-foreground" strokeWidth={1.5} />
+                  <p className="text-sm text-muted-foreground">
                     Drag & drop a screenshot or meme, or{' '}
                     <button
                       type="button"
@@ -474,14 +474,14 @@ export function AnalysisInput({
                       browse files
                     </button>
                   </p>
-                  <p className="text-xs text-card-foreground/45">PNG, JPG, WebP · max 10 MB</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, WebP · max 10 MB</p>
                 </div>
               )}
             </div>
           ) : isUrlMode ? (
             <div className="px-5 py-5 md:px-6">
-              <div className="flex items-center gap-2 border border-accent/20 bg-accent/5 px-3 py-2">
-                <Link2 className="size-4 shrink-0 text-card-foreground/50" />
+              <div className="flex items-center gap-2 border border-border bg-elevated/50 px-3 py-2">
+                <Link2 className="size-4 shrink-0 text-muted-foreground" />
                 <Input
                   placeholder="https://example.com/article…"
                   value={url}
@@ -490,7 +490,7 @@ export function AnalysisInput({
                   aria-label="URL to analyze"
                 />
               </div>
-              <p className="mt-2 text-xs text-card-foreground/45">
+              <p className="mt-2 text-xs text-muted-foreground">
                 Veritas will fetch and analyze the page content.
               </p>
             </div>
@@ -500,7 +500,7 @@ export function AnalysisInput({
                 'mx-5 my-5 flex min-h-[240px] flex-col items-center justify-center border-2 border-dashed px-6 py-10 transition-colors md:mx-6 md:min-h-[280px]',
                 isDragging
                   ? 'border-accent-secondary/50 bg-accent/10'
-                  : 'border-accent/25 bg-accent/5',
+                  : 'border-border bg-elevated/50',
               )}
               onDragOver={(e) => {
                 e.preventDefault()
@@ -520,16 +520,16 @@ export function AnalysisInput({
 
               {pdfFile ? (
                 <div className="flex flex-col items-center gap-3 text-center">
-                  <FileUp className="size-8 text-card-foreground" strokeWidth={1.5} />
-                  <p className="text-sm font-medium text-card-foreground">{pdfFile.name}</p>
-                  <p className="text-xs text-card-foreground/55">
+                  <FileUp className="size-8 text-foreground" strokeWidth={1.5} />
+                  <p className="text-sm font-medium text-foreground">{pdfFile.name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {(pdfFile.size / 1024 / 1024).toFixed(2)} MB · PDF
                   </p>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="gap-1 text-card-foreground/70"
+                    className="gap-1 text-muted-foreground"
                     onClick={() => {
                       setPdfFile(null)
                       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -541,8 +541,8 @@ export function AnalysisInput({
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-3 text-center">
-                  <FileUp className="size-8 text-card-foreground/50" strokeWidth={1.5} />
-                  <p className="text-sm text-card-foreground/75">
+                  <FileUp className="size-8 text-muted-foreground" strokeWidth={1.5} />
+                  <p className="text-sm text-muted-foreground">
                     Drag & drop a PDF here, or{' '}
                     <button
                       type="button"
@@ -552,7 +552,7 @@ export function AnalysisInput({
                       browse files
                     </button>
                   </p>
-                  <p className="text-xs text-card-foreground/45">Max 10 MB · text-based PDFs only</p>
+                  <p className="text-xs text-muted-foreground">Max 10 MB · text-based PDFs only</p>
                 </div>
               )}
             </div>
@@ -563,19 +563,19 @@ export function AnalysisInput({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="legal-pad min-h-[240px] resize-none border-0 bg-transparent px-5 py-5 font-sans text-sm leading-[1.75rem] text-card-foreground shadow-none placeholder:text-card-foreground/35 focus-visible:ring-0 md:min-h-[280px] md:px-6 md:text-base"
+              className="legal-pad min-h-[240px] resize-none border-0 bg-transparent px-5 py-5 font-sans text-sm leading-[1.75rem] text-foreground shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0 md:min-h-[280px] md:px-6 md:text-base"
               aria-label="Content to analyze"
               aria-invalid={isOverLimit}
             />
           )}
 
-          <div className="mt-auto flex flex-col gap-4 border-t border-accent/15 bg-accent/5 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
+          <div className="mt-auto flex flex-col gap-4 border-t border-border bg-elevated/50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
             <div className="flex flex-col gap-1">
               {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
                 <p
                   className={cn(
                     'text-xs tabular-nums lg:hidden',
-                    isOverLimit ? 'text-danger' : 'text-card-foreground/55',
+                    isOverLimit ? 'text-danger' : 'text-muted-foreground',
                   )}
                 >
                   {charCount.toLocaleString()} / {MAX_CONTENT_LENGTH.toLocaleString()} characters
@@ -587,7 +587,7 @@ export function AnalysisInput({
                 </p>
               )}
               {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
-                <p className="hidden text-[11px] text-card-foreground/45 sm:block">
+                <p className="hidden text-[11px] text-muted-foreground sm:block">
                   ⌘ + Enter to file for analysis
                 </p>
               )}

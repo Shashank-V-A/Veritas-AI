@@ -78,20 +78,20 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
         </motion.div>
       )}
 
-      <div className="sticky top-0 z-20 -mx-4 border-b border-accent/20 bg-surface/95 px-4 py-3 backdrop-blur-sm print:static print:border-0 print:bg-transparent md:-mx-8 md:px-8">
-        <p className="font-mono text-[10px] text-accent/60">Executive summary</p>
-        <p className="mt-1 line-clamp-2 text-sm text-card-foreground/85 print:line-clamp-none">
+      <div className="sticky top-0 z-20 -mx-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm print:static print:border-0 print:bg-transparent md:-mx-8 md:px-8">
+        <p className="meta-label text-accent">Executive summary</p>
+        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground print:line-clamp-none">
           {report.summary}
         </p>
       </div>
 
       <motion.div variants={slideUp} className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="font-mono text-[10px] text-accent/60">Case file · {caseId}</p>
-          <h1 className="mt-2 font-display text-2xl leading-snug text-card-foreground md:text-4xl print:text-2xl">
+          <p className="meta-label text-accent">Case file · {caseId}</p>
+          <h1 className="mt-2 font-display text-2xl leading-snug text-foreground md:text-4xl print:text-2xl">
             {record.title ?? 'Untitled investigation'}
           </h1>
-          <p className="mt-2 font-mono text-xs text-card-foreground/50">
+          <p className="mt-2 font-mono text-xs text-muted-foreground">
             {getSourceTypeLabel(record.sourceType)}
             {record.category ? ` · ${getCategoryLabel(record.category)}` : ''} ·{' '}
             {formatRelativeDate(record.createdAt)}
@@ -131,11 +131,11 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
           <TrustScoreRing score={report.trustScore} variant="seal" />
         </div>
         <div className="dossier-panel p-6 md:p-8 print:break-inside-avoid">
-          <p className="font-mono text-[10px] text-card-foreground/50">Investigation summary</p>
-          <p className="mt-3 text-base leading-relaxed text-card-foreground/85">{report.summary}</p>
+          <p className="meta-label">Investigation summary</p>
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground">{report.summary}</p>
           {report.confidenceInterval && (
             <div className="mt-6">
-              <p className="font-mono text-[10px] text-card-foreground/50">
+              <p className="meta-label">
                 {t('report.confidenceInterval')}
               </p>
               <ConfidenceIntervalBar

@@ -11,10 +11,10 @@ interface VerdictBannerProps {
 }
 
 const verdictStyles: Record<Verdict, string> = {
-  credible: 'bg-success/15 border-success/40 text-success',
-  mixed: 'bg-warning/15 border-warning/40 text-warning',
-  misleading: 'bg-danger/15 border-danger/50 text-danger',
-  unsupported: 'bg-card-foreground/10 border-card-foreground/30 text-card-foreground',
+  credible: 'border-success/40 bg-success/10 text-success',
+  mixed: 'border-warning/40 bg-warning/10 text-warning',
+  misleading: 'border-danger/45 bg-danger/10 text-danger',
+  unsupported: 'border-border bg-elevated text-muted-foreground',
 }
 
 export function VerdictBanner({ verdict, caseId, className }: VerdictBannerProps) {
@@ -22,21 +22,22 @@ export function VerdictBanner({ verdict, caseId, className }: VerdictBannerProps
 
   return (
     <motion.div
-      initial={reducedMotion ? false : { opacity: 0, y: -12 }}
+      initial={reducedMotion ? false : { opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22 }}
       className={cn(
-        'flex flex-col gap-3 border-2 px-5 py-5 md:flex-row md:items-center md:justify-between md:px-8',
+        'intel-panel flex flex-col gap-3 border px-5 py-5 md:flex-row md:items-center md:justify-between md:px-8',
         verdictStyles[verdict],
         className,
       )}
     >
       <div>
-        <p className="font-mono text-[10px] opacity-70">Final determination</p>
-        <p className="font-display text-3xl md:text-4xl">{getVerdictLabel(verdict)}</p>
+        <p className="meta-label opacity-80">Final determination</p>
+        <p className="mt-1 font-display text-3xl md:text-4xl">{getVerdictLabel(verdict)}</p>
       </div>
-      <div className="text-right">
-        <p className="font-mono text-[10px] opacity-70">Case file</p>
-        <p className="font-mono text-sm">{caseId}</p>
+      <div className="md:text-right">
+        <p className="meta-label opacity-80">Case file</p>
+        <p className="mt-1 font-mono text-sm tracking-wide">{caseId}</p>
       </div>
     </motion.div>
   )

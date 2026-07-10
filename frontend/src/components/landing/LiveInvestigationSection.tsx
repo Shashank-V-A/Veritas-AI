@@ -56,20 +56,22 @@ export function LiveInvestigationSection() {
   const report = guestAnalyze.data?.report ?? SAMPLE_REPORT.report
 
   return (
-    <section className="border-t border-accent/20 bg-surface px-6 py-16 md:px-12">
+    <section className="bg-[#0a0a0a] px-6 py-20 md:px-12">
       <div className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-xs text-accent-secondary/80">Live demo</p>
-            <h2 className="mt-2 font-display text-2xl text-card-foreground md:text-3xl">
+            <p className="font-sans text-[11px] font-medium uppercase tracking-[0.22em] text-accent">
+              Watch demo
+            </p>
+            <h2 className="mt-3 font-display text-3xl font-semibold text-foreground md:text-4xl">
               Run a live investigation
             </h2>
-            <p className="mt-2 max-w-xl text-sm text-card-foreground/65">
+            <p className="mt-2 max-w-xl text-sm text-muted-foreground">
               Analyze the sample health forward once — no sign-in required. See how Veritas
               builds a credibility dossier in real time.
             </p>
           </div>
-          <span className="stamp border-accent-secondary text-accent-secondary">
+          <span className="border border-accent/50 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
             Guest access
           </span>
         </div>

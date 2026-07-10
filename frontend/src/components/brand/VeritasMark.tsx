@@ -19,12 +19,12 @@ export function VeritasMark({
 }: VeritasMarkProps) {
   const isOnDark = variant === 'on-dark'
 
-  const ink = isOnDark ? '#F0EDE6' : '#8B2942'
-  const brass = isOnDark ? '#9A7B4F' : '#9A7B4F'
-  const frame = isOnDark ? 'rgba(154, 123, 79, 0.45)' : 'rgba(139, 41, 66, 0.35)'
-  const innerFrame = isOnDark ? 'rgba(154, 123, 79, 0.3)' : 'rgba(154, 123, 79, 0.55)'
-  const crosshair = isOnDark ? 'rgba(240, 237, 230, 0.25)' : 'rgba(139, 41, 66, 0.3)'
-  const bg = isOnDark ? 'rgba(139, 41, 66, 0.12)' : 'rgba(139, 41, 66, 0.05)'
+  const ink = isOnDark ? '#F5F5F5' : '#C8A24A'
+  const brass = '#C8A24A'
+  const frame = isOnDark ? 'rgba(200, 162, 74, 0.45)' : 'rgba(200, 162, 74, 0.4)'
+  const innerFrame = isOnDark ? 'rgba(200, 162, 74, 0.3)' : 'rgba(200, 162, 74, 0.5)'
+  const crosshair = isOnDark ? 'rgba(245, 245, 245, 0.22)' : 'rgba(200, 162, 74, 0.35)'
+  const bg = isOnDark ? 'rgba(200, 162, 74, 0.1)' : 'rgba(200, 162, 74, 0.08)'
 
   return (
     <svg
@@ -40,7 +40,6 @@ export function VeritasMark({
         <rect width="32" height="32" rx="2" fill={bg} />
       )}
 
-      {/* Outer stamp frame */}
       <rect
         x="3"
         y="3"
@@ -51,7 +50,6 @@ export function VeritasMark({
         strokeWidth="1.25"
       />
 
-      {/* Inner registration frame */}
       <rect
         x="5.5"
         y="5.5"
@@ -62,16 +60,13 @@ export function VeritasMark({
         strokeWidth="0.75"
       />
 
-      {/* Corner crop marks */}
       <path d="M7 7h2.5M7 7v2.5" stroke={brass} strokeWidth="0.75" strokeLinecap="square" />
       <path d="M25 7h-2.5M25 7v2.5" stroke={brass} strokeWidth="0.75" strokeLinecap="square" />
       <path d="M7 25h2.5M7 25v-2.5" stroke={brass} strokeWidth="0.75" strokeLinecap="square" />
       <path d="M25 25h-2.5M25 25v-2.5" stroke={brass} strokeWidth="0.75" strokeLinecap="square" />
 
-      {/* Verification crosshair */}
       <line x1="9" y1="16" x2="23" y2="16" stroke={crosshair} strokeWidth="1" />
 
-      {/* Truth-point V */}
       <path
         d="M11 21.5 L16 11.5 L21 21.5"
         stroke={ink}
@@ -80,7 +75,6 @@ export function VeritasMark({
         strokeLinejoin="miter"
       />
 
-      {/* Focal point */}
       <circle cx="16" cy="16" r="1.25" fill={brass} />
     </svg>
   )
