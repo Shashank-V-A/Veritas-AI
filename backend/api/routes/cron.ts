@@ -4,6 +4,7 @@ import { runAnalysis } from '../../services/analysis/pipeline.js'
 import { extractFromUrl } from '../../services/url/extract.js'
 import { reportRepository } from '../../services/report/repository.js'
 import { requireAuth } from '../middleware/auth.js'
+import { sendWeeklyDigests } from '../../services/email/digest.js'
 
 export const cronRouter = Router()
 
@@ -84,11 +85,14 @@ async function runWeeklyDigest() {
     cases: u.analyses,
   }))
 
-  if (process.env.RESEND_API_KEY) {
-    // Integrate Resend here when configured
-  }
+  const emailResult = await sendWeeklyDigests(digest)
 
-  return { sent: digest.length, digest }
+  return {
+    sent: emailResult.sent,
+    failed: emailResult.failed,
+    errors: emailResult.errors,
+    digest,
+  }
 }
 
 const handleRecheck = async (
