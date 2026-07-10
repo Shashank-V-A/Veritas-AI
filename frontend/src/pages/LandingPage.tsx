@@ -1,4 +1,5 @@
 import { Navigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { fadeIn, slideUp, staggerContainer } from '@/animations/variants'
@@ -17,6 +18,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 export function LandingPage() {
+  const { t } = useTranslation()
   const { isAuthenticated, isLoading, login } = useAuth()
   const reducedMotion = useReducedMotion()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -60,30 +62,28 @@ export function LandingPage() {
                 variants={reducedMotion ? undefined : fadeIn}
                 className="font-sans text-[11px] font-medium uppercase tracking-[0.24em] text-accent"
               >
-                Digital investigation platform
+                {t('landing.eyebrow')}
               </motion.p>
 
               <motion.h1
                 variants={reducedMotion ? undefined : slideUp}
                 className="mt-4 font-display text-[3.25rem] font-semibold leading-[0.95] tracking-tight text-foreground md:text-7xl lg:text-[5.25rem]"
               >
-                VERITAS AI
+                {t('app.name').toUpperCase()}
               </motion.h1>
 
               <motion.p
                 variants={reducedMotion ? undefined : slideUp}
                 className="mt-4 font-display text-xl italic text-accent md:text-2xl lg:text-[1.75rem]"
               >
-                Don&apos;t consume information. Verify it.
+                {t('app.tagline')}
               </motion.p>
 
               <motion.p
                 variants={reducedMotion ? undefined : slideUp}
                 className="mt-6 max-w-md text-[15px] leading-relaxed text-muted-foreground md:text-base"
               >
-                An AI-powered investigation desk for claims, sources, and narratives.
-                Paste any article, forward, or transcript — receive a structured credibility
-                dossier built for analysts, journalists, and decision-makers.
+                {t('landing.heroBody')}
               </motion.p>
 
               <motion.div
@@ -95,14 +95,14 @@ export function LandingPage() {
                   onClick={login}
                   className="pressable inline-flex h-12 items-center gap-2.5 bg-accent px-6 font-sans text-[12px] font-semibold uppercase tracking-[0.14em] text-primary-foreground transition-colors hover:bg-accent/90"
                 >
-                  Start investigation
+                  {t('nav.startInvestigation')}
                   <ArrowRight className="size-4" strokeWidth={2} />
                 </button>
                 <a
                   href="#about"
                   className="inline-flex items-center gap-2 font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  View sample dossier
+                  {t('landing.viewSample')}
                 </a>
               </motion.div>
             </motion.div>
@@ -131,17 +131,17 @@ export function LandingPage() {
             <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="font-sans text-[11px] font-medium uppercase tracking-[0.22em] text-accent">
-                  Sample dossier
+                  {t('landing.sampleEyebrow')}
                 </p>
                 <h2 className="mt-3 font-display text-3xl font-semibold text-foreground md:text-4xl">
-                  What an investigation looks like
+                  {t('landing.sampleTitle')}
                 </h2>
                 <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-                  A classified-style credibility report — trust score, claims, bias, and evidence.
+                  {t('landing.sampleBody')}
                 </p>
               </div>
               <span className="border border-accent/50 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-accent">
-                Classified sample
+                {t('landing.classifiedSample')}
               </span>
             </div>
             <SampleReportPreview record={SAMPLE_REPORT} />
@@ -156,14 +156,13 @@ export function LandingPage() {
           <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-10 md:flex-row md:items-center">
             <div>
               <p className="font-sans text-[11px] font-medium uppercase tracking-[0.22em] text-accent">
-                Access
+                {t('landing.accessEyebrow')}
               </p>
               <h2 className="mt-3 font-display text-3xl font-semibold text-foreground md:text-4xl">
-                Open your investigation desk
+                {t('landing.accessTitle')}
               </h2>
               <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
-                Sign in to run full analyses, archive case files, export PDF dossiers, and
-                collaborate with your team.
+                {t('landing.accessBody')}
               </p>
             </div>
 
@@ -173,13 +172,13 @@ export function LandingPage() {
                   className="border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-foreground"
                   role="alert"
                 >
-                  Sign-in failed: {authError.replace(/_/g, ' ')}
+                  {t('landing.signInFailed')} {authError.replace(/_/g, ' ')}
                   <button
                     type="button"
                     className="ml-2 underline"
                     onClick={() => setSearchParams({})}
                   >
-                    Dismiss
+                    {t('landing.dismiss')}
                   </button>
                 </div>
               )}
@@ -187,17 +186,17 @@ export function LandingPage() {
                 size="lg"
                 variant="default"
                 className="h-12 w-full uppercase tracking-[0.08em]"
-                label="Continue with Google"
+                label={t('landing.continueGoogle')}
               />
               <p className="text-center font-mono text-[10px] text-muted-foreground">
-                Private archive · PDF export · Mesh-powered analysis
+                {t('landing.accessFoot')}
               </p>
             </div>
           </div>
         </section>
 
         <footer className="border-t border-border py-5">
-          <div className="footer-marquee" aria-label="Veritas AI tagline">
+          <div className="footer-marquee" aria-label={t('landing.footerAria')}>
             <div className="footer-marquee__track">
               {Array.from({ length: 2 }).map((_, loop) => (
                 <p
@@ -207,7 +206,7 @@ export function LandingPage() {
                 >
                   {Array.from({ length: 4 }).map((_, i) => (
                     <span key={i}>
-                      Veritas AI · Don&apos;t consume information. Verify it.
+                      {t('app.name')} · {t('app.tagline')}
                       <span className="mx-8 text-accent/40" aria-hidden>
                         ◆
                       </span>

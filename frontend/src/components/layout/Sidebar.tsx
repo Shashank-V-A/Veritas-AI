@@ -53,7 +53,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             size="icon"
             className="md:hidden"
             onClick={onMobileClose}
-            aria-label="Close navigation menu"
+            aria-label={t('nav.closeMenu')}
           >
             <X className="size-5" strokeWidth={1.5} />
           </Button>
@@ -72,10 +72,10 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           </Link>
         </Button>
 
-        <p className="meta-label mb-2 px-2">Operations</p>
+        <p className="meta-label mb-2 px-2">{t('nav.operations')}</p>
         <nav
           className="flex flex-col gap-0.5"
-          aria-label="Main navigation"
+          aria-label={t('nav.mainNav')}
           data-onboarding="sidebar-nav"
         >
           {navItems.map((item, index) => {
@@ -126,7 +126,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="flex items-center gap-2 px-1">
           <span className="size-1.5 rounded-full bg-success" />
           <span className="font-mono text-[10px] text-muted-foreground">
-            Mesh · Online
+            {t('nav.meshOnline')}
           </span>
         </div>
 
@@ -145,7 +145,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-foreground">
-                {user.name ?? 'Investigator'}
+                {user.name ?? t('nav.investigator')}
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
                 {user.email}
@@ -155,7 +155,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               variant="ghost"
               size="icon"
               onClick={() => void logout()}
-              aria-label="Sign out"
+              aria-label={t('nav.signOut')}
               className="shrink-0"
             >
               <LogOut className="size-4" strokeWidth={1.5} />
@@ -166,7 +166,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
         <div className="flex items-center gap-2 px-1 pt-1">
           <Shield className="size-3 text-accent/70" strokeWidth={1.5} />
           <span className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-            Classified workspace
+            {t('nav.classifiedWorkspace')}
           </span>
           <Clock className="ml-auto size-3 text-muted-foreground/50" strokeWidth={1.5} />
         </div>

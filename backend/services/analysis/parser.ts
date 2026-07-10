@@ -59,7 +59,8 @@ export function parseCredibilityReport(raw: string): CredibilityReport {
     )
   }
 
-  const result = credibilityReportSchema.safeParse(parsed)
+  const sanitized = sanitizeMeshPayload(parsed)
+  const result = credibilityReportSchema.safeParse(sanitized)
   if (!result.success) {
     const message = result.error.errors
       .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
@@ -73,6 +74,34 @@ export function parseCredibilityReport(raw: string): CredibilityReport {
   }
 
   return result.data
+}
+
+/** Soft-clean common Mesh quirks before strict Zod validation. */
+function sanitizeMeshPayload(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  const report = { ...(value as Record<string, unknown>) }
+
+  if (Array.isArray(report.suggestedReading)) {
+    report.suggestedReading = report.suggestedReading.map((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item
+      const source = { ...(item as Record<string, unknown>) }
+      if (typeof source.url === 'string') {
+        const trimmed = source.url.trim()
+        if (!trimmed || !/^https?:\/\//i.test(trimmed)) {
+          delete source.url
+        } else {
+          source.url = trimmed
+        }
+      } else if (source.url != null) {
+        delete source.url
+      }
+      if (typeof source.title !== 'string') source.title = 'Suggested source'
+      if (typeof source.reason !== 'string') source.reason = ''
+      return source
+    })
+  }
+
+  return report
 }
 
 export function getValidationErrorMessage(raw: string): string {

@@ -19,7 +19,7 @@ import { reportRouter } from './routes/report.js'
 import { requireAuth } from './middleware/auth.js'
 import { domainRouter } from './routes/domain.js'
 import { annotationsRouter } from './routes/annotations.js'
-import { cronRouter, scheduleRouter } from './routes/cron.js'
+import { cronRouter } from './routes/cron.js'
 import { ogRouter } from './routes/og.js'
 import { teamsRouter } from './routes/teams.js'
 import { v1Router } from './routes/v1.js'
@@ -60,7 +60,6 @@ export function createApp() {
   app.use('/api/v1', v1Router)
   app.use('/api/teams', teamsRouter)
   app.use('/api/cron', cronRouter)
-  app.use('/api/schedule', scheduleRouter)
   app.use('/api/domain', domainRouter)
   app.use('/api/annotations', annotationsRouter)
   app.use('/api/report', requireAuth, reportRouter)

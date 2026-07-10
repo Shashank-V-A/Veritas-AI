@@ -152,6 +152,7 @@ Rules:
 - Flag uncertainty via confidence scores
 - If evidence is insufficient, mark claims as unverified rather than false
 - Never invent URLs; omit url field in suggestedReading if none applies
+- If a suggestedReading item has no real http(s) URL, omit the url field entirely (do not use "", "N/A", or placeholders)
 - Return empty arrays when no fallacies or missing context found
 - Keep the JSON compact: at most 8 claims, 5 fallacies, 5 missingContext items, 5 suggestedReading items, 6 reasoningTimeline steps
 - Keep string fields concise (explanations under ~400 characters)

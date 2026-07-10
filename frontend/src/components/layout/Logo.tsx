@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { VeritasMark } from '@/components/brand/VeritasMark'
 import { cn } from '@/lib/utils'
 import { APP_NAME, ROUTES } from '@/lib/constants'
@@ -25,6 +26,7 @@ export function Logo({
   linkTo = ROUTES.dashboard,
   variant = 'on-light',
 }: LogoProps) {
+  const { t } = useTranslation()
   const sizes = sizeMap[size]
   const isOnLight = variant === 'on-light'
 
@@ -65,7 +67,7 @@ export function Logo({
               isOnLight ? 'text-muted-foreground' : 'text-muted-foreground',
             )}
           >
-            Investigate
+            {t('app.investigate')}
           </span>
         </div>
       )}

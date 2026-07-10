@@ -1,14 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { Check, LayoutDashboard } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
-
-const FEATURES = [
-  'AI-Powered Claim Analysis',
-  'Bias & Manipulation Detection',
-  'Source Verification Engine',
-  'Logical Fallacy Detection',
-  'Neutral Rewrite & Explanations',
-] as const
 
 function DashboardMockup() {
   return (
@@ -130,7 +123,16 @@ function DashboardMockup() {
 }
 
 export function LandingFeatures() {
+  const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
+
+  const features = [
+    t('landing.feature1'),
+    t('landing.feature2'),
+    t('landing.feature3'),
+    t('landing.feature4'),
+    t('landing.feature5'),
+  ] as const
 
   return (
     <section id="features" className="border-t border-border px-6 py-20 md:px-12 md:py-24">
@@ -142,13 +144,13 @@ export function LandingFeatures() {
           transition={{ duration: 0.35 }}
         >
           <p className="font-sans text-[11px] font-medium uppercase tracking-[0.22em] text-accent">
-            Capabilities
+            {t('landing.capabilities')}
           </p>
           <h2 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground md:text-5xl">
-            Built for those who seek the truth.
+            {t('landing.featuresTitle')}
           </h2>
           <ul className="mt-8 space-y-3.5">
-            {FEATURES.map((feature) => (
+            {features.map((feature) => (
               <li key={feature} className="flex items-start gap-3">
                 <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center border border-accent/40 bg-accent/10">
                   <Check className="size-3 text-accent" strokeWidth={2.5} />
@@ -161,7 +163,7 @@ export function LandingFeatures() {
             href="#about"
             className="mt-8 inline-flex items-center gap-2 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-accent transition-opacity hover:opacity-80"
           >
-            View sample dossier
+            {t('landing.viewSample')}
             <LayoutDashboard className="size-3.5" strokeWidth={1.5} />
           </a>
         </motion.div>

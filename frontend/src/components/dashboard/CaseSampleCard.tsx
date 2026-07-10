@@ -1,4 +1,5 @@
 import { FolderOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { getTrustScoreColor } from '@/lib/format'
 import type { AnalysisPrefill } from '@/lib/sampleReport'
@@ -22,6 +23,8 @@ export function CaseSampleCard({
   isActive,
   onSelect,
 }: CaseSampleCardProps) {
+  const { t } = useTranslation()
+
   return (
     <button
       type="button"
@@ -34,19 +37,28 @@ export function CaseSampleCard({
       )}
     >
       <div className="flex items-center gap-2">
-        <FolderOpen className="size-3.5 text-accent" strokeWidth={1.5} />
-        <p className="meta-label">Case sample · {category}</p>
+        <FolderOpen className="size-3.5 shrink-0 text-accent" strokeWidth={1.5} />
+        <p className="font-sans text-[10px] font-medium uppercase tracking-[0.16em] text-accent">
+          {t('dashboard.caseSample')} · {category}
+        </p>
       </div>
-      <p className="mt-2 font-display text-base text-foreground">{label}</p>
-      <div className="mt-3 flex items-center gap-3">
-        <span className={cn('font-display text-xl tabular-nums', getTrustScoreColor(trustScore))}>
+      <p className="mt-2.5 font-display text-lg font-semibold leading-snug tracking-tight text-foreground">
+        {label}
+      </p>
+      <div className="mt-3 flex items-baseline gap-2.5">
+        <span
+          className={cn(
+            'font-sans text-2xl font-semibold tabular-nums leading-none',
+            getTrustScoreColor(trustScore),
+          )}
+        >
           {trustScore}
         </span>
-        <span className="font-mono text-[10px] text-muted-foreground">
-          Trust · {riskLabel}
+        <span className="font-sans text-[12px] text-muted-foreground">
+          {t('dashboard.trust')} · {riskLabel}
         </span>
       </div>
-      <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+      <p className="mt-3 line-clamp-2 font-sans text-sm leading-relaxed text-muted-foreground">
         {prefill.content}
       </p>
     </button>

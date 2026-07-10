@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import type { Verdict } from '@veritas/shared'
 import { getVerdictLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,7 @@ const verdictStyles: Record<Verdict, string> = {
 }
 
 export function VerdictBanner({ verdict, caseId, className }: VerdictBannerProps) {
+  const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
 
   return (
@@ -32,11 +34,11 @@ export function VerdictBanner({ verdict, caseId, className }: VerdictBannerProps
       )}
     >
       <div>
-        <p className="meta-label opacity-80">Final determination</p>
+        <p className="meta-label opacity-80">{t('report.finalDetermination')}</p>
         <p className="mt-1 font-display text-3xl md:text-4xl">{getVerdictLabel(verdict)}</p>
       </div>
       <div className="md:text-right">
-        <p className="meta-label opacity-80">Case file</p>
+        <p className="meta-label opacity-80">{t('report.caseFile')}</p>
         <p className="mt-1 font-mono text-sm tracking-wide">{caseId}</p>
       </div>
     </motion.div>

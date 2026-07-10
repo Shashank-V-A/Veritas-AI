@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Check, Fingerprint, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useInvestigationProgress } from '@/hooks/useInvestigationProgress'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -9,6 +10,7 @@ interface AnalysisLoadingProps {
 }
 
 export function AnalysisLoading({ className }: AnalysisLoadingProps) {
+  const { t } = useTranslation()
   const { phases, activeStep, completedSteps, statusText, isComplete } =
     useInvestigationProgress()
   const reducedMotion = useReducedMotion()
@@ -24,22 +26,22 @@ export function AnalysisLoading({ className }: AnalysisLoadingProps) {
       )}
       role="status"
       aria-live="polite"
-      aria-label="Investigation in progress"
+      aria-label={t('loading.aria')}
     >
       <div className="relative z-10 flex items-start justify-between gap-4">
         <div>
           <p className="meta-label flex items-center gap-2 text-accent">
             <Fingerprint className="size-3" strokeWidth={1.75} />
-            Active investigation
+            {t('loading.active')}
           </p>
           <h2 className="mt-2 font-display text-xl text-foreground md:text-2xl">
-            Building case dossier
+            {t('loading.building')}
           </h2>
           <p className="mt-1.5 text-sm text-muted-foreground">{statusText}</p>
         </div>
         <div className="hidden shrink-0 text-right sm:block">
           <p className="font-mono text-2xl tabular-nums text-accent">{Math.min(progress, 99)}%</p>
-          <p className="meta-label mt-1">Progress</p>
+          <p className="meta-label mt-1">{t('common.progress')}</p>
         </div>
       </div>
 
@@ -97,7 +99,7 @@ export function AnalysisLoading({ className }: AnalysisLoadingProps) {
               </span>
               {isActive && (
                 <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-accent">
-                  Live
+                  {t('common.live')}
                 </span>
               )}
             </motion.li>

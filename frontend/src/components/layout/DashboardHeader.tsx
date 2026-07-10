@@ -1,13 +1,8 @@
 import { useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ROUTES } from '@/lib/constants'
-
-const PAGE_TITLES: Record<string, string> = {
-  [ROUTES.dashboard]: 'Workspace',
-  [ROUTES.history]: 'Case files',
-  [ROUTES.settings]: 'Settings',
-}
 
 interface DashboardHeaderProps {
   onMenuClick: () => void
@@ -15,12 +10,19 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const location = useLocation()
+  const { t } = useTranslation()
 
-  let title = 'Workspace'
+  const pageTitles: Record<string, string> = {
+    [ROUTES.dashboard]: t('nav.workspace'),
+    [ROUTES.history]: t('nav.caseFiles'),
+    [ROUTES.settings]: t('nav.settings'),
+  }
+
+  let title = t('nav.workspace')
   if (location.pathname.startsWith('/app/analysis/')) {
-    title = 'Report'
+    title = t('nav.report')
   } else {
-    title = PAGE_TITLES[location.pathname] ?? 'Workspace'
+    title = pageTitles[location.pathname] ?? t('nav.workspace')
   }
 
   return (
@@ -29,7 +31,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         variant="ghost"
         size="icon"
         onClick={onMenuClick}
-        aria-label="Open navigation menu"
+        aria-label={t('nav.openMenu')}
       >
         <Menu className="size-5" strokeWidth={1.5} />
       </Button>

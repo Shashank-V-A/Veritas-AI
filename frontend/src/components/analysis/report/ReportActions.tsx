@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Check, Download, FileText, Printer, RefreshCw, Share2, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { AnalysisRecord } from '@veritas/shared'
 import { getFriendlyErrorMessage } from '@/lib/errorMessages'
 import { ROUTES } from '@/lib/constants'
@@ -23,6 +24,7 @@ export function ReportActions({
   isReanalyzing = false,
   readOnly = false,
 }: ReportActionsProps) {
+  const { t } = useTranslation()
   const [shareCopied, setShareCopied] = useState(false)
   const [exportingPdf, setExportingPdf] = useState(false)
   const [exportingMd, setExportingMd] = useState(false)
@@ -90,7 +92,7 @@ export function ReportActions({
             disabled={isReanalyzing}
           >
             <RefreshCw className={cnSpin(isReanalyzing)} />
-            {isReanalyzing ? 'Re-analyzing…' : 'Re-analyze'}
+            {isReanalyzing ? t('report.reanalyzing') : t('report.reanalyze')}
           </Button>
         )}
         {!readOnly && (
@@ -106,7 +108,7 @@ export function ReportActions({
             ) : (
               <Share2 className="size-3.5" />
             )}
-            {shareCopied ? 'Link copied' : sharing ? 'Sharing…' : 'Share'}
+            {shareCopied ? t('report.linkCopied') : sharing ? t('report.sharing') : t('report.share')}
           </Button>
         )}
         {!readOnly && (
@@ -118,7 +120,7 @@ export function ReportActions({
             disabled={exportingMd}
           >
             <FileText className="size-3.5" />
-            {exportingMd ? 'Exporting…' : 'Markdown'}
+            {exportingMd ? t('report.exporting') : t('report.markdown')}
           </Button>
         )}
         {!readOnly && (
@@ -130,12 +132,12 @@ export function ReportActions({
             disabled={exportingPdf}
           >
             <Download className="size-3.5" />
-            {exportingPdf ? 'Exporting…' : 'PDF'}
+            {exportingPdf ? t('report.exporting') : t('report.pdf')}
           </Button>
         )}
         <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint}>
           <Printer className="size-3.5" />
-          Print
+          {t('report.print')}
         </Button>
         {!readOnly && onDelete && (
           <Button
@@ -146,7 +148,7 @@ export function ReportActions({
             disabled={isDeleting}
           >
             <Trash2 className="size-3.5" />
-            {isDeleting ? 'Deleting…' : 'Delete'}
+            {isDeleting ? t('report.deleting') : t('report.delete')}
           </Button>
         )}
       </div>

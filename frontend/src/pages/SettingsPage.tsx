@@ -36,7 +36,7 @@ export function SettingsPage() {
                 onClick={() => void i18n.changeLanguage(lng)}
                 aria-pressed={i18n.language === lng}
               >
-                {lng === 'en' ? 'English' : 'हिन्दी'}
+                {lng === 'en' ? t('settings.english') : t('settings.hindi')}
               </Button>
             ))}
           </div>

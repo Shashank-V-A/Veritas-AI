@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { History, Search, ChevronDown } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { ROUTES } from '@/lib/constants'
 import { CATEGORY_OPTIONS } from '@/lib/categories'
 import type { Verdict } from '@veritas/shared'
@@ -14,15 +15,16 @@ import { EXAMPLE_PROMPTS } from '@/lib/sampleReport'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useHistory } from '@/hooks/useHistory'
 
-const VERDICT_FILTERS: { value: Verdict | ''; label: string }[] = [
-  { value: '', label: 'All verdicts' },
-  { value: 'credible', label: 'Credible' },
-  { value: 'mixed', label: 'Mixed' },
-  { value: 'misleading', label: 'Misleading' },
-  { value: 'unsupported', label: 'Unsupported' },
+const VERDICT_FILTER_VALUES: (Verdict | '')[] = [
+  '',
+  'credible',
+  'mixed',
+  'misleading',
+  'unsupported',
 ]
 
 export function HistoryList() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
@@ -42,6 +44,11 @@ export function HistoryList() {
   const totalPages = data ? Math.ceil(data.total / data.limit) : 0
   const hasFilters = Boolean(debouncedSearch || category || verdict)
 
+  const verdictLabel = (value: Verdict | '') => {
+    if (value === '') return t('history.allVerdicts')
+    return t(`history.${value}`)
+  }
+
   return (
     <div className="mt-8">
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -51,14 +58,14 @@ export function HistoryList() {
             strokeWidth={1.75}
           />
           <Input
-            placeholder="Search cases and claims…"
+            placeholder={t('history.searchPlaceholder')}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
               setPage(1)
             }}
             className="border border-border bg-elevated pl-9 text-foreground placeholder:text-muted-foreground"
-            aria-label="Search analyses"
+            aria-label={t('history.searchAria')}
           />
         </div>
         <div className="relative shrink-0 sm:w-44">
@@ -69,10 +76,10 @@ export function HistoryList() {
               setPage(1)
             }}
             className="h-9 w-full appearance-none rounded-md border border-border bg-elevated py-0 pl-3 pr-9 text-sm text-foreground [color-scheme:dark]"
-            aria-label="Filter by category"
+            aria-label={t('history.filterCategory')}
           >
             <option value="" className="bg-elevated text-foreground">
-              All categories
+              {t('history.allCategories')}
             </option>
             {CATEGORY_OPTIONS.map((opt) => (
               <option
@@ -98,15 +105,15 @@ export function HistoryList() {
               setPage(1)
             }}
             className="h-9 w-full appearance-none rounded-md border border-border bg-elevated py-0 pl-3 pr-9 text-sm text-foreground [color-scheme:dark]"
-            aria-label="Filter by verdict"
+            aria-label={t('history.filterVerdict')}
           >
-            {VERDICT_FILTERS.map((opt) => (
+            {VERDICT_FILTER_VALUES.map((value) => (
               <option
-                key={opt.value || 'all'}
-                value={opt.value}
+                key={value || 'all'}
+                value={value}
                 className="bg-elevated text-foreground"
               >
-                {opt.label}
+                {verdictLabel(value)}
               </option>
             ))}
           </select>
@@ -127,22 +134,22 @@ export function HistoryList() {
           </div>
         )}
 
-        {isError && <p className="text-sm text-danger">Failed to load history.</p>}
+        {isError && <p className="text-sm text-danger">{t('history.loadFailed')}</p>}
 
         {!isLoading && !isError && items.length === 0 && (
           <>
             <EmptyState
               icon={History}
-              title={hasFilters ? 'No results found' : 'No case files yet'}
+              title={hasFilters ? t('history.noResults') : t('history.noCases')}
               description={
                 hasFilters
-                  ? 'Try different filters or run a new analysis.'
-                  : 'Open a sample case below or file your first investigation.'
+                  ? t('history.tryFilters')
+                  : t('history.openSample')
               }
               action={
                 !hasFilters ? (
                   <Button size="sm" asChild>
-                    <Link to={ROUTES.dashboard}>New analysis</Link>
+                    <Link to={ROUTES.dashboard}>{t('history.newAnalysis')}</Link>
                   </Button>
                 ) : undefined
               }
@@ -172,7 +179,8 @@ export function HistoryList() {
         {!isLoading && items.length > 0 && (
           <>
             <p className="mb-4 font-mono text-xs text-card-foreground/60">
-              {data?.total} {data?.total === 1 ? 'case file' : 'case files'}
+              {data?.total}{' '}
+              {data?.total === 1 ? t('history.caseFile') : t('history.caseFiles')}
             </p>
             <div className="space-y-3">
               {items.map((item, index) => (
@@ -188,10 +196,10 @@ export function HistoryList() {
                   disabled={page <= 1}
                   onClick={() => setPage((p) => p - 1)}
                 >
-                  Previous
+                  {t('history.previous')}
                 </Button>
                 <span className="text-xs text-card-foreground/60">
-                  Page {page} of {totalPages}
+                  {t('history.pageOf', { page, total: totalPages })}
                 </span>
                 <Button
                   variant="outline"
@@ -199,7 +207,7 @@ export function HistoryList() {
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => p + 1)}
                 >
-                  Next
+                  {t('history.next')}
                 </Button>
               </div>
             )}

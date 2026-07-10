@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { formatRelativeDate, getTrustScoreColor } from '@/lib/format'
 import type { HistoryItem } from '@/types'
@@ -8,6 +9,8 @@ interface MissionControlProps {
 }
 
 export function MissionControl({ total, items }: MissionControlProps) {
+  const { t } = useTranslation()
+
   if (total === 0) return null
 
   const lastCase = items[0]
@@ -20,21 +23,21 @@ export function MissionControl({ total, items }: MissionControlProps) {
     <div className="mt-6 flex flex-wrap gap-8 border-t border-border pt-5">
       <div>
         <p className="font-display text-3xl tabular-nums text-accent">{total}</p>
-        <p className="meta-label mt-1">Case files opened</p>
+        <p className="meta-label mt-1">{t('dashboard.casesOpened')}</p>
       </div>
       {lastCase && (
         <div>
           <p className="font-display text-3xl text-foreground">
             {formatRelativeDate(lastCase.createdAt)}
           </p>
-          <p className="meta-label mt-1">Last case filed</p>
+          <p className="meta-label mt-1">{t('dashboard.lastFiled')}</p>
         </div>
       )}
       <div>
         <p className={cn('font-display text-3xl tabular-nums', getTrustScoreColor(avgTrust))}>
           {avgTrust}
         </p>
-        <p className="meta-label mt-1">Avg. trust score</p>
+        <p className="meta-label mt-1">{t('dashboard.avgTrust')}</p>
       </div>
     </div>
   )

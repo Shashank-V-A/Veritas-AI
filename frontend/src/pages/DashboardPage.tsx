@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Fingerprint } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { staggerContainer, slideUp } from '@/animations/variants'
 import { AnalysisInput } from '@/components/analysis/AnalysisInput'
 import { RecentAnalyses } from '@/components/analysis/RecentAnalyses'
@@ -13,7 +14,26 @@ import type { AnalysisPrefill } from '@/lib/sampleReport'
 import { useHistory } from '@/hooks/useHistory'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
+const SAMPLE_I18N = [
+  {
+    labelKey: 'dashboard.sampleHealth',
+    categoryKey: 'dashboard.categoryHealth',
+    riskKey: 'dashboard.riskHigh',
+  },
+  {
+    labelKey: 'dashboard.samplePolitical',
+    categoryKey: 'dashboard.categoryPolitical',
+    riskKey: 'dashboard.riskHigh',
+  },
+  {
+    labelKey: 'dashboard.sampleNews',
+    categoryKey: 'dashboard.categoryNews',
+    riskKey: 'dashboard.riskCredible',
+  },
+] as const
+
 export function DashboardPage() {
+  const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
   const [searchParams] = useSearchParams()
   const { data } = useHistory({ limit: 100 })
@@ -54,14 +74,13 @@ export function DashboardPage() {
         <motion.header variants={reducedMotion ? undefined : slideUp} className="mb-8">
           <p className="meta-label flex items-center gap-2 text-accent">
             <Fingerprint className="size-3" strokeWidth={1.75} />
-            Investigation workspace
+            {t('dashboard.eyebrow')}
           </p>
           <h1 className="mt-3 font-display text-3xl leading-tight text-foreground md:text-4xl">
-            Open a new case
+            {t('dashboard.title')}
           </h1>
           <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
-            Submit evidence below. Veritas returns a forensic credibility dossier — claims,
-            bias, fallacies, and a trust verdict.
+            {t('dashboard.body')}
           </p>
           <div className="accent-line mt-6 w-28" />
           <MissionControl total={total} items={items} />
@@ -70,34 +89,39 @@ export function DashboardPage() {
         <motion.section variants={reducedMotion ? undefined : slideUp} className="mb-8">
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <p className="meta-label">Reference dossiers</p>
-              <h2 className="mt-1 font-display text-lg text-foreground">
-                Load a sample case file
+              <p className="font-sans text-[11px] font-medium uppercase tracking-[0.22em] text-accent">
+                {t('dashboard.referenceEyebrow')}
+              </p>
+              <h2 className="mt-1.5 font-display text-xl font-semibold tracking-tight text-foreground md:text-2xl">
+                {t('dashboard.referenceTitle')}
               </h2>
             </div>
             {total === 0 && (
-              <p className="hidden font-mono text-[10px] text-muted-foreground sm:block">
-                Or paste your own evidence below
+              <p className="hidden font-sans text-[12px] text-muted-foreground sm:block">
+                {t('dashboard.pasteOwn')}
               </p>
             )}
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {EXAMPLE_PROMPTS.map((example) => (
-              <CaseSampleCard
-                key={example.label}
-                category={example.category}
-                label={example.label}
-                trustScore={example.trustScore}
-                riskLabel={example.riskLabel}
-                prefill={{
-                  content: example.content,
-                  sourceType: example.sourceType,
-                  title: example.title,
-                }}
-                isActive={activeSample === example.label}
-                onSelect={() => handleSampleSelect(example)}
-              />
-            ))}
+            {EXAMPLE_PROMPTS.map((example, index) => {
+              const i18n = SAMPLE_I18N[index]
+              return (
+                <CaseSampleCard
+                  key={example.label}
+                  category={t(i18n.categoryKey)}
+                  label={t(i18n.labelKey)}
+                  trustScore={example.trustScore}
+                  riskLabel={t(i18n.riskKey)}
+                  prefill={{
+                    content: example.content,
+                    sourceType: example.sourceType,
+                    title: example.title,
+                  }}
+                  isActive={activeSample === example.label}
+                  onSelect={() => handleSampleSelect(example)}
+                />
+              )
+            })}
           </div>
         </motion.section>
 
@@ -115,8 +139,10 @@ export function DashboardPage() {
             className="mt-12"
           >
             <div className="case-rule mb-5" />
-            <p className="meta-label">Archive</p>
-            <h2 className="mt-1 font-display text-xl text-foreground">Recent case files</h2>
+            <p className="meta-label">{t('dashboard.archive')}</p>
+            <h2 className="mt-1 font-display text-xl text-foreground">
+              {t('dashboard.recentCases')}
+            </h2>
             <div className="mt-5">
               <RecentAnalyses limit={5} />
             </div>

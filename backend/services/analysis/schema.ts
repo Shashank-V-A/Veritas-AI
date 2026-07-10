@@ -37,9 +37,24 @@ export const timelineEventSchema = z.object({
   timestamp: z.string().optional(),
 })
 
+/** Mesh often returns "", "N/A", or non-http strings — drop those instead of failing. */
+function coerceOptionalHttpUrl(value: unknown): string | undefined {
+  if (value == null) return undefined
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  try {
+    const parsed = new URL(trimmed)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return undefined
+    return parsed.toString()
+  } catch {
+    return undefined
+  }
+}
+
 export const suggestedSourceSchema = z.object({
   title: z.string(),
-  url: z.string().url().optional(),
+  url: z.preprocess(coerceOptionalHttpUrl, z.string().url().optional()),
   reason: z.string(),
 })
 

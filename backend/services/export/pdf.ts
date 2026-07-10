@@ -4,23 +4,33 @@ import type { AnalysisRecord, ClaimStatus, Verdict } from '@veritas/shared'
 
 /**
  * Veritas case-dossier PDF — hard-capped at 2 pages.
+ * Ink theme: dark ground, gold accent, Helvetica for readability.
  *
  * Critical: every doc.text() MUST pass `height` so PDFKit clips instead of
  * auto-inserting pages when content hits the bottom margin.
  */
 
 const C = {
-  parchment: '#F4F0E6',
-  ink: '#1A1A1F',
-  charcoal: '#2C2C30',
-  muted: '#5C5A55',
-  rule: '#D8D2C4',
-  oxblood: '#8B2942',
-  brass: '#9A7B4F',
-  white: '#FAFAF8',
-  success: '#2D5A4A',
-  warning: '#B8860B',
-  danger: '#A63D3D',
+  bg: '#090909',
+  surface: '#111111',
+  elevated: '#171717',
+  ink: '#F5F5F5',
+  charcoal: '#D4D4D4',
+  muted: '#B3B3B3',
+  rule: '#2A2A2A',
+  accent: '#C8A24A',
+  accentSoft: '#5F7EA7',
+  white: '#F5F5F5',
+  onAccent: '#090909',
+  success: '#3BA55D',
+  warning: '#D9A441',
+  danger: '#C94F4F',
+} as const
+
+const F = {
+  sans: 'Helvetica',
+  sansBold: 'Helvetica-Bold',
+  sansOblique: 'Helvetica-Oblique',
 } as const
 
 const VERDICT_LABELS: Record<Verdict, string> = {
@@ -55,13 +65,13 @@ function caseId(id: string): string {
 function trustColor(score: number): string {
   if (score >= 70) return C.success
   if (score >= 40) return C.warning
-  return C.oxblood
+  return C.danger
 }
 
 function verdictColor(v: Verdict): string {
   if (v === 'credible') return C.success
   if (v === 'mixed') return C.warning
-  return C.oxblood
+  return C.danger
 }
 
 function statusColor(s: ClaimStatus): string {
@@ -93,12 +103,12 @@ class Layout {
     return BOTTOM - this.y
   }
 
-  /** Draw filled parchment + chrome for the current page. */
+  /** Draw ink shell + chrome for the current page. */
   paintShell(totalPages: number) {
     const d = this.doc
     d.save()
-    d.rect(0, 0, PAGE_W, PAGE_H).fill(C.parchment)
-    d.rect(M, 20, CW, 2).fill(C.oxblood)
+    d.rect(0, 0, PAGE_W, PAGE_H).fill(C.bg)
+    d.rect(M, 20, CW, 2).fill(C.accent)
     d
       .moveTo(M, BOTTOM + 8)
       .lineTo(PAGE_W - M, BOTTOM + 8)
@@ -109,13 +119,13 @@ class Layout {
 
     // Footer — absolute, no flow side-effects
     this.abs('VERITAS AI  ·  CASE DOSSIER', M, BOTTOM + 12, {
-      font: 'Helvetica',
+      font: F.sans,
       size: 6.5,
       color: C.muted,
       width: CW / 2,
     })
     this.abs(`PAGE ${this.pageIndex + 1} OF ${totalPages}`, M + CW / 2, BOTTOM + 12, {
-      font: 'Helvetica',
+      font: F.sans,
       size: 6.5,
       color: C.muted,
       width: CW / 2,
@@ -142,7 +152,7 @@ class Layout {
     const d = this.doc
     const sx = d.x
     const sy = d.y
-    d.font(opts.font ?? 'Helvetica')
+    d.font(opts.font ?? F.sans)
     d.fontSize(opts.size ?? 9)
     d.fillColor(opts.color ?? C.ink)
     d.text(text, x, y, {
@@ -176,7 +186,7 @@ class Layout {
     if (this.remaining < size + 2) return false
 
     const d = this.doc
-    d.font(opts.font ?? 'Helvetica')
+    d.font(opts.font ?? F.sans)
     d.fontSize(size)
     d.fillColor(opts.color ?? C.charcoal)
 
@@ -185,13 +195,13 @@ class Layout {
       width: CW,
       height: h,
       ellipsis: true,
-      lineGap: 1,
+      lineGap: 1.5,
       // height is set → PDFKit will NOT create a new page
     })
 
     const used = Math.min(
       h,
-      d.heightOfString(text, { width: CW, lineGap: 1 }) || size + 2,
+      d.heightOfString(text, { width: CW, lineGap: 1.5 }) || size + 2,
     )
     this.y = Math.min(this.y + used + gap, BOTTOM)
     d.x = M
@@ -216,12 +226,12 @@ class Layout {
   heading(title: string): boolean {
     if (this.remaining < 22) return false
     this.text(title.toUpperCase(), {
-      font: 'Times-Bold',
-      size: 9.5,
-      color: C.ink,
+      font: F.sansBold,
+      size: 8,
+      color: C.accent,
       gap: 1,
     })
-    this.rule(C.oxblood, 1)
+    this.rule(C.rule, 0.8)
     return true
   }
 
@@ -246,9 +256,9 @@ class Layout {
 
   meter(label: string, value: number, x: number, y: number, barW: number) {
     const v = Math.max(0, Math.min(100, value))
-    this.abs(label, x, y, { font: 'Helvetica', size: 6.5, color: C.muted, width: 68, height: 10 })
+    this.abs(label, x, y, { font: F.sans, size: 6.5, color: C.muted, width: 68, height: 10 })
     this.abs(String(v), x + barW - 16, y, {
-      font: 'Helvetica-Bold',
+      font: F.sansBold,
       size: 6.5,
       color: C.ink,
       width: 16,
@@ -258,7 +268,7 @@ class Layout {
     const d = this.doc
     d.save()
     d.rect(x, y + 10, barW, 3.5).fill(C.rule)
-    if (v > 0) d.rect(x, y + 10, (barW * v) / 100, 3.5).fill(trustColor(v))
+    if (v > 0) d.rect(x, y + 10, (barW * v) / 100, 3.5).fill(C.accent)
     d.restore()
   }
 }
@@ -334,43 +344,44 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
 
     // ── Brand ──────────────────────────────────────────────
     L.abs('VERITAS', M, L.y, {
-      font: 'Times-Bold',
-      size: 15,
+      font: F.sansBold,
+      size: 14,
       color: C.ink,
       width: 78,
       height: 18,
-      characterSpacing: 1.2,
+      characterSpacing: 1.4,
     })
     L.abs('AI', M + 76, L.y, {
-      font: 'Times-Bold',
-      size: 15,
-      color: C.oxblood,
+      font: F.sansBold,
+      size: 14,
+      color: C.accent,
       width: 30,
       height: 18,
     })
     L.y += 16
     L.abs("Don't consume information. Verify it.", M, L.y, {
-      font: 'Helvetica',
-      size: 7,
-      color: C.muted,
+      font: F.sansOblique,
+      size: 7.5,
+      color: C.accent,
       height: 10,
     })
     L.y += 12
-    L.rule(C.oxblood, 1.2)
+    L.rule(C.accent, 1)
 
     const date = new Date(record.createdAt).toLocaleString(undefined, {
       dateStyle: 'medium',
       timeStyle: 'short',
     })
     L.abs(`CASE FILE  ·  ${id}`, M, L.y, {
-      font: 'Helvetica-Bold',
+      font: F.sansBold,
       size: 7,
-      color: C.oxblood,
+      color: C.accent,
       width: CW * 0.55,
       height: 10,
+      characterSpacing: 0.6,
     })
     L.abs(date, M + CW * 0.4, L.y, {
-      font: 'Helvetica',
+      font: F.sans,
       size: 7,
       color: C.muted,
       width: CW * 0.6,
@@ -381,8 +392,8 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
 
     if (go()) {
       L.text(trunc(record.title ?? 'Untitled analysis', 100), {
-        font: 'Times-Bold',
-        size: 13,
+        font: F.sansBold,
+        size: 14,
         color: C.ink,
         gap: 2,
       })
@@ -397,9 +408,9 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
       const py = L.y
       const ph = 68
       doc.save()
-      doc.roundedRect(M, py, CW, ph, 3).fill(C.white)
-      doc.roundedRect(M, py, CW, ph, 3).strokeColor(C.rule).lineWidth(0.8).stroke()
-      doc.rect(M, py, 3, ph).fill(C.oxblood)
+      doc.roundedRect(M, py, CW, ph, 2).fill(C.surface)
+      doc.roundedRect(M, py, CW, ph, 2).strokeColor(C.rule).lineWidth(0.8).stroke()
+      doc.rect(M, py, 3, ph).fill(C.accent)
       doc
         .moveTo(M + 86, py + 10)
         .lineTo(M + 86, py + ph - 10)
@@ -409,15 +420,15 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
       doc.restore()
 
       L.abs(String(report.trustScore), M + 8, py + 10, {
-        font: 'Times-Bold',
-        size: 30,
+        font: F.sansBold,
+        size: 28,
         color: trustColor(report.trustScore),
         width: 70,
         align: 'center',
         height: 34,
       })
       L.abs('TRUST / 100', M + 8, py + 46, {
-        font: 'Helvetica',
+        font: F.sans,
         size: 6,
         color: C.muted,
         width: 70,
@@ -428,22 +439,22 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
 
       const verdict = (VERDICT_LABELS[report.verdict] ?? report.verdict).toUpperCase()
       L.abs('VERDICT', M + 98, py + 10, {
-        font: 'Helvetica',
+        font: F.sans,
         size: 6.5,
         color: C.muted,
         height: 10,
-        characterSpacing: 1,
+        characterSpacing: 1.2,
       })
       L.abs(verdict, M + 98, py + 22, {
-        font: 'Times-Bold',
+        font: F.sansBold,
         size: 12,
         color: verdictColor(report.verdict),
         width: CW - 110,
         height: 16,
       })
       L.abs(trunc(report.summary, 240), M + 98, py + 40, {
-        font: 'Helvetica',
-        size: 7,
+        font: F.sans,
+        size: 7.5,
         color: C.charcoal,
         width: CW - 110,
         height: 22,
@@ -453,10 +464,10 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
 
     // ── Summary / ELI15 ────────────────────────────────────
     if (go() && L.ensure(50, totalPages) && L.heading('Summary')) {
-      L.text(trunc(report.summary, 480), { size: 7.5, gap: 5 })
+      L.text(trunc(report.summary, 480), { size: 8, gap: 5 })
     }
     if (go() && L.ensure(45, totalPages) && L.heading("Explain Like I'm 15")) {
-      L.text(trunc(report.eli15, 380), { size: 7.5, gap: 5 })
+      L.text(trunc(report.eli15, 380), { size: 8, gap: 5 })
     }
 
     // ── Claims (max 4) ─────────────────────────────────────
@@ -471,9 +482,9 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
         const rowY = L.y
 
         L.abs(String(i + 1).padStart(2, '0'), M, rowY, {
-          font: 'Helvetica-Bold',
+          font: F.sansBold,
           size: 7,
-          color: C.oxblood,
+          color: C.accent,
           width: 16,
           height: 10,
         })
@@ -482,23 +493,23 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
         doc.roundedRect(M + 18, rowY - 1, bw, 10, 2).fill(sc)
         doc.restore()
         L.abs(status, M + 18, rowY + 0.5, {
-          font: 'Helvetica-Bold',
+          font: F.sansBold,
           size: 5.5,
-          color: C.white,
+          color: C.onAccent,
           width: bw,
           align: 'center',
           height: 10,
         })
         L.abs(`${claim.confidence}%`, M + 22 + bw, rowY, {
-          font: 'Helvetica',
+          font: F.sans,
           size: 6.5,
           color: C.muted,
           height: 10,
         })
         L.y = rowY + 12
-        L.text(trunc(claim.claim, 160), { size: 7.5, color: C.ink, gap: 1 })
+        L.text(trunc(claim.claim, 160), { size: 8, color: C.ink, gap: 1 })
         if (claim.explanation) {
-          L.text(trunc(claim.explanation, 140), { size: 6.5, color: C.muted, gap: 4 })
+          L.text(trunc(claim.explanation, 140), { size: 7, color: C.muted, gap: 4 })
         } else {
           L.y += 3
         }
@@ -513,14 +524,14 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
       const sy = L.y
 
       L.abs('BIAS VECTORS', leftX, sy, {
-        font: 'Helvetica-Bold',
+        font: F.sansBold,
         size: 7,
         color: C.ink,
         width: colW,
         height: 10,
       })
       L.abs(`Overall ${report.bias.overall}`, leftX + colW - 48, sy, {
-        font: 'Helvetica',
+        font: F.sans,
         size: 6.5,
         color: C.muted,
         width: 48,
@@ -536,16 +547,16 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
       L.meter('Ideological', report.bias.ideological, leftX, my, colW)
 
       L.abs('EMOTION PROFILE', rightX, sy, {
-        font: 'Helvetica-Bold',
+        font: F.sansBold,
         size: 7,
         color: C.ink,
         width: colW * 0.55,
         height: 10,
       })
       L.abs(report.emotion.dominant.toUpperCase(), rightX + colW - 72, sy, {
-        font: 'Helvetica-Bold',
+        font: F.sansBold,
         size: 6.5,
-        color: C.oxblood,
+        color: C.accent,
         width: 72,
         align: 'right',
         height: 10,
@@ -572,10 +583,10 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
     if (go() && fallacies.length > 0 && L.ensure(36, totalPages) && L.heading('Fallacies')) {
       for (const f of fallacies) {
         if (!go() || !L.ensure(20, totalPages)) break
-        L.text(f.type, { font: 'Helvetica-Bold', size: 7, color: C.oxblood, gap: 1 })
+        L.text(f.type, { font: F.sansBold, size: 7.5, color: C.accent, gap: 1 })
         L.text(
           trunc(f.excerpt ? `“${f.excerpt}” — ${f.explanation}` : f.explanation, 180),
-          { size: 6.5, color: C.muted, gap: 3 },
+          { size: 7, color: C.muted, gap: 3 },
         )
       }
     }
@@ -599,9 +610,9 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
     if (go() && reading.length > 0 && L.ensure(28, totalPages) && L.heading('Further Reading')) {
       for (const s of reading) {
         if (!go() || L.remaining < 14) break
-        L.text(trunc(s.title, 85), { font: 'Helvetica-Bold', size: 7, color: C.ink, gap: 0 })
+        L.text(trunc(s.title, 85), { font: F.sansBold, size: 7.5, color: C.ink, gap: 0 })
         if (s.url) {
-          L.text(trunc(s.url, 95), { size: 6, color: C.brass, gap: 3 })
+          L.text(trunc(s.url, 95), { size: 6.5, color: C.accentSoft, gap: 3 })
         } else {
           L.y += 3
         }
@@ -611,11 +622,11 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
     // ── Closing ────────────────────────────────────────────
     if (go() && L.remaining >= 30) {
       L.y += 2
-      L.rule(C.oxblood, 1)
+      L.rule(C.accent, 1)
       L.abs("Don't consume information. Verify it.", M, L.y, {
-        font: 'Times-Italic',
+        font: F.sansOblique,
         size: 8,
-        color: C.muted,
+        color: C.accent,
         width: CW,
         align: 'center',
         height: 12,
@@ -626,7 +637,7 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
         M,
         L.y,
         {
-          font: 'Helvetica',
+          font: F.sans,
           size: 6.5,
           color: C.muted,
           width: CW,
@@ -654,7 +665,7 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
       const sy = doc.y
       doc.save()
       // Cover any stray marks in footer band
-      doc.rect(M, BOTTOM + 6, CW, 20).fill(C.parchment)
+      doc.rect(M, BOTTOM + 6, CW, 20).fill(C.bg)
       doc
         .moveTo(M, BOTTOM + 8)
         .lineTo(PAGE_W - M, BOTTOM + 8)
@@ -662,7 +673,7 @@ function buildReportPdf(record: AnalysisRecord): Promise<Buffer> {
         .lineWidth(0.6)
         .stroke()
       doc.restore()
-      doc.font('Helvetica').fontSize(6.5).fillColor(C.muted)
+      doc.font(F.sans).fontSize(6.5).fillColor(C.muted)
       doc.text('VERITAS AI  ·  CASE DOSSIER', M, BOTTOM + 12, {
         width: CW / 2,
         height: 10,

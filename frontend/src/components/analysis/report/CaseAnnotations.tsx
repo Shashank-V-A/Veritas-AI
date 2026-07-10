@@ -62,12 +62,12 @@ export function CaseAnnotations({
                 setClaimIndex(e.target.value ? Number(e.target.value) : undefined)
               }
               className="h-9 border border-accent/20 bg-surface/50 px-2 text-xs text-card-foreground"
-              aria-label="Link note to claim"
+              aria-label={t('report.linkNoteToClaim')}
             >
-              <option value="">General note</option>
+              <option value="">{t('report.generalNote')}</option>
               {claims.map((claim, i) => (
                 <option key={i} value={i}>
-                  Claim {i + 1}: {claim.claim.slice(0, 48)}…
+                  {t('report.claimN', { n: i + 1 })}: {claim.claim.slice(0, 48)}…
                 </option>
               ))}
             </select>
@@ -94,7 +94,7 @@ export function CaseAnnotations({
       <div className="space-y-2">
         {isLoading && <p className="text-xs text-card-foreground/45">{t('common.loading')}</p>}
         {annotations.length === 0 && !isLoading && (
-          <p className="text-xs text-card-foreground/45">No notes yet.</p>
+          <p className="text-xs text-card-foreground/45">{t('report.noNotes')}</p>
         )}
         {annotations.map((ann) => (
           <article
@@ -103,7 +103,7 @@ export function CaseAnnotations({
           >
             {ann.claimIndex != null && (
               <p className="font-mono text-[10px] text-accent-secondary/80">
-                Claim {ann.claimIndex + 1}
+                {t('report.claimN', { n: ann.claimIndex + 1 })}
               </p>
             )}
             <p className="text-sm text-card-foreground/80">{ann.note}</p>

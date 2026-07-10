@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { FileText } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { ROUTES } from '@/lib/constants'
 import { AnalysisCard } from '@/components/analysis/AnalysisCard'
 import { EmptyState } from '@/components/analysis/EmptyState'
@@ -12,6 +13,7 @@ interface RecentAnalysesProps {
 }
 
 export function RecentAnalyses({ limit = 5 }: RecentAnalysesProps) {
+  const { t } = useTranslation()
   const { data, isLoading, isError } = useHistory({ limit })
 
   if (isLoading) {
@@ -42,7 +44,7 @@ export function RecentAnalyses({ limit = 5 }: RecentAnalysesProps) {
         description="Submit evidence from the workspace, or open a sample case file to see how a dossier is structured."
         action={
           <Button variant="outline" size="sm" asChild className="border-accent/30">
-            <Link to={ROUTES.dashboard}>Go to workspace</Link>
+            <Link to={ROUTES.dashboard}>{t('dashboard.goToWorkspace')}</Link>
           </Button>
         }
       />

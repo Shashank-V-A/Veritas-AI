@@ -19,6 +19,10 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 })
 
+if (typeof window !== 'undefined') {
+  document.documentElement.lang = savedLocale
+}
+
 i18n.on('languageChanged', (lng) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY, lng)

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import {
   hasCompletedOnboarding,
   markOnboardingComplete,
@@ -8,36 +9,36 @@ import {
 import { Button } from '@/components/ui/button'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
-const STEPS = [
-  {
-    title: 'Welcome to Veritas AI',
-    description:
-      'Verify information before you trust it. We analyze content and produce professional credibility dossiers — not chat responses.',
-  },
-  {
-    title: 'File evidence through case intake',
-    description:
-      'Paste articles, URLs, social posts, transcripts, or WhatsApp forwards. Pick a category and evidence type so Veritas calibrates the investigation.',
-    highlight: 'analysis-input',
-  },
-  {
-    title: 'Submit for forensic analysis',
-    description:
-      'Choose how to submit — paste text, a web link, YouTube, image, or PDF. Veritas builds a structured dossier with trust scores, claims, bias, and fallacies.',
-    highlight: 'analyze-button',
-  },
-  {
-    title: 'Search your case archive',
-    description:
-      'Every dossier is saved with a case ID. Access past reports from the sidebar Case files section. Press N to jump back to intake.',
-    highlight: 'sidebar-nav',
-  },
-]
-
 export function OnboardingTour() {
+  const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
   const [visible, setVisible] = useState(false)
   const [step, setStep] = useState(0)
+
+  const steps = useMemo(
+    () => [
+      {
+        title: t('onboarding.welcomeTitle'),
+        description: t('onboarding.welcomeBody'),
+      },
+      {
+        title: t('onboarding.intakeTitle'),
+        description: t('onboarding.intakeBody'),
+        highlight: 'analysis-input',
+      },
+      {
+        title: t('onboarding.submitTitle'),
+        description: t('onboarding.submitBody'),
+        highlight: 'analyze-button',
+      },
+      {
+        title: t('onboarding.archiveTitle'),
+        description: t('onboarding.archiveBody'),
+        highlight: 'sidebar-nav',
+      },
+    ],
+    [t],
+  )
 
   useEffect(() => {
     if (!hasCompletedOnboarding()) {
@@ -52,14 +53,14 @@ export function OnboardingTour() {
   }
 
   function handleNext() {
-    if (step < STEPS.length - 1) {
+    if (step < steps.length - 1) {
       setStep((s) => s + 1)
     } else {
       handleComplete()
     }
   }
 
-  const current = STEPS[step]
+  const current = steps[step]
 
   return (
     <AnimatePresence>
@@ -86,7 +87,7 @@ export function OnboardingTour() {
             <div className="rounded-xl border border-border bg-surface p-6 shadow-2xl">
               <div className="mb-4 flex items-center justify-between">
                 <div className="flex gap-1.5">
-                  {STEPS.map((_, i) => (
+                  {steps.map((_, i) => (
                     <div
                       key={i}
                       className={`h-1 w-6 rounded-full transition-colors ${
@@ -99,14 +100,14 @@ export function OnboardingTour() {
                   type="button"
                   onClick={handleComplete}
                   className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label="Skip onboarding"
+                  aria-label={t('onboarding.skipAria')}
                 >
                   <X className="size-4" />
                 </button>
               </div>
 
               <p className="text-xs font-medium uppercase tracking-widest text-accent">
-                Step {step + 1} of {STEPS.length}
+                {t('onboarding.stepOf', { current: step + 1, total: steps.length })}
               </p>
               <h2
                 id="onboarding-title"
@@ -127,10 +128,10 @@ export function OnboardingTour() {
                   onClick={handleComplete}
                   className="text-xs text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  Skip tour
+                  {t('common.skip')}
                 </button>
                 <Button size="sm" className="gap-2" onClick={handleNext}>
-                  {step < STEPS.length - 1 ? 'Continue' : 'Get started'}
+                  {step < steps.length - 1 ? t('common.continue') : t('common.getStarted')}
                   <ArrowRight className="size-3.5" />
                 </Button>
               </div>

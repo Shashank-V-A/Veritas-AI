@@ -30,38 +30,38 @@ type InputMode = 'text' | 'url' | 'youtube' | 'image' | 'pdf'
 
 const MODES: {
   id: InputMode
-  label: string
-  hint: string
+  labelKey: string
+  hintKey: string
   icon: typeof Type
 }[] = [
   {
     id: 'text',
-    label: 'Paste text',
-    hint: 'Article, post, forward, or transcript',
+    labelKey: 'intake.pasteText',
+    hintKey: 'intake.hintText',
     icon: Type,
   },
   {
     id: 'url',
-    label: 'Web link',
-    hint: 'News or article URL',
+    labelKey: 'intake.webLink',
+    hintKey: 'intake.hintUrl',
     icon: Globe,
   },
   {
     id: 'youtube',
-    label: 'YouTube',
-    hint: 'Video link → transcript',
+    labelKey: 'intake.youtube',
+    hintKey: 'intake.hintYoutube',
     icon: Video,
   },
   {
     id: 'image',
-    label: 'Image',
-    hint: 'Screenshot or meme',
+    labelKey: 'intake.image',
+    hintKey: 'intake.hintImage',
     icon: ImageIcon,
   },
   {
     id: 'pdf',
-    label: 'PDF',
-    hint: 'Upload a document',
+    labelKey: 'intake.pdf',
+    hintKey: 'intake.hintPdf',
     icon: FileText,
   },
 ]
@@ -239,19 +239,19 @@ export function AnalysisInput({
         {/* Step 1 — how to submit */}
         <div>
           <h2 className="font-display text-xl text-foreground md:text-2xl">
-            What do you want to verify?
+            {t('intake.title')}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Pick one way to submit evidence, then file it for analysis.
+            {t('intake.subtitle')}
           </p>
         </div>
 
         <div
           className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
           role="tablist"
-          aria-label="How to submit evidence"
+          aria-label={t('intake.howToSubmit')}
         >
-          {MODES.map(({ id: modeId, label, hint, icon: Icon }) => {
+          {MODES.map(({ id: modeId, labelKey, hintKey, icon: Icon }) => {
             const selected = inputMode === modeId
             return (
               <button
@@ -271,8 +271,10 @@ export function AnalysisInput({
                   className={cn('size-4', selected ? 'text-accent' : 'text-muted-foreground')}
                   strokeWidth={1.5}
                 />
-                <span className="text-sm font-medium text-foreground">{label}</span>
-                <span className="text-[11px] leading-snug text-muted-foreground">{hint}</span>
+                <span className="text-sm font-medium text-foreground">{t(labelKey)}</span>
+                <span className="text-[11px] leading-snug text-muted-foreground">
+                  {t(hintKey)}
+                </span>
               </button>
             )
           })}
@@ -281,8 +283,8 @@ export function AnalysisInput({
         {/* Step 2 — content */}
         <div className="mt-6">
           <div className="mb-3 flex items-baseline justify-between gap-3">
-            <p className="text-sm font-medium text-foreground">{activeMode.label}</p>
-            <p className="text-xs text-muted-foreground">{activeMode.hint}</p>
+            <p className="text-sm font-medium text-foreground">{t(activeMode.labelKey)}</p>
+            <p className="text-xs text-muted-foreground">{t(activeMode.hintKey)}</p>
           </div>
 
           {inputMode === 'youtube' && (
@@ -290,15 +292,15 @@ export function AnalysisInput({
               <div className="flex items-center gap-2 rounded-sm border border-border bg-elevated/50 px-3 py-2.5">
                 <Video className="size-4 shrink-0 text-accent" strokeWidth={1.5} />
                 <Input
-                  placeholder="https://www.youtube.com/watch?v=…"
+                  placeholder={t('intake.youtubePlaceholder')}
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   className="border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
-                  aria-label="YouTube URL to analyze"
+                  aria-label={t('intake.youtubeAria')}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                We’ll pull the transcript and check claims in the video.
+                {t('intake.youtubeHelp')}
               </p>
             </div>
           )}
@@ -308,15 +310,15 @@ export function AnalysisInput({
               <div className="flex items-center gap-2 rounded-sm border border-border bg-elevated/50 px-3 py-2.5">
                 <Link2 className="size-4 shrink-0 text-accent" strokeWidth={1.5} />
                 <Input
-                  placeholder="https://example.com/article…"
+                  placeholder={t('intake.urlPlaceholder')}
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   className="border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
-                  aria-label="URL to analyze"
+                  aria-label={t('intake.urlAria')}
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                We’ll fetch the page and analyze the article content.
+                {t('intake.urlHelp')}
               </p>
             </div>
           )}
@@ -335,9 +337,12 @@ export function AnalysisInput({
                 if (imageInputRef.current) imageInputRef.current.value = ''
               }}
               icon={ImageIcon}
-              emptyLabel="Drop a screenshot or meme, or"
-              emptyHint="PNG, JPG, WebP · max 10 MB"
-              fileKind="Image"
+              emptyLabel={t('intake.dropImage')}
+              emptyHint={t('intake.dropImageHint')}
+              fileKind={t('intake.image')}
+              browseLabel={t('intake.browse')}
+              removeLabel={t('intake.remove')}
+              uploadAria={t('intake.uploadAria', { kind: t('intake.image') })}
             />
           )}
 
@@ -355,9 +360,12 @@ export function AnalysisInput({
                 if (fileInputRef.current) fileInputRef.current.value = ''
               }}
               icon={FileUp}
-              emptyLabel="Drop a PDF here, or"
-              emptyHint="Max 10 MB · text-based PDFs work best"
-              fileKind="PDF"
+              emptyLabel={t('intake.dropPdf')}
+              emptyHint={t('intake.dropPdfHint')}
+              fileKind={t('intake.pdf')}
+              browseLabel={t('intake.browse')}
+              removeLabel={t('intake.remove')}
+              uploadAria={t('intake.uploadAria', { kind: t('intake.pdf') })}
             />
           )}
 
@@ -365,22 +373,22 @@ export function AnalysisInput({
             <div className="space-y-3">
               <Textarea
                 ref={inputRef}
-                placeholder="Paste the text you want checked — post, forward, article excerpt…"
+                placeholder={t('intake.textPlaceholder')}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className="min-h-[160px] resize-y rounded-sm border border-border bg-elevated/40 px-4 py-3 text-sm leading-relaxed text-foreground shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-accent/40 md:min-h-[180px]"
-                aria-label="Content to analyze"
+                aria-label={t('intake.contentAria')}
                 aria-invalid={isOverLimit}
               />
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="shrink-0">This is a</span>
+                  <span className="shrink-0">{t('intake.thisIsA')}</span>
                   <select
                     value={sourceType}
                     onChange={(e) => setSourceType(e.target.value as SourceType)}
                     className="h-8 rounded-sm border border-border bg-elevated px-2 text-xs text-foreground"
-                    aria-label="Evidence type"
+                    aria-label={t('intake.evidenceType')}
                   >
                     {SOURCE_TYPE_OPTIONS.filter((o) => o.value !== 'pdf').map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -400,7 +408,7 @@ export function AnalysisInput({
               </div>
               {sourceType === 'forward' && (
                 <p className="text-xs text-muted-foreground">
-                  Tip: paste the full forward, including any “forwarded many times” chain.
+                  {t('intake.forwardTip')}
                 </p>
               )}
               {content.trim().length >= 40 && <ForwardRiskBadge content={content} />}
@@ -420,24 +428,24 @@ export function AnalysisInput({
               className={cn('size-3.5 transition-transform', showOptions && 'rotate-180')}
               strokeWidth={1.75}
             />
-            Optional details
-            <span className="text-muted-foreground/60">(title, category)</span>
+            {t('intake.optionalDetails')}
+            <span className="text-muted-foreground/60">{t('intake.optionalDetailsHint')}</span>
           </button>
 
           {showOptions && (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               <Input
-                placeholder="Headline or label (optional)"
+                placeholder={t('intake.headline')}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="h-9 border-border bg-elevated/50 text-sm"
-                aria-label="Analysis title"
+                aria-label={t('intake.analysisTitle')}
               />
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value as AnalysisCategory)}
                 className="h-9 rounded-sm border border-border bg-elevated/50 px-3 text-sm text-foreground"
-                aria-label="Content category"
+                aria-label={t('intake.contentCategory')}
               >
                 {CATEGORY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -489,6 +497,9 @@ function DropZone({
   emptyLabel,
   emptyHint,
   fileKind,
+  browseLabel,
+  removeLabel,
+  uploadAria,
 }: {
   isDragging: boolean
   setIsDragging: (v: boolean) => void
@@ -502,6 +513,9 @@ function DropZone({
   emptyLabel: string
   emptyHint: string
   fileKind: string
+  browseLabel: string
+  removeLabel: string
+  uploadAria: string
 }) {
   return (
     <div
@@ -524,7 +538,7 @@ function DropZone({
         accept={accept}
         className="hidden"
         onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
-        aria-label={`Upload ${fileKind}`}
+        aria-label={uploadAria}
       />
 
       {file ? (
@@ -542,7 +556,7 @@ function DropZone({
             onClick={onClear}
           >
             <X className="size-3.5" />
-            Remove
+            {removeLabel}
           </Button>
         </div>
       ) : (
@@ -555,7 +569,7 @@ function DropZone({
               className="font-medium text-accent underline"
               onClick={() => inputRef.current?.click()}
             >
-              browse
+              {browseLabel}
             </button>
           </p>
           <p className="text-xs text-muted-foreground">{emptyHint}</p>

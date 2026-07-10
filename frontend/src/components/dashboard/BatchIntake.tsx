@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { FileUp, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { getFriendlyErrorMessage } from '@/lib/errorMessages'
 import { api } from '@/services/api'
@@ -14,7 +15,15 @@ interface QueuedFile {
   error?: string
 }
 
+const STATUS_KEYS = {
+  queued: 'dashboard.statusQueued',
+  processing: 'dashboard.statusProcessing',
+  done: 'dashboard.statusDone',
+  error: 'dashboard.statusError',
+} as const
+
 export function BatchIntake({ className }: { className?: string }) {
+  const { t } = useTranslation()
   const [queue, setQueue] = useState<QueuedFile[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -77,9 +86,11 @@ export function BatchIntake({ className }: { className?: string }) {
     <div className={cn('dossier-panel p-4 md:p-5', className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-mono text-[10px] text-card-foreground/45">Batch intake</p>
+          <p className="font-mono text-[10px] text-card-foreground/45">
+            {t('dashboard.batchTitle')}
+          </p>
           <p className="mt-1 text-sm text-card-foreground/75">
-            Queue multiple PDFs for sequential analysis
+            {t('dashboard.batchBody')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -99,7 +110,7 @@ export function BatchIntake({ className }: { className?: string }) {
             onClick={() => fileInputRef.current?.click()}
           >
             <FileUp className="size-3.5" />
-            Add PDFs
+            {t('dashboard.addPdfs')}
           </Button>
           {queuedCount > 0 && (
             <Button
@@ -108,7 +119,9 @@ export function BatchIntake({ className }: { className?: string }) {
               onClick={() => void processQueue()}
               disabled={isProcessing}
             >
-              {isProcessing ? 'Processing…' : `Process ${queuedCount}`}
+              {isProcessing
+                ? t('dashboard.processing')
+                : t('dashboard.processCount', { count: queuedCount })}
             </Button>
           )}
         </div>
@@ -124,7 +137,7 @@ export function BatchIntake({ className }: { className?: string }) {
               <div className="min-w-0">
                 <p className="truncate text-card-foreground">{item.file.name}</p>
                 <p className="font-mono text-[10px] text-card-foreground/45">
-                  {item.status}
+                  {t(STATUS_KEYS[item.status])}
                   {item.error ? ` · ${item.error}` : ''}
                 </p>
               </div>
@@ -133,7 +146,7 @@ export function BatchIntake({ className }: { className?: string }) {
                   type="button"
                   onClick={() => removeItem(item.id)}
                   className="text-card-foreground/40 hover:text-card-foreground"
-                  aria-label="Remove from queue"
+                  aria-label={t('dashboard.removeFromQueue')}
                 >
                   <X className="size-4" />
                 </button>

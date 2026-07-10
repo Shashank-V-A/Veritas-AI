@@ -55,21 +55,6 @@ export interface AnnotationsResponse {
   annotations: CaseAnnotation[]
 }
 
-export interface ScheduleRecheckRequest {
-  sourceUrl?: string
-  analysisId?: string
-  days?: number
-}
-
-export interface ScheduledRecheck {
-  id: string
-  userId: string
-  sourceUrl?: string | null
-  analysisId?: string | null
-  runAt: string
-  createdAt: string
-}
-
 export interface Team {
   id: string
   name: string
@@ -205,16 +190,6 @@ export const api = {
       body: formData,
     })
     return handleResponse<AnalyzeResponse>(response)
-  },
-
-  async scheduleRecheck(payload: ScheduleRecheckRequest): Promise<ScheduledRecheck> {
-    const response = await fetch(`${API_BASE_URL}/schedule`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(payload),
-    })
-    return handleResponse<ScheduledRecheck>(response)
   },
 
   async getAnnotations(analysisId: string): Promise<AnnotationsResponse> {

@@ -1,4 +1,5 @@
 import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { cn } from '@/lib/utils'
@@ -15,7 +16,7 @@ const CONNECTIONS: Array<[PinId, PinId, { dashed?: boolean; opacity?: number }?]
   ['photo', 'herald', { dashed: true, opacity: 0.35 }],
 ]
 
-function TrustGauge({ score = 72 }: { score?: number }) {
+function TrustGauge({ score = 72, label }: { score?: number; label: string }) {
   const r = 42
   const c = 2 * Math.PI * r
   const offset = c - (score / 100) * c
@@ -38,7 +39,7 @@ function TrustGauge({ score = 72 }: { score?: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center pt-1">
         <span className="font-display text-3xl font-semibold tabular-nums text-foreground">{score}</span>
-        <span className="font-sans text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Trust</span>
+        <span className="font-sans text-[9px] uppercase tracking-[0.14em] text-muted-foreground">{label}</span>
       </div>
     </div>
   )
@@ -73,6 +74,7 @@ type LineSeg = {
 }
 
 export function DetectiveBoard({ className }: { className?: string }) {
+  const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
   const boardRef = useRef<HTMLDivElement>(null)
   const pinsRef = useRef<Partial<Record<PinId, HTMLSpanElement | null>>>({})
@@ -195,9 +197,9 @@ export function DetectiveBoard({ className }: { className?: string }) {
         onAnimationComplete={measure}
       >
         <Pin pinRef={setPin('trust')} />
-        <p className="mb-1 font-sans text-[9px] uppercase tracking-[0.16em] text-accent">Trust score</p>
-        <TrustGauge score={72} />
-        <p className="mt-1 text-center font-sans text-[10px] text-muted-foreground">Moderate</p>
+        <p className="mb-1 font-sans text-[9px] uppercase tracking-[0.16em] text-accent">{t('landing.boardTrustScore')}</p>
+        <TrustGauge score={72} label={t('landing.boardTrust')} />
+        <p className="mt-1 text-center font-sans text-[10px] text-muted-foreground">{t('landing.boardModerate')}</p>
       </motion.div>
 
       {/* Source card */}
@@ -209,13 +211,13 @@ export function DetectiveBoard({ className }: { className?: string }) {
         transition={{ delay: 0.25 }}
       >
         <Pin className="bg-accent" pinRef={setPin('source')} />
-        <p className="font-sans text-[9px] uppercase tracking-[0.14em] text-accent">Source</p>
+        <p className="font-sans text-[9px] uppercase tracking-[0.14em] text-accent">{t('landing.boardSource')}</p>
         <p className="mt-1.5 font-display text-sm leading-snug text-foreground">
-          Markets rebound as jobs data beats forecasts
+          {t('landing.boardSourceTitle')}
         </p>
         <p className="mt-2 font-mono text-[10px] text-muted-foreground">reuters.com</p>
         <span className="mt-2 inline-block border border-success/40 bg-success/10 px-1.5 py-0.5 font-mono text-[9px] text-success">
-          Verified domain
+          {t('landing.boardVerifiedDomain')}
         </span>
       </motion.div>
 
@@ -228,11 +230,11 @@ export function DetectiveBoard({ className }: { className?: string }) {
         transition={{ delay: 0.35 }}
       >
         <Pin pinRef={setPin('claim')} />
-        <p className="font-sans text-[9px] uppercase tracking-[0.14em] text-warning">Claim detected</p>
+        <p className="font-sans text-[9px] uppercase tracking-[0.14em] text-warning">{t('landing.boardClaimDetected')}</p>
         <p className="mt-1.5 font-display text-[13px] italic leading-snug text-foreground">
-          “Unemployment fell to a historic low overnight.”
+          {t('landing.boardClaimQuote')}
         </p>
-        <p className="mt-2 font-mono text-[9px] text-danger">Needs cross-check</p>
+        <p className="mt-2 font-mono text-[9px] text-danger">{t('landing.boardNeedsCheck')}</p>
       </motion.div>
 
       {/* Social post */}
@@ -244,14 +246,14 @@ export function DetectiveBoard({ className }: { className?: string }) {
         transition={{ delay: 0.4 }}
       >
         <Pin className="bg-accent-secondary" pinRef={setPin('social')} />
-        <p className="font-sans text-[9px] uppercase tracking-[0.14em] text-accent-secondary">Social post</p>
+        <p className="font-sans text-[9px] uppercase tracking-[0.14em] text-accent-secondary">{t('landing.boardSocialPost')}</p>
         <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
-          Forwarded 14k times · anonymous authority claim
+          {t('landing.boardSocialDesc')}
         </p>
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#2A2A2A]">
           <div className="h-full w-[78%] bg-danger/80" />
         </div>
-        <p className="mt-1 font-mono text-[9px] text-danger">Forward risk 78</p>
+        <p className="mt-1 font-mono text-[9px] text-danger">{t('landing.boardForwardRisk')}</p>
       </motion.div>
 
       {/* Photo + sticky note */}
@@ -281,7 +283,7 @@ export function DetectiveBoard({ className }: { className?: string }) {
           style={{ rotate: '8deg' }}
         >
           <p className="font-sans text-[9px] leading-tight text-[#1a1a1f]">
-            Crowd image context missing.
+            {t('landing.boardSticky')}
           </p>
         </div>
       </motion.div>
@@ -296,13 +298,13 @@ export function DetectiveBoard({ className }: { className?: string }) {
       >
         <Pin className="bg-[#8B2942]" pinRef={setPin('herald')} />
         <p className="font-display text-[11px] font-bold tracking-wide text-[#1a1a1f]">
-          THE DAILY HERALD
+          {t('landing.boardHerald')}
         </p>
         <div className="my-1 h-px bg-[#1a1a1f]/20" />
         <p className="font-display text-[10px] leading-snug text-[#2c2c30]">
-          Officials urge caution as viral claims spread overnight…
+          {t('landing.boardHeraldBody')}
         </p>
-        <p className="mt-1 font-mono text-[8px] text-[#5c5a55]">Vol. 112 · Evidence clip</p>
+        <p className="mt-1 font-mono text-[8px] text-[#5c5a55]">Vol. 112 · {t('landing.boardEvidenceClip')}</p>
       </motion.div>
     </div>
   )
