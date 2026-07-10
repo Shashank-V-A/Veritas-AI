@@ -23,7 +23,7 @@ const STEPS = [
   {
     title: 'Submit for forensic analysis',
     description:
-      'File your evidence through the intake form. Veritas builds a structured dossier with trust scores, claims, bias signals, and fallacy detection.',
+      'Choose how to submit — paste text, a web link, YouTube, image, or PDF. Veritas builds a structured dossier with trust scores, claims, bias, and fallacies.',
     highlight: 'analyze-button',
   },
   {

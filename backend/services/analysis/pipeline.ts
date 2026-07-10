@@ -14,6 +14,9 @@ import { enrichReportWithSearch } from './enrich.js'
 import { getValidationErrorMessage, parseCredibilityReport } from './parser.js'
 import { createStubReport } from './stub.js'
 
+/** Keep Mesh prompts bounded so JSON responses stay complete and parseable. */
+const MESH_CONTENT_MAX_CHARS = 10_000
+
 export interface AnalysisInput {
   content: string
   sourceType: import('@veritas/shared').SourceType
@@ -35,16 +38,33 @@ function shouldUseStub(): boolean {
   )
 }
 
+function truncateForMesh(text: string, max = MESH_CONTENT_MAX_CHARS): string {
+  const trimmed = text.trim()
+  if (trimmed.length <= max) return trimmed
+  return `${trimmed.slice(0, max)}\n\n[Content truncated for analysis — ${trimmed.length} characters total.]`
+}
+
+function prepareInputForMesh(input: AnalysisInput): AnalysisInput {
+  return {
+    ...input,
+    content: truncateForMesh(input.content),
+    compareContent: input.compareContent
+      ? truncateForMesh(input.compareContent, 4_000)
+      : undefined,
+  }
+}
+
 async function callMeshForReport(
   input: AnalysisInput,
 ): Promise<{ content: string; model: string; latencyMs: number }> {
   const mesh = createMeshClient()
   const startedAt = Date.now()
+  const meshInput = prepareInputForMesh(input)
 
   const response = await mesh.complete({
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: buildUserPrompt(input) },
+      { role: 'user', content: buildUserPrompt(meshInput) },
     ],
     temperature: 0.2,
     max_tokens: 8192,
@@ -61,6 +81,7 @@ async function callMeshForReport(
     model: response.model,
     usage: response.usage,
     latencyMs: Date.now() - startedAt,
+    contentChars: meshInput.content.length,
   })
 
   return {
@@ -76,12 +97,13 @@ async function callMeshForRepair(
   validationError: string,
 ): Promise<string> {
   const mesh = createMeshClient()
+  const meshInput = prepareInputForMesh(input)
 
   const response = await mesh.complete({
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: buildUserPrompt(input) },
-      { role: 'assistant', content: invalidJson },
+      { role: 'user', content: buildUserPrompt(meshInput) },
+      { role: 'assistant', content: invalidJson.slice(0, 6000) },
       { role: 'user', content: buildRepairPrompt(invalidJson, validationError) },
     ],
     temperature: 0,
@@ -108,6 +130,7 @@ async function parseWithRepair(
     const validationError = getValidationErrorMessage(raw)
     logger.warn('Mesh response validation failed, attempting repair', {
       validationError,
+      rawLength: raw.length,
     })
 
     const repairedRaw = await callMeshForRepair(input, raw, validationError)

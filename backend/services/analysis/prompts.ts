@@ -6,6 +6,7 @@ export const CREDIBILITY_REPORT_JSON_SCHEMA = {
     trustScore: { type: 'number', minimum: 0, maximum: 100 },
     claims: {
       type: 'array',
+      maxItems: 8,
       items: {
         type: 'object',
         properties: {
@@ -56,6 +57,7 @@ export const CREDIBILITY_REPORT_JSON_SCHEMA = {
     },
     fallacies: {
       type: 'array',
+      maxItems: 5,
       items: {
         type: 'object',
         properties: {
@@ -151,7 +153,10 @@ Rules:
 - If evidence is insufficient, mark claims as unverified rather than false
 - Never invent URLs; omit url field in suggestedReading if none applies
 - Return empty arrays when no fallacies or missing context found
-- reasoningTimeline should document your analysis steps in order`
+- Keep the JSON compact: at most 8 claims, 5 fallacies, 5 missingContext items, 5 suggestedReading items, 6 reasoningTimeline steps
+- Keep string fields concise (explanations under ~400 characters)
+- reasoningTimeline should document your analysis steps in order
+- Return ONLY valid minified JSON — no markdown, no commentary, no trailing commas`
 
 export function buildUserPrompt(input: {
   content: string
@@ -203,7 +208,8 @@ ${input.searchContext}
 
   return `${titleLine}Source type: ${sourceLabel}
 ${forwardInstructions}${compareInstructions}${searchBlock}
-Analyze the following content and return a complete credibility report as JSON:
+Analyze the following content and return a complete credibility report as JSON.
+Focus on the strongest claims; do not exhaustively quote the entire source.
 
 ---
 ${input.content}

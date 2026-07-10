@@ -22,6 +22,15 @@ const FRIENDLY_MESSAGES: Partial<Record<ErrorCode, string>> = {
 
 export function getFriendlyErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
+    // Prefer specific server messages (e.g. YouTube caption failures)
+    if (
+      error.message &&
+      error.message !== 'Request failed' &&
+      !/^Request failed with status \d+$/i.test(error.message)
+    ) {
+      return error.message
+    }
+
     const friendly = FRIENDLY_MESSAGES[error.code as ErrorCode]
     if (friendly) return friendly
 

@@ -1,9 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, FileUp, Globe, ImageIcon, Link2, SlidersHorizontal, Video, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import {
+  ArrowRight,
+  ChevronDown,
+  FileText,
+  FileUp,
+  Globe,
+  ImageIcon,
+  Link2,
+  Type,
+  Video,
+  X,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { MAX_CONTENT_LENGTH, FOCUS_INTAKE_EVENT } from '@/lib/constants'
 import { CATEGORY_OPTIONS } from '@/lib/categories'
-import { generateIntakeCaseRef } from '@/lib/caseId'
 import { getFriendlyErrorMessage } from '@/lib/errorMessages'
 import { SOURCE_TYPE_OPTIONS } from '@/lib/sourceTypes'
 import { cn } from '@/lib/utils'
@@ -11,18 +21,50 @@ import type { AnalysisCategory, SourceType } from '@veritas/shared'
 import { AnalysisLoading } from '@/components/analysis/AnalysisLoading'
 import { ForwardRiskBadge } from '@/components/analysis/ForwardRiskBadge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAnalyze } from '@/hooks/useAnalyze'
 import type { AnalysisPrefill } from '@/lib/sampleReport'
 
-type InputMode = 'text' | 'url' | 'youtube' | 'image'
+type InputMode = 'text' | 'url' | 'youtube' | 'image' | 'pdf'
+
+const MODES: {
+  id: InputMode
+  label: string
+  hint: string
+  icon: typeof Type
+}[] = [
+  {
+    id: 'text',
+    label: 'Paste text',
+    hint: 'Article, post, forward, or transcript',
+    icon: Type,
+  },
+  {
+    id: 'url',
+    label: 'Web link',
+    hint: 'News or article URL',
+    icon: Globe,
+  },
+  {
+    id: 'youtube',
+    label: 'YouTube',
+    hint: 'Video link → transcript',
+    icon: Video,
+  },
+  {
+    id: 'image',
+    label: 'Image',
+    hint: 'Screenshot or meme',
+    icon: ImageIcon,
+  },
+  {
+    id: 'pdf',
+    label: 'PDF',
+    hint: 'Upload a document',
+    icon: FileText,
+  },
+]
 
 interface AnalysisInputProps {
   className?: string
@@ -45,17 +87,14 @@ export function AnalysisInput({
   const [sourceType, setSourceType] = useState<SourceType>('article')
   const [category, setCategory] = useState<AnalysisCategory>('news')
   const [title, setTitle] = useState('')
-  const [compareMode, setCompareMode] = useState(false)
-  const [compareContent, setCompareContent] = useState('')
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
-  const [mobileTypesOpen, setMobileTypesOpen] = useState(false)
+  const [showOptions, setShowOptions] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const analyze = useAnalyze()
-  const caseRef = useMemo(() => generateIntakeCaseRef(), [])
 
   useEffect(() => {
     if (!prefill) return
@@ -83,21 +122,27 @@ export function AnalysisInput({
     return () => window.removeEventListener(FOCUS_INTAKE_EVENT, handleFocusIntake)
   }, [id])
 
-  const isPdfMode = sourceType === 'pdf' && inputMode === 'text'
-  const isUrlMode = inputMode === 'url'
-  const isYoutubeMode = inputMode === 'youtube'
-  const isImageMode = inputMode === 'image'
   const charCount = content.length
   const isOverLimit = charCount > MAX_CONTENT_LENGTH
-  const canSubmit = isYoutubeMode
-    ? youtubeUrl.trim().length > 0 && !analyze.isPending
-    : isImageMode
-      ? Boolean(imageFile) && !analyze.isPending
-      : isUrlMode
-        ? url.trim().length > 0 && !analyze.isPending
-        : isPdfMode
-          ? Boolean(pdfFile) && !analyze.isPending
-          : content.trim().length > 0 && !isOverLimit && !analyze.isPending
+
+  const canSubmit =
+    inputMode === 'youtube'
+      ? youtubeUrl.trim().length > 0 && !analyze.isPending
+      : inputMode === 'image'
+        ? Boolean(imageFile) && !analyze.isPending
+        : inputMode === 'url'
+          ? url.trim().length > 0 && !analyze.isPending
+          : inputMode === 'pdf'
+            ? Boolean(pdfFile) && !analyze.isPending
+            : content.trim().length > 0 && !isOverLimit && !analyze.isPending
+
+  function switchMode(mode: InputMode) {
+    setInputMode(mode)
+    if (mode === 'pdf') setSourceType('pdf')
+    else if (mode === 'url') setSourceType('article')
+    else if (mode === 'youtube') setSourceType('transcript')
+    else if (mode === 'image') setSourceType('social')
+  }
 
   function handleSubmit() {
     if (!canSubmit) return
@@ -105,10 +150,9 @@ export function AnalysisInput({
     const shared = {
       title: title.trim() || undefined,
       category,
-      compareContent: compareMode && compareContent.trim() ? compareContent.trim() : undefined,
     }
 
-    if (isYoutubeMode) {
+    if (inputMode === 'youtube') {
       analyze.mutateYoutube({
         url: youtubeUrl.trim(),
         title: shared.title,
@@ -117,17 +161,17 @@ export function AnalysisInput({
       return
     }
 
-    if (isImageMode && imageFile) {
+    if (inputMode === 'image' && imageFile) {
       analyze.mutateImage({ file: imageFile, title: shared.title })
       return
     }
 
-    if (isUrlMode) {
+    if (inputMode === 'url') {
       analyze.mutateUrl({ url: url.trim(), ...shared })
       return
     }
 
-    if (isPdfMode && pdfFile) {
+    if (inputMode === 'pdf' && pdfFile) {
       analyze.mutatePdf({ file: pdfFile, title: shared.title })
       return
     }
@@ -140,7 +184,7 @@ export function AnalysisInput({
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
-    if (isPdfMode || isUrlMode || isYoutubeMode || isImageMode) return
+    if (inputMode !== 'text') return
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && canSubmit) {
       e.preventDefault()
       handleSubmit()
@@ -179,309 +223,90 @@ export function AnalysisInput({
     if (file) handleImageSelect(file)
   }
 
-  function renderSourceTypeTabs(compact = false) {
-    return SOURCE_TYPE_OPTIONS.map((option) => {
-      const Icon = option.icon
-      const isActive = sourceType === option.value
-      return (
-        <button
-          key={option.value}
-          type="button"
-          role="tab"
-          aria-selected={isActive}
-          onClick={() => {
-            setSourceType(option.value)
-            if (option.value !== 'pdf') setPdfFile(null)
-            if (compact) setMobileTypesOpen(false)
-          }}
-          className={cn(
-            'flex items-center gap-2 border px-2.5 py-2 text-left text-xs transition-all',
-            compact ? 'w-full' : '',
-            isActive
-              ? 'evidence-tab-active'
-              : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
-          )}
-        >
-          <Icon className="size-3.5 shrink-0" strokeWidth={1.5} />
-          <span>{option.label}</span>
-        </button>
-      )
-    })
-  }
-
   if (analyze.isPending) {
     return <AnalysisLoading className={className} />
   }
 
+  const activeMode = MODES.find((m) => m.id === inputMode)!
+
   return (
     <div
       id={id}
-      className={cn('case-intake-panel grain relative overflow-hidden', className)}
+      className={cn('case-intake-panel relative overflow-hidden', className)}
       data-onboarding="analysis-input"
     >
-      <div className="relative z-10 grid lg:grid-cols-[13.5rem_1fr]">
-        <aside className="hidden border-b border-border p-4 lg:block lg:border-b-0 lg:border-r">
-          <p className="font-mono text-[10px] text-muted-foreground">Evidence type</p>
-          <div
-            className="mt-3 flex flex-col gap-1"
-            role="tablist"
-            aria-label="Source type"
-          >
-            {renderSourceTypeTabs()}
-          </div>
+      <div className="relative z-10 p-5 md:p-6">
+        {/* Step 1 — how to submit */}
+        <div>
+          <h2 className="font-display text-xl text-foreground md:text-2xl">
+            What do you want to verify?
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pick one way to submit evidence, then file it for analysis.
+          </p>
+        </div>
 
-          {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
-            <div className="mt-6 border-t border-border pt-4">
-              <p className="font-mono text-[10px] text-muted-foreground">Character count</p>
-              <p
-                className={cn(
-                  'mt-1 font-mono text-sm tabular-nums',
-                  isOverLimit ? 'text-danger' : 'text-muted-foreground',
-                )}
-              >
-                {charCount.toLocaleString()}
-                <span className="text-muted-foreground">
-                  {' '}
-                  / {MAX_CONTENT_LENGTH.toLocaleString()}
-                </span>
-              </p>
-            </div>
-          )}
-        </aside>
-
-        <div className="flex min-w-0 flex-col">
-          <div className="border-b border-border px-5 py-4 md:px-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="font-mono text-[10px] text-accent-secondary/80">
-                  Case intake · {caseRef}
-                </p>
-                <p className="mt-1 font-mono text-xs text-muted-foreground">
-                  Status · Pending submission
-                </p>
-              </div>
-              <span className="stamp border-accent-secondary text-accent-secondary">Intake</span>
-            </div>
-            <div className="accent-line-on-dark mt-4 w-24" />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 border-b border-border px-5 py-3 md:px-6">
-            <div className="flex gap-1" role="tablist" aria-label="Input mode">
+        <div
+          className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
+          role="tablist"
+          aria-label="How to submit evidence"
+        >
+          {MODES.map(({ id: modeId, label, hint, icon: Icon }) => {
+            const selected = inputMode === modeId
+            return (
               <button
+                key={modeId}
                 type="button"
                 role="tab"
-                aria-selected={inputMode === 'text'}
-                onClick={() => setInputMode('text')}
+                aria-selected={selected}
+                onClick={() => switchMode(modeId)}
                 className={cn(
-                  'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
-                  inputMode === 'text'
-                    ? 'border-accent/40 bg-accent/10 text-foreground'
-                    : 'border-transparent text-muted-foreground',
+                  'flex flex-col items-start gap-1.5 rounded-sm border px-3 py-3 text-left transition-colors',
+                  selected
+                    ? 'border-accent/50 bg-accent/10 text-foreground'
+                    : 'border-border bg-elevated/40 text-muted-foreground hover:border-accent/30 hover:text-foreground',
                 )}
               >
-                <FileUp className="size-3.5" />
-                Paste text
+                <Icon
+                  className={cn('size-4', selected ? 'text-accent' : 'text-muted-foreground')}
+                  strokeWidth={1.5}
+                />
+                <span className="text-sm font-medium text-foreground">{label}</span>
+                <span className="text-[11px] leading-snug text-muted-foreground">{hint}</span>
               </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={inputMode === 'url'}
-                onClick={() => setInputMode('url')}
-                className={cn(
-                  'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
-                  inputMode === 'url'
-                    ? 'border-accent/40 bg-accent/10 text-foreground'
-                    : 'border-transparent text-muted-foreground',
-                )}
-              >
-                <Globe className="size-3.5" />
-                {t('intake.url')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={inputMode === 'youtube'}
-                onClick={() => setInputMode('youtube')}
-                className={cn(
-                  'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
-                  inputMode === 'youtube'
-                    ? 'border-accent/40 bg-accent/10 text-foreground'
-                    : 'border-transparent text-muted-foreground',
-                )}
-              >
-                <Video className="size-3.5" />
-                {t('intake.youtube')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={inputMode === 'image'}
-                onClick={() => setInputMode('image')}
-                className={cn(
-                  'flex items-center gap-1.5 border px-2.5 py-1.5 text-xs transition-colors',
-                  inputMode === 'image'
-                    ? 'border-accent/40 bg-accent/10 text-foreground'
-                    : 'border-transparent text-muted-foreground',
-                )}
-              >
-                <ImageIcon className="size-3.5" />
-                {t('intake.image')}
-              </button>
-            </div>
+            )
+          })}
+        </div>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="ml-auto gap-1.5 text-xs text-muted-foreground lg:hidden"
-              onClick={() => setMobileTypesOpen(true)}
-            >
-              <SlidersHorizontal className="size-3.5" />
-              {SOURCE_TYPE_OPTIONS.find((o) => o.value === sourceType)?.label}
-            </Button>
+        {/* Step 2 — content */}
+        <div className="mt-6">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <p className="text-sm font-medium text-foreground">{activeMode.label}</p>
+            <p className="text-xs text-muted-foreground">{activeMode.hint}</p>
           </div>
 
-          <div className="grid gap-3 border-b border-border px-5 py-3 sm:grid-cols-2 md:px-6">
-            <Input
-              placeholder="Headline or label (optional)"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="h-9 border-0 bg-transparent px-0 text-sm text-foreground shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0"
-              aria-label="Analysis title"
-            />
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value as AnalysisCategory)}
-              className="h-9 border-0 bg-transparent text-sm text-foreground focus:outline-none"
-              aria-label="Content category"
-            >
-              {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value} className="bg-surface text-foreground">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-center gap-3 border-b border-border px-5 py-2 md:px-6">
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={compareMode}
-                onChange={(e) => setCompareMode(e.target.checked)}
-                className="size-3.5 accent-accent"
-              />
-              Compare mode — add rebuttal or alternate source
-            </label>
-          </div>
-
-          {compareMode && (
-            <div className="border-b border-border px-5 py-3 md:px-6">
-              <Textarea
-                placeholder="Paste rebuttal, fact-check, or alternate source for side-by-side comparison…"
-                value={compareContent}
-                onChange={(e) => setCompareContent(e.target.value)}
-                className="min-h-[100px] resize-none border border-border bg-elevated/50 text-sm text-foreground placeholder:text-muted-foreground/60"
-                aria-label="Compare content"
-              />
-            </div>
-          )}
-
-          {sourceType === 'forward' && inputMode === 'text' && (
-            <p className="border-b border-border px-5 py-2 text-xs text-muted-foreground md:px-6">
-              Forwards often mix urgency, ALL CAPS, and unverified claims. Paste the full message
-              including any attribution chain for best results.
-            </p>
-          )}
-
-          {inputMode === 'text' && content.trim().length >= 40 && (
-            <div className="border-b border-border px-5 py-2 md:px-6">
-              <ForwardRiskBadge content={content} />
-            </div>
-          )}
-
-          {isYoutubeMode ? (
-            <div className="px-5 py-5 md:px-6">
-              <div className="flex items-center gap-2 border border-border bg-elevated/50 px-3 py-2">
-                <Video className="size-4 shrink-0 text-muted-foreground" />
+          {inputMode === 'youtube' && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 rounded-sm border border-border bg-elevated/50 px-3 py-2.5">
+                <Video className="size-4 shrink-0 text-accent" strokeWidth={1.5} />
                 <Input
-                  placeholder={t('intake.youtubePlaceholder')}
+                  placeholder="https://www.youtube.com/watch?v=…"
                   value={youtubeUrl}
                   onChange={(e) => setYoutubeUrl(e.target.value)}
                   className="border-0 bg-transparent text-sm shadow-none focus-visible:ring-0"
                   aria-label="YouTube URL to analyze"
                 />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Veritas will extract the transcript and analyze claims.
+              <p className="text-xs text-muted-foreground">
+                We’ll pull the transcript and check claims in the video.
               </p>
             </div>
-          ) : isImageMode ? (
-            <div
-              className={cn(
-                'mx-5 my-5 flex min-h-[240px] flex-col items-center justify-center border-2 border-dashed px-6 py-10 transition-colors md:mx-6 md:min-h-[280px]',
-                isDragging
-                  ? 'border-accent-secondary/50 bg-accent/10'
-                  : 'border-border bg-elevated/50',
-              )}
-              onDragOver={(e) => {
-                e.preventDefault()
-                setIsDragging(true)
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleImageDrop}
-            >
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => handleImageSelect(e.target.files?.[0] ?? null)}
-                aria-label="Upload image file"
-              />
+          )}
 
-              {imageFile ? (
-                <div className="flex flex-col items-center gap-3 text-center">
-                  <ImageIcon className="size-8 text-foreground" strokeWidth={1.5} />
-                  <p className="text-sm font-medium text-foreground">{imageFile.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(imageFile.size / 1024 / 1024).toFixed(2)} MB · Image
-                  </p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1 text-muted-foreground"
-                    onClick={() => {
-                      setImageFile(null)
-                      if (imageInputRef.current) imageInputRef.current.value = ''
-                    }}
-                  >
-                    <X className="size-3.5" />
-                    Remove file
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-3 text-center">
-                  <ImageIcon className="size-8 text-muted-foreground" strokeWidth={1.5} />
-                  <p className="text-sm text-muted-foreground">
-                    Drag & drop a screenshot or meme, or{' '}
-                    <button
-                      type="button"
-                      className="font-medium text-accent-secondary underline"
-                      onClick={() => imageInputRef.current?.click()}
-                    >
-                      browse files
-                    </button>
-                  </p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG, WebP · max 10 MB</p>
-                </div>
-              )}
-            </div>
-          ) : isUrlMode ? (
-            <div className="px-5 py-5 md:px-6">
-              <div className="flex items-center gap-2 border border-border bg-elevated/50 px-3 py-2">
-                <Link2 className="size-4 shrink-0 text-muted-foreground" />
+          {inputMode === 'url' && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 rounded-sm border border-border bg-elevated/50 px-3 py-2.5">
+                <Link2 className="size-4 shrink-0 text-accent" strokeWidth={1.5} />
                 <Input
                   placeholder="https://example.com/article…"
                   value={url}
@@ -490,134 +315,252 @@ export function AnalysisInput({
                   aria-label="URL to analyze"
                 />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Veritas will fetch and analyze the page content.
+              <p className="text-xs text-muted-foreground">
+                We’ll fetch the page and analyze the article content.
               </p>
             </div>
-          ) : isPdfMode ? (
-            <div
-              className={cn(
-                'mx-5 my-5 flex min-h-[240px] flex-col items-center justify-center border-2 border-dashed px-6 py-10 transition-colors md:mx-6 md:min-h-[280px]',
-                isDragging
-                  ? 'border-accent-secondary/50 bg-accent/10'
-                  : 'border-border bg-elevated/50',
-              )}
-              onDragOver={(e) => {
-                e.preventDefault()
-                setIsDragging(true)
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                onChange={(e) => handleFileSelect(e.target.files?.[0] ?? null)}
-                aria-label="Upload PDF file"
-              />
+          )}
 
-              {pdfFile ? (
-                <div className="flex flex-col items-center gap-3 text-center">
-                  <FileUp className="size-8 text-foreground" strokeWidth={1.5} />
-                  <p className="text-sm font-medium text-foreground">{pdfFile.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(pdfFile.size / 1024 / 1024).toFixed(2)} MB · PDF
-                  </p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1 text-muted-foreground"
-                    onClick={() => {
-                      setPdfFile(null)
-                      if (fileInputRef.current) fileInputRef.current.value = ''
-                    }}
-                  >
-                    <X className="size-3.5" />
-                    Remove file
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-3 text-center">
-                  <FileUp className="size-8 text-muted-foreground" strokeWidth={1.5} />
-                  <p className="text-sm text-muted-foreground">
-                    Drag & drop a PDF here, or{' '}
-                    <button
-                      type="button"
-                      className="font-medium text-accent-secondary underline"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      browse files
-                    </button>
-                  </p>
-                  <p className="text-xs text-muted-foreground">Max 10 MB · text-based PDFs only</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Textarea
-              ref={inputRef}
-              placeholder="Paste the content under investigation — article, thread, transcript, forward…"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="legal-pad min-h-[240px] resize-none border-0 bg-transparent px-5 py-5 font-sans text-sm leading-[1.75rem] text-foreground shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0 md:min-h-[280px] md:px-6 md:text-base"
-              aria-label="Content to analyze"
-              aria-invalid={isOverLimit}
+          {inputMode === 'image' && (
+            <DropZone
+              isDragging={isDragging}
+              setIsDragging={setIsDragging}
+              onDrop={handleImageDrop}
+              inputRef={imageInputRef}
+              accept="image/*"
+              onSelect={handleImageSelect}
+              file={imageFile}
+              onClear={() => {
+                setImageFile(null)
+                if (imageInputRef.current) imageInputRef.current.value = ''
+              }}
+              icon={ImageIcon}
+              emptyLabel="Drop a screenshot or meme, or"
+              emptyHint="PNG, JPG, WebP · max 10 MB"
+              fileKind="Image"
             />
           )}
 
-          <div className="mt-auto flex flex-col gap-4 border-t border-border bg-elevated/50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
-            <div className="flex flex-col gap-1">
-              {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
+          {inputMode === 'pdf' && (
+            <DropZone
+              isDragging={isDragging}
+              setIsDragging={setIsDragging}
+              onDrop={handleDrop}
+              inputRef={fileInputRef}
+              accept="application/pdf"
+              onSelect={handleFileSelect}
+              file={pdfFile}
+              onClear={() => {
+                setPdfFile(null)
+                if (fileInputRef.current) fileInputRef.current.value = ''
+              }}
+              icon={FileUp}
+              emptyLabel="Drop a PDF here, or"
+              emptyHint="Max 10 MB · text-based PDFs work best"
+              fileKind="PDF"
+            />
+          )}
+
+          {inputMode === 'text' && (
+            <div className="space-y-3">
+              <Textarea
+                ref={inputRef}
+                placeholder="Paste the text you want checked — post, forward, article excerpt…"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="min-h-[160px] resize-y rounded-sm border border-border bg-elevated/40 px-4 py-3 text-sm leading-relaxed text-foreground shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-accent/40 md:min-h-[180px]"
+                aria-label="Content to analyze"
+                aria-invalid={isOverLimit}
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="shrink-0">This is a</span>
+                  <select
+                    value={sourceType}
+                    onChange={(e) => setSourceType(e.target.value as SourceType)}
+                    className="h-8 rounded-sm border border-border bg-elevated px-2 text-xs text-foreground"
+                    aria-label="Evidence type"
+                  >
+                    {SOURCE_TYPE_OPTIONS.filter((o) => o.value !== 'pdf').map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <p
                   className={cn(
-                    'text-xs tabular-nums lg:hidden',
+                    'font-mono text-[11px] tabular-nums',
                     isOverLimit ? 'text-danger' : 'text-muted-foreground',
                   )}
                 >
-                  {charCount.toLocaleString()} / {MAX_CONTENT_LENGTH.toLocaleString()} characters
+                  {charCount.toLocaleString()} / {MAX_CONTENT_LENGTH.toLocaleString()}
+                </p>
+              </div>
+              {sourceType === 'forward' && (
+                <p className="text-xs text-muted-foreground">
+                  Tip: paste the full forward, including any “forwarded many times” chain.
                 </p>
               )}
-              {analyze.isError && (
-                <p className="text-xs text-danger" role="alert">
-                  {getFriendlyErrorMessage(analyze.error)}
-                </p>
-              )}
-              {!isPdfMode && !isUrlMode && !isYoutubeMode && !isImageMode && (
-                <p className="hidden text-[11px] text-muted-foreground sm:block">
-                  ⌘ + Enter to file for analysis
-                </p>
-              )}
+              {content.trim().length >= 40 && <ForwardRiskBadge content={content} />}
             </div>
+          )}
+        </div>
 
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              size="lg"
-              className="h-11 gap-2 bg-primary px-6 font-medium text-primary-foreground hover:bg-primary/90"
-              data-onboarding="analyze-button"
-              aria-label={t('intake.fileForAnalysis')}
-            >
-              {t('intake.fileForAnalysis')}
-              <ArrowRight className="size-4" />
-            </Button>
+        {/* Optional details — collapsed */}
+        <div className="mt-5 border-t border-border pt-3">
+          <button
+            type="button"
+            onClick={() => setShowOptions((v) => !v)}
+            className="flex w-full items-center gap-2 text-left text-xs text-muted-foreground transition-colors hover:text-foreground"
+            aria-expanded={showOptions}
+          >
+            <ChevronDown
+              className={cn('size-3.5 transition-transform', showOptions && 'rotate-180')}
+              strokeWidth={1.75}
+            />
+            Optional details
+            <span className="text-muted-foreground/60">(title, category)</span>
+          </button>
+
+          {showOptions && (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Input
+                placeholder="Headline or label (optional)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="h-9 border-border bg-elevated/50 text-sm"
+                aria-label="Analysis title"
+              />
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value as AnalysisCategory)}
+                className="h-9 rounded-sm border border-border bg-elevated/50 px-3 text-sm text-foreground"
+                aria-label="Content category"
+              >
+                {CATEGORY_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+
+        {/* Submit */}
+        <div className="mt-5 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-h-[1.25rem]">
+            {analyze.isError && (
+              <p className="text-xs text-danger" role="alert">
+                {getFriendlyErrorMessage(analyze.error)}
+              </p>
+            )}
           </div>
+
+          <Button
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            size="lg"
+            className="h-11 gap-2 bg-primary px-6 font-medium text-primary-foreground hover:bg-primary/90"
+            data-onboarding="analyze-button"
+            aria-label={t('intake.fileForAnalysis')}
+          >
+            {t('intake.fileForAnalysis')}
+            <ArrowRight className="size-4" />
+          </Button>
         </div>
       </div>
+    </div>
+  )
+}
 
-      <Dialog open={mobileTypesOpen} onOpenChange={setMobileTypesOpen}>
-        <DialogContent className="fixed bottom-0 top-auto max-h-[70vh] w-full max-w-none translate-y-0 rounded-b-none rounded-t-xl sm:max-w-lg sm:rounded-xl sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2">
-          <DialogHeader>
-            <DialogTitle>Evidence type</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-1" role="tablist">
-            {renderSourceTypeTabs(true)}
-          </div>
-        </DialogContent>
-      </Dialog>
+function DropZone({
+  isDragging,
+  setIsDragging,
+  onDrop,
+  inputRef,
+  accept,
+  onSelect,
+  file,
+  onClear,
+  icon: Icon,
+  emptyLabel,
+  emptyHint,
+  fileKind,
+}: {
+  isDragging: boolean
+  setIsDragging: (v: boolean) => void
+  onDrop: (e: React.DragEvent) => void
+  inputRef: React.RefObject<HTMLInputElement | null>
+  accept: string
+  onSelect: (file: File | null) => void
+  file: File | null
+  onClear: () => void
+  icon: typeof FileUp
+  emptyLabel: string
+  emptyHint: string
+  fileKind: string
+}) {
+  return (
+    <div
+      className={cn(
+        'flex min-h-[160px] flex-col items-center justify-center rounded-sm border-2 border-dashed px-6 py-8 transition-colors',
+        isDragging
+          ? 'border-accent/50 bg-accent/10'
+          : 'border-border bg-elevated/40',
+      )}
+      onDragOver={(e) => {
+        e.preventDefault()
+        setIsDragging(true)
+      }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={onDrop}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(e) => onSelect(e.target.files?.[0] ?? null)}
+        aria-label={`Upload ${fileKind}`}
+      />
+
+      {file ? (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Icon className="size-7 text-foreground" strokeWidth={1.5} />
+          <p className="text-sm font-medium text-foreground">{file.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {(file.size / 1024 / 1024).toFixed(2)} MB · {fileKind}
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="gap-1 text-muted-foreground"
+            onClick={onClear}
+          >
+            <X className="size-3.5" />
+            Remove
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Icon className="size-7 text-muted-foreground" strokeWidth={1.5} />
+          <p className="text-sm text-muted-foreground">
+            {emptyLabel}{' '}
+            <button
+              type="button"
+              className="font-medium text-accent underline"
+              onClick={() => inputRef.current?.click()}
+            >
+              browse
+            </button>
+          </p>
+          <p className="text-xs text-muted-foreground">{emptyHint}</p>
+        </div>
+      )}
     </div>
   )
 }

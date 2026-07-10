@@ -1,3 +1,4 @@
+import { jsonrepair } from 'jsonrepair'
 import type { CredibilityReport } from '@veritas/shared'
 import { AppError } from '../../utils/errors.js'
 import { credibilityReportSchema } from './schema.js'
@@ -5,23 +6,42 @@ import { credibilityReportSchema } from './schema.js'
 export function repairJson(raw: string): string {
   let text = raw.trim()
 
-  // Strip markdown code fences
+  // Strip markdown code fences (full or partial)
   const fenceMatch = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i)
   if (fenceMatch) {
     text = fenceMatch[1].trim()
+  } else if (text.startsWith('```')) {
+    text = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim()
   }
 
   // Extract first JSON object if surrounded by prose
   const objectStart = text.indexOf('{')
-  const objectEnd = text.lastIndexOf('}')
-  if (objectStart !== -1 && objectEnd !== -1 && objectEnd > objectStart) {
-    text = text.slice(objectStart, objectEnd + 1)
+  if (objectStart > 0) {
+    text = text.slice(objectStart)
   }
 
   // Remove trailing commas before } or ]
   text = text.replace(/,\s*([}\]])/g, '$1')
 
-  return text
+  // Strip illegal control characters outside of a best-effort pass
+  text = text.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, ' ')
+
+  try {
+    return jsonrepair(text)
+  } catch {
+    // Fall back to balanced-brace slice + jsonrepair once more
+    const start = text.indexOf('{')
+    const end = text.lastIndexOf('}')
+    if (start !== -1 && end > start) {
+      const sliced = text.slice(start, end + 1)
+      try {
+        return jsonrepair(sliced)
+      } catch {
+        return sliced
+      }
+    }
+    return text
+  }
 }
 
 export function parseCredibilityReport(raw: string): CredibilityReport {

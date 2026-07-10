@@ -230,6 +230,8 @@ export const reportRepository = {
       throw new AppError('Report not found', 'NOT_FOUND')
     }
 
+    // Clear optional schedule refs that are not FK-cascaded
+    await prisma.scheduledRecheck.deleteMany({ where: { analysisId: id } })
     await prisma.analysis.delete({ where: { id } })
   },
 

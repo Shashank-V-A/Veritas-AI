@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import multer from 'multer'
-import type { SourceType } from '@veritas/shared'
+import type { AnalysisCategory, SourceType } from '@veritas/shared'
 import { runAnalysis } from '../../services/analysis/pipeline.js'
 import { recordDomainAnalysis } from '../../services/domain/reputation.js'
 import {
@@ -207,21 +207,34 @@ analyzeRouter.post('/url', async (req, res, next) => {
 
 analyzeRouter.post('/youtube', async (req, res, next) => {
   try {
-    const url = typeof req.body?.url === 'string' ? req.body.url : ''
+    const url = typeof req.body?.url === 'string' ? req.body.url.trim() : ''
     if (!url) throw new AppError('YouTube URL is required', 'VALIDATION_ERROR', 400)
 
+    const titleOverride =
+      typeof req.body?.title === 'string' && req.body.title.trim()
+        ? req.body.title.trim()
+        : undefined
+    const categoryRaw =
+      typeof req.body?.category === 'string' && req.body.category.trim()
+        ? req.body.category.trim()
+        : undefined
+    const category = categoryRaw as AnalysisCategory | undefined
+
     const extracted = await extractYouTubeContent(url)
+    const title = titleOverride ?? extracted.title
+
     const pipeline = await runAnalysis({
       content: extracted.content,
       sourceType: 'transcript',
-      title: extracted.title,
+      title,
     })
 
     const response = await persistAnalysis(
       {
         content: extracted.content,
         sourceType: 'transcript',
-        title: extracted.title,
+        title,
+        category,
         report: pipeline.report,
         meshModel: pipeline.meshModel,
         meshLatencyMs: pipeline.meshLatencyMs,
