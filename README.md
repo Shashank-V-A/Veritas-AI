@@ -103,8 +103,7 @@ npm run dev:all
 
 ### Optional integrations
 - **Turso** — persistent DB across Vercel cold starts
-- **Neo4j** — knowledge graph sync stub (`NEO4J_URI`)
-- **Email digest** — weekly case summary cron (`RESEND_API_KEY`)
+- **Neo4j** — knowledge graph sync for claims/sources after each analysis (`NEO4J_URI`)
 
 ## Documentation
 

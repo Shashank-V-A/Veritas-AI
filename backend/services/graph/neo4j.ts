@@ -2,18 +2,38 @@ import neo4j, { type Driver } from 'neo4j-driver'
 import type { CredibilityReport } from '@veritas/shared'
 
 let driver: Driver | null = null
+let verified = false
+
+function neo4jConfig() {
+  const uri = process.env.NEO4J_URI?.trim()
+  const user = (process.env.NEO4J_USERNAME ?? process.env.NEO4J_USER ?? 'neo4j').trim()
+  const password = process.env.NEO4J_PASSWORD?.trim() ?? ''
+  const database = process.env.NEO4J_DATABASE?.trim() || 'neo4j'
+  return { uri, user, password, database }
+}
 
 function getDriver(): Driver | null {
-  const uri = process.env.NEO4J_URI
-  if (!uri) return null
+  const { uri, user, password } = neo4jConfig()
+  if (!uri || !password) return null
 
   if (!driver) {
-    const user = process.env.NEO4J_USER ?? 'neo4j'
-    const password = process.env.NEO4J_PASSWORD ?? ''
-    driver = neo4j.driver(uri, neo4j.auth.basic(user, password))
+    driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+      connectionTimeout: 15_000,
+      maxConnectionLifetime: 60 * 60 * 1000,
+    })
   }
 
   return driver
+}
+
+async function ensureConnected(db: Driver): Promise<string> {
+  const { database } = neo4jConfig()
+  if (!verified) {
+    await db.verifyConnectivity({ database })
+    verified = true
+    console.info(`[neo4j] Connected to ${neo4jConfig().uri} (db=${database})`)
+  }
+  return database
 }
 
 function domainFromUrl(url: string): string | null {
@@ -30,9 +50,29 @@ export async function syncAnalysisToGraph(
   report: CredibilityReport,
 ): Promise<void> {
   const db = getDriver()
-  if (!db) return
+  if (!db) {
+    if (process.env.NEO4J_URI?.trim() && !process.env.NEO4J_PASSWORD?.trim()) {
+      console.warn('[neo4j] NEO4J_URI set but NEO4J_PASSWORD missing — skipping graph sync')
+    }
+    return
+  }
 
-  const session = db.session()
+  let database: string
+  try {
+    database = await ensureConnected(db)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    console.error(
+      `[neo4j] Connection failed: ${message}. ` +
+        'Reset the password in Neo4j Aura Console → instance → … → Reset password, ' +
+        'then update NEO4J_PASSWORD (and NEO4J_USERNAME if shown) in backend/.env and restart the backend.',
+    )
+    // Drop cached driver so the next attempt reloads credentials after .env change
+    await closeNeo4jDriver()
+    return
+  }
+
+  const session = db.session({ database })
 
   try {
     await session.executeWrite(async (tx) => {
@@ -139,5 +179,6 @@ export async function closeNeo4jDriver(): Promise<void> {
   if (driver) {
     await driver.close()
     driver = null
+    verified = false
   }
 }

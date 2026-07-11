@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { Router } from 'express'
 import { prisma } from '../../db/prisma.js'
 import { runAnalysis } from '../../services/analysis/pipeline.js'
+import { syncAnalysisToGraph } from '../../services/graph/neo4j.js'
 import { reportRepository } from '../../services/report/repository.js'
 import { analyzeRequestSchema, sanitizeContent } from '../../utils/validation.js'
 import { requireApiKey } from '../middleware/apiKey.js'
@@ -31,6 +32,8 @@ v1Router.post('/analyze', async (req, res, next) => {
       meshLatencyMs: pipeline.meshLatencyMs,
       userId: req.apiUserId,
     })
+
+    await syncAnalysisToGraph(record.id, record.report)
 
     res.status(201).json({
       id: record.id,

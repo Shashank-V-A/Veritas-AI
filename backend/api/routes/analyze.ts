@@ -3,6 +3,7 @@ import multer from 'multer'
 import type { AnalysisCategory, SourceType } from '@veritas/shared'
 import { runAnalysis } from '../../services/analysis/pipeline.js'
 import { recordDomainAnalysis } from '../../services/domain/reputation.js'
+import { syncAnalysisToGraph } from '../../services/graph/neo4j.js'
 import {
   assessForwardRisk,
   shouldAutoDetectForward,
@@ -97,6 +98,7 @@ async function persistAnalysis(
   if (sourceUrl) {
     await recordDomainAnalysis(sourceUrl, record.trustScore)
   }
+  await syncAnalysisToGraph(record.id, record.report)
   return buildAnalyzeResponse(record, meta)
 }
 
