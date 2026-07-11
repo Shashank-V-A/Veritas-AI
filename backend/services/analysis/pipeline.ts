@@ -21,7 +21,6 @@ export interface AnalysisInput {
   content: string
   sourceType: import('@veritas/shared').SourceType
   title?: string
-  compareContent?: string
   searchContext?: string
 }
 
@@ -48,9 +47,6 @@ function prepareInputForMesh(input: AnalysisInput): AnalysisInput {
   return {
     ...input,
     content: truncateForMesh(input.content),
-    compareContent: input.compareContent
-      ? truncateForMesh(input.compareContent, 4_000)
-      : undefined,
   }
 }
 

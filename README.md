@@ -73,8 +73,6 @@ npm run dev:all
 
 ### Core analysis
 - Paste text, URL, PDF, **YouTube transcript**, or **image/meme** upload
-- **Guest live demo** on landing — one free investigation without sign-in
-- **Compare two sources** side-by-side for contradiction analysis
 - **Public share links** with dynamic OG images at `/api/og/share/:token`
 - Structured reports: claims, bias, fallacies, trust score, neutral rewrite
 - **Real-time web search** enriches suggested reading (Tavily or DuckDuckGo fallback)
@@ -84,21 +82,19 @@ npm run dev:all
 - **Forward parser** — detects WhatsApp/Telegram forward patterns, forward-risk badge
 - **Domain reputation cache** — “This domain appeared in N low-trust cases”
 
-### Report depth (Tier C)
+### Report depth
 - Interactive **claim graph**, **source lineage**, **claim timeline**
 - **Confidence intervals** on trust score
-- **Case annotations** and **verdict appeal** (re-run single claim)
-- **Scheduled re-check** — re-investigate a URL after N days
+- **Case annotations** on dossiers and claims
 
-### Platform & B2B
-- **API keys** — `POST /api/v1/analyze` for third-party integrations
-- **Team / newsroom mode** — shared workspace
+### Platform
 - **Judge mode** kiosk at `/judge` for demo loops
 - **Chrome extension** (`extension/`) — verify page or selection from any site
 - Bookmarklet, PWA, command palette (⌘K), history filters
 
 ### UX
-- Dark/light theme toggle, **Hindi i18n** (`en` / `hi`)
+- Dark theme, **Hindi i18n** (`en` / `hi`)
+- Investigation soundscape during analysis
 - Skip link + reduced-motion support for accessibility
 
 ### Optional integrations

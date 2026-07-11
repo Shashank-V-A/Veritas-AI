@@ -91,7 +91,6 @@ export interface AnalysisRecord {
   shareToken?: string
   category?: AnalysisCategory
   parentId?: string
-  compareContent?: string
   meshModel?: string
   meshLatencyMs?: number
   previousTrustScore?: number

@@ -55,28 +55,6 @@ export interface AnnotationsResponse {
   annotations: CaseAnnotation[]
 }
 
-export interface Team {
-  id: string
-  name: string
-  createdAt: string
-  members?: Array<{
-    id: string
-    userId: string
-    role: string
-    user?: { id: string; name?: string; email: string }
-  }>
-}
-
-export interface TeamsResponse {
-  teams: Team[]
-}
-
-export interface CreateApiKeyResponse {
-  key: string
-  name: string
-  message: string
-}
-
 export interface DomainReputation {
   domain: string
   caseCount: number
@@ -233,33 +211,6 @@ export const api = {
       body: JSON.stringify({ note, claimIndex }),
     })
     return handleResponse<CaseAnnotation>(response)
-  },
-
-  async createTeam(name: string): Promise<Team> {
-    const response = await fetch(`${API_BASE_URL}/teams`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ name }),
-    })
-    return handleResponse<Team>(response)
-  },
-
-  async getTeams(): Promise<TeamsResponse> {
-    const response = await fetch(`${API_BASE_URL}/teams`, {
-      credentials: 'include',
-    })
-    return handleResponse<TeamsResponse>(response)
-  },
-
-  async createApiKey(name?: string): Promise<CreateApiKeyResponse> {
-    const response = await fetch(`${API_BASE_URL}/v1/keys`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ name }),
-    })
-    return handleResponse<CreateApiKeyResponse>(response)
   },
 
   async getDomainReputation(domain: string): Promise<DomainReputation | null> {

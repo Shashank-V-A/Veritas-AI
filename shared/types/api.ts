@@ -4,7 +4,6 @@ export interface AnalyzeRequest {
   content: string
   sourceType: SourceType
   title?: string
-  compareContent?: string
   category?: AnalysisCategory
 }
 
@@ -12,7 +11,6 @@ export interface UrlAnalyzeRequest {
   url: string
   title?: string
   category?: AnalysisCategory
-  compareContent?: string
 }
 
 export interface AnalyzeMeta {

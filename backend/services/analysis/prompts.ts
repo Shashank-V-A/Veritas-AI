@@ -163,7 +163,6 @@ export function buildUserPrompt(input: {
   content: string
   sourceType: SourceType
   title?: string
-  compareContent?: string
   searchContext?: string
 }) {
   const sourceLabel = SOURCE_LABELS[input.sourceType]
@@ -180,25 +179,6 @@ Forward-specific instructions:
 `
       : ''
 
-  const compareInstructions = input.compareContent
-    ? `
-Compare mode:
-- Analyze the PRIMARY content below for credibility
-- Use the COMPARISON content as a reference point — note agreements, contradictions, and framing differences
-- Highlight what each version adds, omits, or distorts relative to the other
-- Include comparison insights in summary, claims, and missingContext where relevant
-`
-    : ''
-
-  const comparisonBlock = input.compareContent
-    ? `
-
----
-COMPARISON CONTENT (reference only):
-${input.compareContent}
----`
-    : ''
-
   const searchBlock = input.searchContext
     ? `
 
@@ -208,13 +188,13 @@ ${input.searchContext}
     : ''
 
   return `${titleLine}Source type: ${sourceLabel}
-${forwardInstructions}${compareInstructions}${searchBlock}
+${forwardInstructions}${searchBlock}
 Analyze the following content and return a complete credibility report as JSON.
 Focus on the strongest claims; do not exhaustively quote the entire source.
 
 ---
 ${input.content}
----${comparisonBlock}`
+---`
 }
 
 export function buildRepairPrompt(invalidJson: string, validationError: string) {

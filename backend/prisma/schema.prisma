@@ -9,49 +9,41 @@ datasource db {
 }
 
 model User {
-  id            String             @id @default(uuid())
-  googleId      String             @unique
-  email         String             @unique
-  name          String?
-  avatar        String?
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
-  analyses      Analysis[]
-  apiKeys       ApiKey[]
-  teamMembers   TeamMember[]
-  annotations   CaseAnnotation[]
-  scheduledJobs ScheduledRecheck[]
+  id          String           @id @default(uuid())
+  googleId    String           @unique
+  email       String           @unique
+  name        String?
+  avatar      String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  analyses    Analysis[]
+  annotations CaseAnnotation[]
 }
 
 model Analysis {
-  id             String   @id @default(uuid())
-  title          String?
-  content        String
-  sourceType     String   @default("raw")
-  sourceUrl      String?
-  trustScore     Int
-  report         String
-  userId         String?
-  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  teamId         String?
-  team           Team?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
-  shareToken     String?  @unique
-  category       String?
-  parentId       String?
-  compareContent String?
-  meshModel      String?
-  meshLatencyMs  Int?
-  forwardRisk    Int?
-  isGuest        Boolean  @default(false)
-  verdict        String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  annotations    CaseAnnotation[]
+  id            String   @id @default(uuid())
+  title         String?
+  content       String
+  sourceType    String   @default("raw")
+  sourceUrl     String?
+  trustScore    Int
+  report        String
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  shareToken    String?  @unique
+  category      String?
+  parentId      String?
+  meshModel     String?
+  meshLatencyMs Int?
+  forwardRisk   Int?
+  verdict       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  annotations   CaseAnnotation[]
 
   @@index([createdAt])
   @@index([trustScore])
   @@index([userId])
-  @@index([teamId])
   @@index([shareToken])
   @@index([category])
   @@index([verdict])
@@ -66,39 +58,6 @@ model DomainReputation {
   updatedAt     DateTime @updatedAt
 }
 
-model ApiKey {
-  id         String    @id @default(uuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  keyHash    String    @unique
-  name       String
-  lastUsedAt DateTime?
-  createdAt  DateTime  @default(now())
-
-  @@index([userId])
-}
-
-model Team {
-  id        String       @id @default(uuid())
-  name      String
-  createdAt DateTime     @default(now())
-  members   TeamMember[]
-  analyses  Analysis[]
-}
-
-model TeamMember {
-  id        String   @id @default(uuid())
-  teamId    String
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      String   @default("member")
-  createdAt DateTime @default(now())
-
-  @@unique([teamId, userId])
-  @@index([userId])
-}
-
 model CaseAnnotation {
   id         String   @id @default(uuid())
   analysisId String
@@ -110,18 +69,4 @@ model CaseAnnotation {
   createdAt  DateTime @default(now())
 
   @@index([analysisId])
-}
-
-model ScheduledRecheck {
-  id         String    @id @default(uuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sourceUrl  String?
-  analysisId String?
-  runAt      DateTime
-  completed  Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-
-  @@index([runAt, completed])
-  @@index([userId])
 }

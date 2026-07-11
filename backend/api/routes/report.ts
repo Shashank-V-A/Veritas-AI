@@ -109,7 +109,6 @@ reportRouter.get('/:id', cacheControl(300), async (req, res, next) => {
       createdAt: record.createdAt,
       category: record.category,
       parentId: record.parentId,
-      compareContent: record.compareContent,
       previousTrustScore: record.previousTrustScore,
       previousVerdict: record.previousVerdict,
       meshModel: record.meshModel,

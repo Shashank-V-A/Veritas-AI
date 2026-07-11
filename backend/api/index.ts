@@ -20,8 +20,6 @@ import { requireAuth } from './middleware/auth.js'
 import { domainRouter } from './routes/domain.js'
 import { annotationsRouter } from './routes/annotations.js'
 import { ogRouter } from './routes/og.js'
-import { teamsRouter } from './routes/teams.js'
-import { v1Router } from './routes/v1.js'
 import { graphRouter } from './routes/graph.js'
 
 export function createApp() {
@@ -57,8 +55,6 @@ export function createApp() {
   app.use('/api/public/report', publicReportRouter)
   app.use('/api/history', requireAuth, historyRouter)
   app.use('/api/og', ogRouter)
-  app.use('/api/v1', v1Router)
-  app.use('/api/teams', teamsRouter)
   app.use('/api/domain', domainRouter)
   app.use('/api/graph', graphRouter)
   app.use('/api/annotations', annotationsRouter)

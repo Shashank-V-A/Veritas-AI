@@ -20,14 +20,11 @@ interface SaveAnalysisInput {
   userId?: string
   category?: AnalysisCategory
   parentId?: string
-  compareContent?: string
   meshModel?: string
   meshLatencyMs?: number
-  isGuest?: boolean
   shareToken?: string
   sourceUrl?: string
   forwardRisk?: number
-  teamId?: string
 }
 
 type AnalysisRow = {
@@ -41,7 +38,6 @@ type AnalysisRow = {
   shareToken?: string | null
   category?: string | null
   parentId?: string | null
-  compareContent?: string | null
   meshModel?: string | null
   meshLatencyMs?: number | null
   verdict?: string | null
@@ -61,7 +57,6 @@ function toAnalysisRecord(row: AnalysisRow): AnalysisRecord {
     shareToken: row.shareToken ?? undefined,
     category: (row.category as AnalysisCategory | null) ?? undefined,
     parentId: row.parentId ?? undefined,
-    compareContent: row.compareContent ?? undefined,
     meshModel: row.meshModel ?? undefined,
     meshLatencyMs: row.meshLatencyMs ?? undefined,
     sourceUrl: row.sourceUrl ?? undefined,
@@ -92,15 +87,11 @@ export const reportRepository = {
         userId: input.userId,
         category: input.category,
         parentId: input.parentId,
-        compareContent: input.compareContent,
         meshModel: input.meshModel,
         meshLatencyMs: input.meshLatencyMs,
-        isGuest: input.isGuest ?? false,
-        shareToken:
-          input.shareToken ?? (input.isGuest ? createShareToken() : undefined),
+        shareToken: input.shareToken,
         sourceUrl: input.sourceUrl,
         forwardRisk: input.forwardRisk,
-        teamId: input.teamId,
       },
     })
 
@@ -206,7 +197,6 @@ export const reportRepository = {
       content: original.content,
       sourceType: original.sourceType as SourceType,
       title: original.title ?? undefined,
-      compareContent: original.compareContent ?? undefined,
     })
 
     return this.save({
@@ -214,7 +204,6 @@ export const reportRepository = {
       sourceType: original.sourceType as SourceType,
       title: original.title ?? undefined,
       category: (original.category as AnalysisCategory | null) ?? undefined,
-      compareContent: original.compareContent ?? undefined,
       report: pipeline.report,
       meshModel: pipeline.meshModel,
       meshLatencyMs: pipeline.meshLatencyMs,
@@ -237,7 +226,6 @@ export const reportRepository = {
 
     await prisma.$transaction(async (tx) => {
       await tx.caseAnnotation.deleteMany({ where: { analysisId: id } })
-      await tx.scheduledRecheck.deleteMany({ where: { analysisId: id } })
       await tx.analysis.delete({ where: { id } })
     })
   },

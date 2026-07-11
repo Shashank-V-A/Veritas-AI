@@ -12,18 +12,7 @@ export const analyzeRequestSchema = z.object({
     .max(MAX_CONTENT_LENGTH, `Content must be under ${MAX_CONTENT_LENGTH} characters`),
   sourceType: z.enum(SOURCE_TYPES).default('raw'),
   title: z.string().max(200).optional(),
-  compareContent: z
-    .string()
-    .max(MAX_CONTENT_LENGTH, `Comparison content must be under ${MAX_CONTENT_LENGTH} characters`)
-    .optional(),
   category: z.enum(CASE_CATEGORIES).optional(),
-})
-
-export const compareRequestSchema = analyzeRequestSchema.extend({
-  compareContent: z
-    .string()
-    .min(1, 'Comparison content is required')
-    .max(MAX_CONTENT_LENGTH, `Comparison content must be under ${MAX_CONTENT_LENGTH} characters`),
 })
 
 export const urlAnalyzeRequestSchema = z.object({
@@ -49,7 +38,6 @@ export const shareTokenSchema = z.object({
 })
 
 export type AnalyzeRequestInput = z.infer<typeof analyzeRequestSchema>
-export type CompareRequestInput = z.infer<typeof compareRequestSchema>
 export type UrlAnalyzeRequestInput = z.infer<typeof urlAnalyzeRequestSchema>
 export type HistoryQueryInput = z.infer<typeof historyQuerySchema>
 

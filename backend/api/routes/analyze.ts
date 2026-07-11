@@ -15,7 +15,6 @@ import { extractFromUrl } from '../../services/url/extract.js'
 import { reportRepository } from '../../services/report/repository.js'
 import {
   analyzeRequestSchema,
-  compareRequestSchema,
   sanitizeContent,
   urlAnalyzeRequestSchema,
 } from '../../utils/validation.js'
@@ -113,9 +112,6 @@ analyzeRouter.post('/', async (req, res, next) => {
       content,
       sourceType,
       title: parsed.title,
-      compareContent: parsed.compareContent
-        ? sanitizeContent(parsed.compareContent)
-        : undefined,
     })
 
     const response = await persistAnalysis(
@@ -124,47 +120,10 @@ analyzeRouter.post('/', async (req, res, next) => {
         sourceType,
         title: parsed.title,
         category: parsed.category,
-        compareContent: parsed.compareContent
-          ? sanitizeContent(parsed.compareContent)
-          : undefined,
         report: pipeline.report,
         meshModel: pipeline.meshModel,
         meshLatencyMs: pipeline.meshLatencyMs,
         forwardRisk,
-        userId: req.user?.sub,
-      },
-      pipeline,
-    )
-
-    res.status(201).json(response)
-  } catch (error) {
-    next(error)
-  }
-})
-
-analyzeRouter.post('/compare', async (req, res, next) => {
-  try {
-    const parsed = compareRequestSchema.parse(req.body)
-    const content = sanitizeContent(parsed.content)
-    const compareContent = sanitizeContent(parsed.compareContent)
-
-    const pipeline = await runAnalysis({
-      content,
-      sourceType: parsed.sourceType,
-      title: parsed.title,
-      compareContent,
-    })
-
-    const response = await persistAnalysis(
-      {
-        content,
-        sourceType: parsed.sourceType,
-        title: parsed.title,
-        category: parsed.category,
-        compareContent,
-        report: pipeline.report,
-        meshModel: pipeline.meshModel,
-        meshLatencyMs: pipeline.meshLatencyMs,
         userId: req.user?.sub,
       },
       pipeline,
