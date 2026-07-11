@@ -8,4 +8,5 @@ export const queryKeys = {
   }) => ['history', params] as const,
   report: (id: string) => ['report', id] as const,
   publicReport: (token: string) => ['publicReport', token] as const,
+  graph: ['graph-constellation'] as const,
 }

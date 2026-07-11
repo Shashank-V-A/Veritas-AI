@@ -30,26 +30,41 @@ export function useInvestigationProgress(active = true) {
     setActiveStep(0)
     setCompletedSteps(new Set())
 
+    const timeouts: number[] = []
+    let cancelled = false
     let stepIndex = 0
-    let timeoutId: number
 
     function advance() {
-      if (stepIndex >= INVESTIGATION_PHASES.length) return
+      if (cancelled || stepIndex >= INVESTIGATION_PHASES.length) return
 
-      setActiveStep(stepIndex)
+      // Capture index for this phase so the timeout never marks the wrong step
+      const current = stepIndex
+      setActiveStep(current)
 
-      timeoutId = window.setTimeout(() => {
-        setCompletedSteps((prev) => new Set([...prev, stepIndex]))
-        stepIndex += 1
+      const timeoutId = window.setTimeout(() => {
+        if (cancelled) return
+
+        setCompletedSteps((prev) => {
+          const next = new Set(prev)
+          next.add(current)
+          return next
+        })
+
+        stepIndex = current + 1
         if (stepIndex < INVESTIGATION_PHASES.length) {
           advance()
         }
-      }, INVESTIGATION_PHASES[stepIndex].durationMs)
+      }, INVESTIGATION_PHASES[current].durationMs)
+
+      timeouts.push(timeoutId)
     }
 
     advance()
 
-    return () => window.clearTimeout(timeoutId)
+    return () => {
+      cancelled = true
+      for (const id of timeouts) window.clearTimeout(id)
+    }
   }, [active, reducedMotion])
 
   const phases = INVESTIGATION_PHASES.map((phase) => ({

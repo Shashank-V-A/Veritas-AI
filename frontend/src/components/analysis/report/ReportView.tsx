@@ -29,7 +29,9 @@ import { getSourceTypeLabel } from '@/lib/sourceTypes'
 import type { AnalysisRecord } from '@veritas/shared'
 import { useAnalyze } from '@/hooks/useAnalyze'
 import { useDeleteReport } from '@/hooks/useDeleteReport'
+import { useInvestigationSound } from '@/hooks/useInvestigationSound'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { investigationAudio } from '@/lib/investigationAudio'
 
 interface ReportViewProps {
   record: AnalysisRecord
@@ -41,12 +43,18 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
   const reducedMotion = useReducedMotion()
   const deleteReport = useDeleteReport()
   const analyze = useAnalyze()
+  useInvestigationSound(analyze.isReanalyzing)
   const { report } = record
   const caseId = formatCaseId(record.id)
 
   function handleDelete() {
     const confirmed = window.confirm(t('report.deleteConfirm'))
     if (confirmed) deleteReport.mutate(record.id)
+  }
+
+  function handleReanalyze() {
+    investigationAudio.unlock()
+    analyze.reanalyze(record.id)
   }
 
   return (
@@ -93,7 +101,7 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
           record={record}
           onDelete={readOnly ? undefined : handleDelete}
           isDeleting={deleteReport.isPending}
-          onReanalyze={readOnly ? undefined : () => analyze.reanalyze(record.id)}
+          onReanalyze={readOnly ? undefined : handleReanalyze}
           isReanalyzing={analyze.isReanalyzing}
           readOnly={readOnly}
         />

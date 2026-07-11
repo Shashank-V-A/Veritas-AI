@@ -1,17 +1,15 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { History, Search, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ROUTES } from '@/lib/constants'
 import { CATEGORY_OPTIONS } from '@/lib/categories'
 import type { Verdict } from '@veritas/shared'
 import { AnalysisCard } from '@/components/analysis/AnalysisCard'
-import { CaseSampleCard } from '@/components/dashboard/CaseSampleCard'
 import { EmptyState } from '@/components/analysis/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { EXAMPLE_PROMPTS } from '@/lib/sampleReport'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useHistory } from '@/hooks/useHistory'
 
@@ -25,7 +23,6 @@ const VERDICT_FILTER_VALUES: (Verdict | '')[] = [
 
 export function HistoryList() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [verdict, setVerdict] = useState('')
@@ -137,43 +134,20 @@ export function HistoryList() {
         {isError && <p className="text-sm text-danger">{t('history.loadFailed')}</p>}
 
         {!isLoading && !isError && items.length === 0 && (
-          <>
-            <EmptyState
-              icon={History}
-              title={hasFilters ? t('history.noResults') : t('history.noCases')}
-              description={
-                hasFilters
-                  ? t('history.tryFilters')
-                  : t('history.openSample')
-              }
-              action={
-                !hasFilters ? (
-                  <Button size="sm" asChild>
-                    <Link to={ROUTES.dashboard}>{t('history.newAnalysis')}</Link>
-                  </Button>
-                ) : undefined
-              }
-            />
-            {!hasFilters && (
-              <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {EXAMPLE_PROMPTS.map((example) => (
-                  <CaseSampleCard
-                    key={example.label}
-                    category={example.category}
-                    label={example.label}
-                    trustScore={example.trustScore}
-                    riskLabel={example.riskLabel}
-                    prefill={{
-                      content: example.content,
-                      sourceType: example.sourceType,
-                      title: example.title,
-                    }}
-                    onSelect={() => navigate(ROUTES.dashboard)}
-                  />
-                ))}
-              </div>
-            )}
-          </>
+          <EmptyState
+            icon={History}
+            title={hasFilters ? t('history.noResults') : t('history.noCases')}
+            description={
+              hasFilters ? t('history.tryFilters') : t('history.emptyHint')
+            }
+            action={
+              !hasFilters ? (
+                <Button size="sm" asChild>
+                  <Link to={ROUTES.dashboard}>{t('history.newAnalysis')}</Link>
+                </Button>
+              ) : undefined
+            }
+          />
         )}
 
         {!isLoading && items.length > 0 && (

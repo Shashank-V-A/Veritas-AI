@@ -48,6 +48,10 @@ export function useDeleteReport(options: UseDeleteReportOptions = {}) {
         queryKey: ['history'],
         refetchType: 'all',
       })
+      await queryClient.invalidateQueries({
+        queryKey: ['graph-constellation'],
+        refetchType: 'all',
+      })
     },
     onSuccess: () => {
       if (redirect) {

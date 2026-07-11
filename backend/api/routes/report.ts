@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { cacheControl } from '../middleware/cacheControl.js'
 import { generateReportMarkdown } from '../../services/export/markdown.js'
 import { generateReportPdf } from '../../services/export/pdf.js'
+import { deleteAnalysisFromGraph } from '../../services/graph/neo4j.js'
 import { reportRepository } from '../../services/report/repository.js'
 import { reportIdSchema } from '../../utils/validation.js'
 
@@ -132,6 +133,8 @@ reportRouter.delete('/:id', async (req, res, next) => {
     }
 
     await reportRepository.deleteById(id, userId)
+    // Keep Neo4j constellation in sync with deleted case files
+    await deleteAnalysisFromGraph(id)
     res.json({ ok: true })
   } catch (error) {
     next(error)

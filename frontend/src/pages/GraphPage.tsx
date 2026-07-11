@@ -146,7 +146,8 @@ export function GraphPage() {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ['graph-constellation'],
     queryFn: () => api.getGraph(40),
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
 
   const layout = useMemo(() => (data ? layoutNodes(data) : null), [data])

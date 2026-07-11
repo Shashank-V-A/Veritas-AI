@@ -252,6 +252,7 @@
     "noResults": "No results found",
     "noCases": "No case files yet",
     "tryFilters": "Try different filters or run a new analysis.",
+    "emptyHint": "File your first investigation from the workspace.",
     "openSample": "Open a sample case below or file your first investigation.",
     "newAnalysis": "New analysis",
     "caseFile": "case file",
@@ -314,7 +315,11 @@
     "logoutHint": "Sign out of this workspace on this device.",
     "logout": "Sign out",
     "english": "English",
-    "hindi": "हिन्दी"
+    "hindi": "हिन्दी",
+    "sound": "Investigation sound",
+    "soundHint": "Louder desk ambience while analyzing: scanner sweeps, typewriter ticks, radio squelch, and a case-stamp when the dossier is ready.",
+    "soundOn": "Sound on",
+    "soundOff": "Sound off"
   },
   "theme": {
     "light": "Parchment",
@@ -347,7 +352,9 @@
     "sources": "Cross-referencing sources",
     "bias": "Evaluating bias",
     "fallacies": "Checking logical fallacies",
-    "dossier": "Preparing report"
+    "dossier": "Preparing report",
+    "muteSound": "Mute investigation sound",
+    "unmuteSound": "Unmute investigation sound"
   },
   "command": {
     "title": "Command palette",

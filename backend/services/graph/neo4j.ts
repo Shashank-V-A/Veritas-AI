@@ -175,6 +175,134 @@ export async function syncAnalysisToGraph(
   }
 }
 
+/**
+ * Remove an analysis and its claim subgraph from Neo4j.
+ * Orphaned sources/domains (no remaining links) are cleaned up so the
+ * knowledge graph stays in sync with deleted case files.
+ */
+export async function deleteAnalysisFromGraph(analysisId: string): Promise<void> {
+  const db = getDriver()
+  if (!db) return
+
+  let database: string
+  try {
+    database = await ensureConnected(db)
+  } catch (error) {
+    console.error(
+      '[neo4j] delete skipped — connection failed:',
+      error instanceof Error ? error.message : error,
+    )
+    return
+  }
+
+  const session = db.session({ database })
+
+  try {
+    await session.executeWrite(async (tx) => {
+      // Drop claims that belong to this analysis (ids are `${analysisId}:claim:N`)
+      await tx.run(
+        `
+        MATCH (c:Claim)
+        WHERE c.id STARTS WITH $claimPrefix
+        DETACH DELETE c
+        `,
+        { claimPrefix: `${analysisId}:claim:` },
+      )
+
+      // Drop the analysis node and any remaining relationships
+      await tx.run(
+        `
+        MATCH (a:Analysis {id: $id})
+        DETACH DELETE a
+        `,
+        { id: analysisId },
+      )
+
+      // Remove sources no longer linked to any analysis or claim
+      await tx.run(
+        `
+        MATCH (s:Source)
+        WHERE NOT (s)<-[:CITED_BY|SUGGESTS_SOURCE]-()
+        DETACH DELETE s
+        `,
+      )
+
+      // Remove domains with no remaining sources
+      await tx.run(
+        `
+        MATCH (d:Domain)
+        WHERE NOT (d)<-[:FROM_DOMAIN]-()
+        DETACH DELETE d
+        `,
+      )
+    })
+  } catch (error) {
+    console.error('[neo4j] delete failed:', error instanceof Error ? error.message : error)
+  } finally {
+    await session.close()
+  }
+}
+
+/**
+ * Remove Neo4j analyses (and their claims) that no longer exist in the app DB.
+ * Safe for multi-user: only deletes graph nodes whose ids are absent from Prisma.
+ */
+export async function pruneAnalysesMissingFromDb(existingIds: string[]): Promise<void> {
+  const db = getDriver()
+  if (!db) return
+
+  let database: string
+  try {
+    database = await ensureConnected(db)
+  } catch {
+    return
+  }
+
+  const session = db.session({ database })
+  try {
+    await session.executeWrite(async (tx) => {
+      if (existingIds.length === 0) {
+        await tx.run(`MATCH (c:Claim) DETACH DELETE c`)
+        await tx.run(`MATCH (a:Analysis) DETACH DELETE a`)
+      } else {
+        await tx.run(
+          `
+          MATCH (a:Analysis)
+          WHERE NOT a.id IN $existingIds
+          OPTIONAL MATCH (a)-[:HAS_CLAIM]->(c:Claim)
+          WITH a, collect(c) AS claims
+          FOREACH (claim IN claims | DETACH DELETE claim)
+          DETACH DELETE a
+          `,
+          { existingIds },
+        )
+        await tx.run(
+          `
+          MATCH (c:Claim)
+          WHERE NOT (:Analysis)-[:HAS_CLAIM]->(c)
+          DETACH DELETE c
+          `,
+        )
+      }
+
+      await tx.run(`
+        MATCH (s:Source)
+        WHERE NOT (s)<-[:CITED_BY|SUGGESTS_SOURCE]-()
+        DETACH DELETE s
+      `)
+      await tx.run(`
+        MATCH (d:Domain)
+        WHERE NOT (d)<-[:FROM_DOMAIN]-()
+        DETACH DELETE d
+      `)
+    })
+  } catch (error) {
+    console.error('[neo4j] prune failed:', error instanceof Error ? error.message : error)
+  } finally {
+    await session.close()
+  }
+}
+
 export async function closeNeo4jDriver(): Promise<void> {
   if (driver) {
     await driver.close()
@@ -211,10 +339,18 @@ function asInt(n: number) {
 }
 
 /** Read a limited constellation of recent analyses, claims, sources, and domains. */
-export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
+export async function getGraphSnapshot(
+  limit = 40,
+  options?: { analysisIds?: string[] },
+): Promise<GraphSnapshot> {
   const db = getDriver()
   if (!db) {
     return { configured: false, connected: false, nodes: [], edges: [] }
+  }
+
+  const allowIds = options?.analysisIds
+  if (allowIds && allowIds.length === 0) {
+    return { configured: true, connected: true, nodes: [], edges: [] }
   }
 
   let database: string
@@ -237,7 +373,25 @@ export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
 
   try {
     const result = await session.run(
+      allowIds
+        ? `
+      MATCH (a:Analysis)
+      WHERE a.id IN $analysisIds
+      WITH a ORDER BY coalesce(a.updatedAt, datetime({epochMillis: 0})) DESC
+      LIMIT $limit
+      OPTIONAL MATCH (a)-[:HAS_CLAIM]->(c:Claim)
+      OPTIONAL MATCH (a)-[:SUGGESTS_SOURCE]->(s:Source)
+      OPTIONAL MATCH (c)-[:CITED_BY]->(cs:Source)
+      OPTIONAL MATCH (s)-[:FROM_DOMAIN]->(d:Domain)
+      OPTIONAL MATCH (cs)-[:FROM_DOMAIN]->(cd:Domain)
+      OPTIONAL MATCH (c1:Claim)-[r:RELATED_TO|SUPPORTS|CONTRADICTS]->(c2:Claim)
+      WHERE (a)-[:HAS_CLAIM]->(c1) AND (a)-[:HAS_CLAIM]->(c2)
+      RETURN a, collect(DISTINCT c) AS claims,
+             collect(DISTINCT s) + collect(DISTINCT cs) AS sources,
+             collect(DISTINCT d) + collect(DISTINCT cd) AS domains,
+             collect(DISTINCT {from: c1.id, to: c2.id, type: type(r)}) AS rels
       `
+        : `
       MATCH (a:Analysis)
       WITH a ORDER BY coalesce(a.updatedAt, datetime({epochMillis: 0})) DESC
       LIMIT $limit
@@ -253,7 +407,9 @@ export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
              collect(DISTINCT d) + collect(DISTINCT cd) AS domains,
              collect(DISTINCT {from: c1.id, to: c2.id, type: type(r)}) AS rels
       `,
-      { limit: asInt(analysisLimit) },
+      allowIds
+        ? { limit: asInt(analysisLimit), analysisIds: allowIds }
+        : { limit: asInt(analysisLimit) },
     )
 
     for (const record of result.records) {

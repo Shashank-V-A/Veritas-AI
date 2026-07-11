@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { useAnalyze } from '@/hooks/useAnalyze'
+import { investigationAudio } from '@/lib/investigationAudio'
 import type { AnalysisPrefill } from '@/lib/sampleReport'
 
 type InputMode = 'text' | 'url' | 'youtube' | 'image' | 'pdf'
@@ -146,6 +147,9 @@ export function AnalysisInput({
 
   function handleSubmit() {
     if (!canSubmit) return
+
+    // Unlock audio in the same user gesture so the loading soundscape can play
+    investigationAudio.unlock()
 
     const shared = {
       title: title.trim() || undefined,

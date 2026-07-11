@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
-import { Check, Fingerprint, Search } from 'lucide-react'
+import { Check, Fingerprint, Search, Volume2, VolumeX } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useInvestigationProgress } from '@/hooks/useInvestigationProgress'
+import { useInvestigationSound } from '@/hooks/useInvestigationSound'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface AnalysisLoadingProps {
@@ -13,6 +14,10 @@ export function AnalysisLoading({ className }: AnalysisLoadingProps) {
   const { t } = useTranslation()
   const { phases, activeStep, completedSteps, statusText, isComplete } =
     useInvestigationProgress()
+  const { enabled: soundOn, setEnabled: setSoundOn } = useInvestigationSound(
+    true,
+    activeStep,
+  )
   const reducedMotion = useReducedMotion()
   const progress = Math.round(
     ((completedSteps.size + (isComplete ? 0 : 0.35)) / phases.length) * 100,
@@ -39,9 +44,27 @@ export function AnalysisLoading({ className }: AnalysisLoadingProps) {
           </h2>
           <p className="mt-1.5 text-sm text-muted-foreground">{statusText}</p>
         </div>
-        <div className="hidden shrink-0 text-right sm:block">
-          <p className="font-mono text-2xl tabular-nums text-accent">{Math.min(progress, 99)}%</p>
-          <p className="meta-label mt-1">{t('common.progress')}</p>
+        <div className="flex shrink-0 items-start gap-3">
+          <button
+            type="button"
+            onClick={() => setSoundOn(!soundOn)}
+            className="pressable inline-flex size-9 items-center justify-center border border-border text-muted-foreground transition-colors hover:border-accent/40 hover:text-accent"
+            aria-pressed={soundOn}
+            aria-label={soundOn ? t('loading.muteSound') : t('loading.unmuteSound')}
+            title={soundOn ? t('loading.muteSound') : t('loading.unmuteSound')}
+          >
+            {soundOn ? (
+              <Volume2 className="size-4" strokeWidth={1.75} />
+            ) : (
+              <VolumeX className="size-4" strokeWidth={1.75} />
+            )}
+          </button>
+          <div className="hidden text-right sm:block">
+            <p className="font-mono text-2xl tabular-nums text-accent">
+              {Math.min(progress, 99)}%
+            </p>
+            <p className="meta-label mt-1">{t('common.progress')}</p>
+          </div>
         </div>
       </div>
 
@@ -68,10 +91,17 @@ export function AnalysisLoading({ className }: AnalysisLoadingProps) {
                 isPhaseComplete && 'border-border/80 bg-elevated/40',
                 !isActive && !isPhaseComplete && 'border-transparent opacity-40',
               )}
+              initial={false}
               animate={
-                isActive && !reducedMotion ? { opacity: [0.85, 1, 0.85] } : undefined
+                isActive && !reducedMotion
+                  ? { opacity: [0.85, 1, 0.85] }
+                  : { opacity: isPhaseComplete || isActive ? 1 : 0.4 }
               }
-              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              transition={
+                isActive && !reducedMotion
+                  ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }
+                  : { duration: 0.2 }
+              }
             >
               <span
                 className={cn(
