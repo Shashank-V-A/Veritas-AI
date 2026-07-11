@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { CHART_COLORS } from '@/lib/chartColors'
 import type { BiasAnalysis } from '@/types'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -8,9 +9,9 @@ interface BiasMeterProps {
 }
 
 const BIAS_DIMENSIONS = [
-  { key: 'political' as const, label: 'Political' },
-  { key: 'commercial' as const, label: 'Commercial' },
-  { key: 'ideological' as const, label: 'Ideological' },
+  { key: 'political' as const, labelKey: 'report.biasPolitical' },
+  { key: 'commercial' as const, labelKey: 'report.biasCommercial' },
+  { key: 'ideological' as const, labelKey: 'report.biasIdeological' },
 ]
 
 function BiasBar({ label, value, delay }: { label: string; value: number; delay: number }) {
@@ -38,11 +39,13 @@ function BiasBar({ label, value, delay }: { label: string; value: number; delay:
 }
 
 export function BiasMeter({ bias }: BiasMeterProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="space-y-5">
       <div className="rounded-lg border border-border bg-surface-secondary/40 p-4">
         <div className="flex items-baseline justify-between">
-          <span className="text-xs text-muted-foreground">Overall bias</span>
+          <span className="text-xs text-muted-foreground">{t('report.biasOverall')}</span>
           <span className="text-2xl font-semibold tabular-nums text-foreground">
             {bias.overall}
           </span>
@@ -53,7 +56,7 @@ export function BiasMeter({ bias }: BiasMeterProps) {
         {BIAS_DIMENSIONS.map((dim, index) => (
           <BiasBar
             key={dim.key}
-            label={dim.label}
+            label={t(dim.labelKey)}
             value={bias[dim.key]}
             delay={0.1 + index * 0.1}
           />

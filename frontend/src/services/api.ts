@@ -85,6 +85,28 @@ export interface DomainReputation {
   updatedAt?: string
 }
 
+export interface GraphNode {
+  id: string
+  label: string
+  type: 'Analysis' | 'Claim' | 'Source' | 'Domain'
+  meta?: Record<string, string | number | null>
+}
+
+export interface GraphEdge {
+  id: string
+  from: string
+  to: string
+  type: string
+}
+
+export interface GraphSnapshot {
+  configured: boolean
+  connected: boolean
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  error?: string
+}
+
 export type {
   ClaimRelation,
   ClaimTimelineEvent,
@@ -247,6 +269,13 @@ export const api = {
     )
     if (response.status === 404) return null
     return handleResponse<DomainReputation>(response)
+  },
+
+  async getGraph(limit = 40): Promise<GraphSnapshot> {
+    const response = await fetch(`${API_BASE_URL}/graph?limit=${limit}`, {
+      credentials: 'include',
+    })
+    return handleResponse<GraphSnapshot>(response)
   },
 
   async getHistory(params?: {

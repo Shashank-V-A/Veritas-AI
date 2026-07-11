@@ -213,6 +213,10 @@ export function AnalysisInput({
       return
     }
     if (!file.type.startsWith('image/')) return
+    if (file.size > 4 * 1024 * 1024) {
+      window.alert(t('intake.imageTooLarge'))
+      return
+    }
     setImageFile(file)
   }
 
@@ -392,7 +396,7 @@ export function AnalysisInput({
                   >
                     {SOURCE_TYPE_OPTIONS.filter((o) => o.value !== 'pdf').map((opt) => (
                       <option key={opt.value} value={opt.value}>
-                        {opt.label}
+                        {t(opt.labelKey)}
                       </option>
                     ))}
                   </select>
@@ -449,7 +453,7 @@ export function AnalysisInput({
               >
                 {CATEGORY_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </option>
                 ))}
               </select>

@@ -1,11 +1,24 @@
 import type { CredibilityReport } from '@veritas/shared'
 import type { WebSearchResult } from '../search/webSearch.js'
 
+/**
+ * Enrich reports with real web-search hits only.
+ * Does NOT invent claim timelines, sequential "related" edges, or fake timestamps.
+ */
 export function enrichReportWithSearch(
   report: CredibilityReport,
   searchResults: WebSearchResult[],
 ): CredibilityReport {
-  if (searchResults.length === 0) return report
+  if (searchResults.length === 0) {
+    return {
+      ...report,
+      confidenceInterval: {
+        low: Math.max(0, report.trustScore - 12),
+        high: Math.min(100, report.trustScore + 12),
+        method: 'Heuristic estimate (±12) — not a statistical confidence interval',
+      },
+    }
+  }
 
   const existingUrls = new Set(
     report.suggestedReading.map((s) => s.url).filter(Boolean),
@@ -17,48 +30,43 @@ export function enrichReportWithSearch(
       mergedReading.push({
         title: result.title,
         url: result.url,
-        reason: result.snippet || 'Web search result relevant to extracted claims',
+        reason: result.snippet
+          ? `Web search: ${result.snippet}`
+          : 'Retrieved via live web search (supporting context, not a verified citation)',
       })
       existingUrls.add(result.url)
     }
   }
 
-  const sourceLineage = report.claims.slice(0, 5).map((claim, index) => ({
+  // Attach the same verified search pool to each claim as supporting context —
+  // labeled honestly as search hits, not claim-specific citations.
+  const searchPool = searchResults.slice(0, 4).map((r) => ({
+    title: r.title,
+    url: r.url,
+    snippet: r.snippet
+      ? `${r.snippet} · Live web search context`
+      : 'Live web search context (not a primary citation)',
+  }))
+
+  const sourceLineage = report.claims.slice(0, 5).map((claim) => ({
     claim: claim.claim,
-    sources: searchResults.slice(index, index + 2).map((r) => ({
-      title: r.title,
-      url: r.url,
-      snippet: r.snippet,
-    })),
+    sources: searchPool,
   }))
 
   const confidenceInterval = {
     low: Math.max(0, report.trustScore - 12),
     high: Math.min(100, report.trustScore + 12),
-    method: 'Claim confidence dispersion + search coverage',
+    method: 'Heuristic estimate (±12) based on trust score — not a statistical CI',
   }
 
-  const claimRelations = report.claims
-    .slice(0, 4)
-    .flatMap((_, i) =>
-      i < report.claims.length - 1
-        ? [{ from: i, to: i + 1, type: 'related' as const }]
-        : [],
-    )
-
-  const claimTimeline = report.claims.map((c) => ({
-    claim: c.claim,
-    status: c.status,
-    appearedAt: new Date().toISOString(),
-    debunkedAt: c.status === 'false' ? new Date().toISOString() : undefined,
-  }))
-
+  // Keep Mesh-provided claimRelations only; do not synthesize sequential edges.
   return {
     ...report,
     suggestedReading: mergedReading,
     sourceLineage,
     confidenceInterval,
-    claimRelations,
-    claimTimeline,
+    searchQueryCount: searchResults.length,
+    // Drop synthetic timelines — timestamps were previously fabricated as "now".
+    claimTimeline: undefined,
   }
 }

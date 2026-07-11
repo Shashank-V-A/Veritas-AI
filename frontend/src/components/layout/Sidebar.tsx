@@ -5,6 +5,7 @@ import {
   FileSearch,
   FolderOpen,
   LogOut,
+  Network,
   Plus,
   Settings,
   Shield,
@@ -21,6 +22,7 @@ import { useAuth } from '@/contexts/AuthContext'
 const navItems = [
   { labelKey: 'nav.workspace', href: ROUTES.dashboard, icon: FileSearch },
   { labelKey: 'nav.caseFiles', href: ROUTES.history, icon: FolderOpen },
+  { labelKey: 'nav.graph', href: ROUTES.graph, icon: Network },
   { labelKey: 'nav.settings', href: ROUTES.settings, icon: Settings },
 ] as const
 

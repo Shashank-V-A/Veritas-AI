@@ -9,6 +9,7 @@ import {
   shouldAutoDetectForward,
 } from '../../services/forward/assessForward.js'
 import { extractYouTubeContent } from '../../services/media/youtube.js'
+import { extractTextFromImage } from '../../services/media/ocr.js'
 import { extractTextFromPdf } from '../../services/pdf/extract.js'
 import { extractFromUrl } from '../../services/url/extract.js'
 import { reportRepository } from '../../services/report/repository.js'
@@ -48,7 +49,7 @@ const batchUpload = multer({
 
 const imageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 4 * 1024 * 1024, files: 1 },
   fileFilter: (_req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true)
@@ -258,12 +259,22 @@ analyzeRouter.post('/image', imageUpload.single('image'), async (req, res, next)
       throw new AppError('Image file is required', 'VALIDATION_ERROR', 400)
     }
 
-    // OCR-lite: describe image context for Mesh text analysis (vision via Mesh when available)
-    const content = `[Image upload: ${req.file.originalname}]\nAnalyze visible text and claims in this meme/screenshot. Use OCR-style extraction for any text overlays.`
+    const ocr = await extractTextFromImage(
+      req.file.buffer,
+      req.file.mimetype,
+      req.file.originalname,
+    )
+
+    const content = [
+      `[Image OCR · ${req.file.originalname}]`,
+      '',
+      ocr.text,
+    ].join('\n')
+
     const title =
       typeof req.body.title === 'string' && req.body.title.trim()
         ? req.body.title.trim().slice(0, 200)
-        : req.file.originalname
+        : req.file.originalname.replace(/\.[^.]+$/, '')
 
     const pipeline = await runAnalysis({
       content,
@@ -277,7 +288,7 @@ analyzeRouter.post('/image', imageUpload.single('image'), async (req, res, next)
         sourceType: 'raw',
         title,
         report: pipeline.report,
-        meshModel: pipeline.meshModel,
+        meshModel: pipeline.meshModel || ocr.model,
         meshLatencyMs: pipeline.meshLatencyMs,
         userId: req.user?.sub,
       },

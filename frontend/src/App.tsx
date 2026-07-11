@@ -47,6 +47,9 @@ const JudgeModePage = lazy(() =>
 const SettingsPage = lazy(() =>
   import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })),
 )
+const GraphPage = lazy(() =>
+  import('@/pages/GraphPage').then((m) => ({ default: m.GraphPage })),
+)
 
 const ProtectedRoute = lazy(() =>
   import('@/components/auth/ProtectedRoute').then((m) => ({
@@ -125,6 +128,14 @@ function AnimatedRoutes() {
               element={
                 <Suspense fallback={<RouteFallback />}>
                   <HistoryPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="graph"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <GraphPage />
                 </Suspense>
               }
             />

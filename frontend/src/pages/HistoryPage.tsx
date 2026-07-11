@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion'
 import { FolderOpen } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { slideUp, staggerContainer } from '@/animations/variants'
 import { HistoryList } from '@/components/analysis/HistoryList'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 export function HistoryPage() {
+  const { t } = useTranslation()
   const reducedMotion = useReducedMotion()
 
   return (
@@ -17,13 +19,13 @@ export function HistoryPage() {
         <motion.header variants={reducedMotion ? undefined : slideUp} className="mb-10">
           <p className="meta-label flex items-center gap-2 text-accent">
             <FolderOpen className="size-3" strokeWidth={1.75} />
-            Case file archive
+            {t('history.eyebrow')}
           </p>
           <h1 className="mt-3 font-display text-3xl leading-tight text-foreground md:text-4xl">
-            Your credibility dossiers
+            {t('history.title')}
           </h1>
           <p className="mt-3 max-w-lg text-base leading-relaxed text-muted-foreground">
-            Every report you&apos;ve run — searchable, private, and tied to your account.
+            {t('history.body')}
           </p>
         </motion.header>
 

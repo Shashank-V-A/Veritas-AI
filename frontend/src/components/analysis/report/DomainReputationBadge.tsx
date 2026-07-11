@@ -60,23 +60,25 @@ export function DomainReputationBadge({ sourceUrl, className }: DomainReputation
             <ShieldCheck className="size-4 text-success" strokeWidth={1.5} />
           )}
           <span>
-            Avg{' '}
+            {t('report.domainAvg')}{' '}
             <span className="tabular-nums text-card-foreground">
               {Math.round(reputation.avgTrustScore)}
             </span>
           </span>
           <span>
-            Cases <span className="tabular-nums">{reputation.caseCount}</span>
+            {t('report.domainCases')}{' '}
+            <span className="tabular-nums">{reputation.caseCount}</span>
           </span>
           {reputation.lowTrustCount > 0 && (
             <span className="text-danger">
-              Low trust <span className="tabular-nums">{reputation.lowTrustCount}</span>
+              {t('report.domainLowTrust')}{' '}
+              <span className="tabular-nums">{reputation.lowTrustCount}</span>
             </span>
           )}
         </div>
       ) : (
         <span className="font-mono text-[10px] text-card-foreground/45">
-          First analysis from this domain
+          {t('report.domainFirst')}
         </span>
       )}
     </div>

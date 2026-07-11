@@ -1,6 +1,12 @@
+export type MeshTextContent = string
+
+export type MeshContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } }
+
 export interface MeshMessage {
   role: 'system' | 'user' | 'assistant'
-  content: string
+  content: MeshTextContent | MeshContentPart[]
 }
 
 export interface MeshJsonSchemaFormat {

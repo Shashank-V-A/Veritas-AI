@@ -15,6 +15,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const pageTitles: Record<string, string> = {
     [ROUTES.dashboard]: t('nav.workspace'),
     [ROUTES.history]: t('nav.caseFiles'),
+    [ROUTES.graph]: t('nav.graph'),
     [ROUTES.settings]: t('nav.settings'),
   }
 

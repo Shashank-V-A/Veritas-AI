@@ -121,6 +121,9 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
               <p className="meta-label">
                 {t('report.confidenceInterval')}
               </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t('report.confidenceIntervalHint')}
+              </p>
               <ConfidenceIntervalBar
                 score={report.trustScore}
                 interval={report.confidenceInterval}

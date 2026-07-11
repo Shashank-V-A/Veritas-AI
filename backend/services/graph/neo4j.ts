@@ -182,3 +182,208 @@ export async function closeNeo4jDriver(): Promise<void> {
     verified = false
   }
 }
+
+export interface GraphNode {
+  id: string
+  label: string
+  type: 'Analysis' | 'Claim' | 'Source' | 'Domain'
+  meta?: Record<string, string | number | null>
+}
+
+export interface GraphEdge {
+  id: string
+  from: string
+  to: string
+  type: string
+}
+
+export interface GraphSnapshot {
+  configured: boolean
+  connected: boolean
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+  error?: string
+}
+
+/** Read a limited constellation of recent analyses, claims, sources, and domains. */
+export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
+  const db = getDriver()
+  if (!db) {
+    return { configured: false, connected: false, nodes: [], edges: [] }
+  }
+
+  let database: string
+  try {
+    database = await ensureConnected(db)
+  } catch (error) {
+    return {
+      configured: true,
+      connected: false,
+      nodes: [],
+      edges: [],
+      error: error instanceof Error ? error.message : 'Connection failed',
+    }
+  }
+
+  const session = db.session({ database })
+  const nodes = new Map<string, GraphNode>()
+  const edges: GraphEdge[] = []
+
+  try {
+    const result = await session.run(
+      `
+      MATCH (a:Analysis)
+      WITH a ORDER BY coalesce(a.updatedAt, datetime({epochMillis: 0})) DESC
+      LIMIT $limit
+      OPTIONAL MATCH (a)-[:HAS_CLAIM]->(c:Claim)
+      OPTIONAL MATCH (a)-[:SUGGESTS_SOURCE]->(s:Source)
+      OPTIONAL MATCH (c)-[:CITED_BY]->(cs:Source)
+      OPTIONAL MATCH (s)-[:FROM_DOMAIN]->(d:Domain)
+      OPTIONAL MATCH (cs)-[:FROM_DOMAIN]->(cd:Domain)
+      OPTIONAL MATCH (c1:Claim)-[r:RELATED_TO|SUPPORTS|CONTRADICTS]->(c2:Claim)
+      WHERE (a)-[:HAS_CLAIM]->(c1) AND (a)-[:HAS_CLAIM]->(c2)
+      RETURN a, collect(DISTINCT c) AS claims,
+             collect(DISTINCT s) + collect(DISTINCT cs) AS sources,
+             collect(DISTINCT d) + collect(DISTINCT cd) AS domains,
+             collect(DISTINCT {from: c1.id, to: c2.id, type: type(r)}) AS rels
+      `,
+      { limit: Math.min(Math.max(limit, 5), 80) },
+    )
+
+    for (const record of result.records) {
+      const analysis = record.get('a')
+      if (analysis?.properties?.id) {
+        const id = String(analysis.properties.id)
+        nodes.set(id, {
+          id,
+          label: String(analysis.properties.verdict ?? 'case').slice(0, 24),
+          type: 'Analysis',
+          meta: {
+            trustScore: Number(analysis.properties.trustScore ?? 0),
+            verdict: String(analysis.properties.verdict ?? ''),
+          },
+        })
+      }
+
+      for (const claim of record.get('claims') ?? []) {
+        if (!claim?.properties?.id) continue
+        const id = String(claim.properties.id)
+        nodes.set(id, {
+          id,
+          label: String(claim.properties.text ?? 'claim').slice(0, 42),
+          type: 'Claim',
+          meta: {
+            status: String(claim.properties.status ?? ''),
+            confidence: Number(claim.properties.confidence ?? 0),
+          },
+        })
+        if (analysis?.properties?.id) {
+          edges.push({
+            id: `${analysis.properties.id}->${id}`,
+            from: String(analysis.properties.id),
+            to: id,
+            type: 'HAS_CLAIM',
+          })
+        }
+      }
+
+      for (const source of record.get('sources') ?? []) {
+        if (!source?.properties?.url) continue
+        const id = `source:${source.properties.url}`
+        nodes.set(id, {
+          id,
+          label: String(source.properties.title ?? source.properties.domain ?? source.properties.url).slice(0, 36),
+          type: 'Source',
+          meta: { url: String(source.properties.url) },
+        })
+      }
+
+      for (const domain of record.get('domains') ?? []) {
+        if (!domain?.properties?.name) continue
+        const id = `domain:${domain.properties.name}`
+        nodes.set(id, {
+          id,
+          label: String(domain.properties.name).slice(0, 28),
+          type: 'Domain',
+        })
+      }
+
+      for (const rel of record.get('rels') ?? []) {
+        if (!rel?.from || !rel?.to || !rel?.type) continue
+        edges.push({
+          id: `${rel.from}-${rel.type}-${rel.to}`,
+          from: String(rel.from),
+          to: String(rel.to),
+          type: String(rel.type),
+        })
+      }
+    }
+
+    // Link sources to analyses / claims via a second lightweight pass if needed
+    const linkResult = await session.run(
+      `
+      MATCH (a:Analysis)-[:SUGGESTS_SOURCE]->(s:Source)
+      WITH a, s ORDER BY coalesce(a.updatedAt, datetime({epochMillis: 0})) DESC
+      LIMIT $limit
+      RETURN a.id AS aid, s.url AS url
+      `,
+      { limit: Math.min(Math.max(limit * 2, 10), 120) },
+    )
+    for (const record of linkResult.records) {
+      const aid = record.get('aid')
+      const url = record.get('url')
+      if (!aid || !url) continue
+      const sid = `source:${url}`
+      if (nodes.has(String(aid)) && nodes.has(sid)) {
+        edges.push({
+          id: `${aid}->${sid}`,
+          from: String(aid),
+          to: sid,
+          type: 'SUGGESTS_SOURCE',
+        })
+      }
+    }
+
+    // Link sources to domains for constellation completeness
+    const domainLinkResult = await session.run(
+      `
+      MATCH (s:Source)-[:FROM_DOMAIN]->(d:Domain)
+      RETURN s.url AS url, d.name AS name
+      LIMIT $limit
+      `,
+      { limit: Math.min(Math.max(limit * 3, 20), 200) },
+    )
+    for (const record of domainLinkResult.records) {
+      const url = record.get('url')
+      const name = record.get('name')
+      if (!url || !name) continue
+      const sid = `source:${url}`
+      const did = `domain:${name}`
+      if (nodes.has(sid) && nodes.has(did)) {
+        edges.push({
+          id: `${sid}->${did}`,
+          from: sid,
+          to: did,
+          type: 'FROM_DOMAIN',
+        })
+      }
+    }
+
+    return {
+      configured: true,
+      connected: true,
+      nodes: [...nodes.values()],
+      edges,
+    }
+  } catch (error) {
+    return {
+      configured: true,
+      connected: true,
+      nodes: [],
+      edges: [],
+      error: error instanceof Error ? error.message : 'Graph query failed',
+    }
+  } finally {
+    await session.close()
+  }
+}

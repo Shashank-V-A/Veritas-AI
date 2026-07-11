@@ -29,7 +29,7 @@ export function RecentAnalyses({ limit = 5 }: RecentAnalysesProps) {
   if (isError) {
     return (
       <p className="text-sm text-card-foreground/60">
-        Could not load recent analyses.
+        {t('history.recentLoadFailed')}
       </p>
     )
   }
@@ -40,8 +40,8 @@ export function RecentAnalyses({ limit = 5 }: RecentAnalysesProps) {
     return (
       <EmptyState
         icon={FileText}
-        title="No case files yet"
-        description="Submit evidence from the workspace, or open a sample case file to see how a dossier is structured."
+        title={t('history.recentEmptyTitle')}
+        description={t('history.recentEmptyBody')}
         action={
           <Button variant="outline" size="sm" asChild className="border-accent/30">
             <Link to={ROUTES.dashboard}>{t('dashboard.goToWorkspace')}</Link>
@@ -60,7 +60,7 @@ export function RecentAnalyses({ limit = 5 }: RecentAnalysesProps) {
       {(data?.total ?? 0) > limit && (
         <div className="pt-2 text-center">
           <Button variant="ghost" size="sm" asChild>
-            <Link to={ROUTES.history}>View all history</Link>
+            <Link to={ROUTES.history}>{t('history.viewAll')}</Link>
           </Button>
         </div>
       )}

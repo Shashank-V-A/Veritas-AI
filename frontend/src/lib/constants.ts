@@ -5,6 +5,7 @@ export const ROUTES = {
   home: '/',
   dashboard: '/app',
   history: '/app/history',
+  graph: '/app/graph',
   settings: '/app/settings',
   judge: '/judge',
   analysis: (id: string) => `/app/analysis/${id}`,

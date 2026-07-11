@@ -87,7 +87,7 @@ export function HistoryList() {
                 value={opt.value}
                 className="bg-elevated text-foreground"
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </option>
             ))}
           </select>

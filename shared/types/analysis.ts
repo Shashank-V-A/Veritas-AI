@@ -76,6 +76,8 @@ export interface CredibilityReport {
   claimRelations?: import('./extensions.js').ClaimRelation[]
   confidenceInterval?: import('./extensions.js').ConfidenceInterval
   claimTimeline?: import('./extensions.js').ClaimTimelineEvent[]
+  /** How many live web-search hits were attached as supporting context */
+  searchQueryCount?: number
 }
 
 export interface AnalysisRecord {
