@@ -8,8 +8,9 @@ import { HowItWorks } from '@/components/landing/HowItWorks'
 import { LandingFeatures } from '@/components/landing/LandingFeatures'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { HowItsDifferent } from '@/components/landing/HowItsDifferent'
-import { LandingStats } from '@/components/landing/LandingStats'
 import { SampleReportPreview } from '@/components/landing/SampleReportPreview'
+import { TaglineMarquee } from '@/components/landing/TaglineMarquee'
+import { HazardTapeCross } from '@/components/brand/HazardTape'
 import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton'
 import { AuthLoadingScreen } from '@/components/auth/AuthLoadingScreen'
 import { ROUTES } from '@/lib/constants'
@@ -33,11 +34,14 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-svh bg-[#090909] text-[#F5F5F5]">
-      <LandingHeader onStart={login} />
+    <div className="relative min-h-svh overflow-hidden bg-[#090909] text-[#F5F5F5]">
+      <HazardTapeCross density="corners" className="opacity-70" />
 
-      {/* Hero */}
-      <section className="relative overflow-hidden px-6 pb-16 pt-10 md:px-12 md:pb-20 md:pt-14 lg:px-16">
+      <div className="relative z-10">
+        <LandingHeader onStart={login} />
+
+        {/* Hero */}
+        <section className="relative overflow-hidden px-6 pb-16 pt-10 md:px-12 md:pb-20 md:pt-14 lg:px-16">
           {/* Subtle slate texture */}
           <div
             className="pointer-events-none absolute inset-0 opacity-60"
@@ -99,7 +103,9 @@ export function LandingPage() {
                   <ArrowRight className="size-4" strokeWidth={2} />
                 </button>
                 <a
-                  href="#about"
+                  href={ROUTES.demo}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 font-sans text-[12px] font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {t('landing.viewSample')}
@@ -117,7 +123,6 @@ export function LandingPage() {
           </div>
         </section>
 
-        <LandingStats />
         <HowItsDifferent />
         <HowItWorks />
         <LandingFeatures />
@@ -196,27 +201,9 @@ export function LandingPage() {
         </section>
 
         <footer className="border-t border-border py-5">
-          <div className="footer-marquee" aria-label={t('landing.footerAria')}>
-            <div className="footer-marquee__track">
-              {Array.from({ length: 2 }).map((_, loop) => (
-                <p
-                  key={loop}
-                  className="footer-marquee__item font-mono text-[11px] tracking-[0.04em] text-muted-foreground"
-                  aria-hidden={loop > 0}
-                >
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <span key={i}>
-                      {t('app.name')} · {t('app.tagline')}
-                      <span className="mx-8 text-accent/40" aria-hidden>
-                        ◆
-                      </span>
-                    </span>
-                  ))}
-                </p>
-              ))}
-            </div>
-          </div>
+          <TaglineMarquee orientation="horizontal" />
         </footer>
+      </div>
     </div>
   )
 }

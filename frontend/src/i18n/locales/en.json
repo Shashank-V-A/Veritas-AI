@@ -30,7 +30,7 @@
   "landing": {
     "eyebrow": "Digital investigation platform",
     "heroBody": "An AI-powered investigation desk for claims, sources, and narratives. Paste any article, forward, or transcript — receive a structured credibility dossier built for analysts, journalists, and decision-makers.",
-    "viewSample": "View sample dossier",
+    "viewSample": "View demo",
     "sampleEyebrow": "Sample dossier",
     "sampleTitle": "What an investigation looks like",
     "sampleBody": "A classified-style credibility report — trust score, claims, bias, and evidence.",
@@ -280,7 +280,15 @@
     "typeAnalysis": "Analysis",
     "typeClaim": "Claim",
     "typeSource": "Source",
-    "typeDomain": "Domain"
+    "typeDomain": "Domain",
+    "hint": "Hover or click a node for details",
+    "inspector": "Node inspector",
+    "inspectorEmpty": "Select a node to read its full label, verdict, and connections. Center gold nodes are investigations — “unsupported” means that case’s credibility verdict, not a system error.",
+    "verdict": "Verdict",
+    "trustScore": "Trust score",
+    "status": "Status",
+    "confidence": "Confidence",
+    "connections": "{{count}} linked edges"
   },
   "categories": {
     "health": "Health",

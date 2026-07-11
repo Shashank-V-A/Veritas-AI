@@ -205,6 +205,11 @@ export interface GraphSnapshot {
   error?: string
 }
 
+/** Neo4j LIMIT/SKIP require Integer — JS numbers serialize as floats (e.g. 40.0). */
+function asInt(n: number) {
+  return neo4j.int(Math.trunc(n))
+}
+
 /** Read a limited constellation of recent analyses, claims, sources, and domains. */
 export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
   const db = getDriver()
@@ -228,6 +233,7 @@ export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
   const session = db.session({ database })
   const nodes = new Map<string, GraphNode>()
   const edges: GraphEdge[] = []
+  const analysisLimit = Math.min(Math.max(Math.trunc(limit) || 40, 5), 80)
 
   try {
     const result = await session.run(
@@ -247,7 +253,7 @@ export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
              collect(DISTINCT d) + collect(DISTINCT cd) AS domains,
              collect(DISTINCT {from: c1.id, to: c2.id, type: type(r)}) AS rels
       `,
-      { limit: Math.min(Math.max(limit, 5), 80) },
+      { limit: asInt(analysisLimit) },
     )
 
     for (const record of result.records) {
@@ -327,7 +333,7 @@ export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
       LIMIT $limit
       RETURN a.id AS aid, s.url AS url
       `,
-      { limit: Math.min(Math.max(limit * 2, 10), 120) },
+      { limit: asInt(Math.min(Math.max(analysisLimit * 2, 10), 120)) },
     )
     for (const record of linkResult.records) {
       const aid = record.get('aid')
@@ -351,7 +357,7 @@ export async function getGraphSnapshot(limit = 40): Promise<GraphSnapshot> {
       RETURN s.url AS url, d.name AS name
       LIMIT $limit
       `,
-      { limit: Math.min(Math.max(limit * 3, 20), 200) },
+      { limit: asInt(Math.min(Math.max(analysisLimit * 3, 20), 200)) },
     )
     for (const record of domainLinkResult.records) {
       const url = record.get('url')

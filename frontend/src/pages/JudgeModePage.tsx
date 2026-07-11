@@ -7,6 +7,7 @@ import { ReportView } from '@/components/analysis/report/ReportView'
 import { Button } from '@/components/ui/button'
 import { SAMPLE_REPORT, EXAMPLE_PROMPTS } from '@/lib/sampleReport'
 import { ROUTES } from '@/lib/constants'
+import { HazardTapeCross } from '@/components/brand/HazardTape'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import type { AnalysisRecord } from '@veritas/shared'
 
@@ -48,13 +49,14 @@ export function JudgeModePage() {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col bg-surface text-card-foreground"
+      className="relative flex min-h-svh flex-col overflow-hidden bg-surface text-card-foreground"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <header className="flex shrink-0 items-center justify-between border-b border-accent/20 px-6 py-3">
+      <HazardTapeCross density="corners" className="opacity-50" />
+      <header className="relative z-10 flex shrink-0 items-center justify-between border-b border-accent/20 px-6 py-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" className="gap-2" asChild>
             <Link to={ROUTES.home} aria-label="Exit judge mode">
@@ -84,7 +86,7 @@ export function JudgeModePage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-6 py-8 md:px-12">
+      <main className="relative z-10 flex-1 overflow-y-auto px-6 py-8 md:px-12">
         <div className="mx-auto max-w-5xl">
           <AnimatePresence mode="wait">
             <motion.div

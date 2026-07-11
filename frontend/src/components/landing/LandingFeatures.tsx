@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { Check, LayoutDashboard } from 'lucide-react'
+import { Check, Play } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { ROUTES } from '@/lib/constants'
 
 function DashboardMockup() {
   return (
@@ -160,11 +161,13 @@ export function LandingFeatures() {
             ))}
           </ul>
           <a
-            href="#about"
+            href={ROUTES.demo}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-8 inline-flex items-center gap-2 font-sans text-[11px] font-semibold uppercase tracking-[0.18em] text-accent transition-opacity hover:opacity-80"
           >
             {t('landing.viewSample')}
-            <LayoutDashboard className="size-3.5" strokeWidth={1.5} />
+            <Play className="size-3.5" strokeWidth={1.5} />
           </a>
         </motion.div>
 

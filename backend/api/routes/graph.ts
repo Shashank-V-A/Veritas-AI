@@ -8,8 +8,9 @@ graphRouter.use(requireAuth)
 
 graphRouter.get('/', async (req, res, next) => {
   try {
-    const limit = Number(req.query.limit ?? 40)
-    const snapshot = await getGraphSnapshot(Number.isFinite(limit) ? limit : 40)
+    const parsed = Number.parseInt(String(req.query.limit ?? '40'), 10)
+    const limit = Number.isFinite(parsed) && parsed > 0 ? parsed : 40
+    const snapshot = await getGraphSnapshot(limit)
     res.json(snapshot)
   } catch (error) {
     next(error)
