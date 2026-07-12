@@ -7,6 +7,9 @@
  * - Gemini can read public YouTube URLs, but long videos (30–60+ min)
  *   must be processed in short clips or the model returns empty / times out.
  * - Free Gemini keys hit 429 quota — need retries + lighter models.
+ *
+ * Long videos: the frontend calls `/youtube/transcript/chunk` per clip so each
+ * invocation stays under Vercel's 60s cap.
  */
 import {
   YouTubeTranscriptApi,
@@ -14,6 +17,9 @@ import {
   RequestBlocked,
   type ProxyConfig,
 } from '@hallelx/youtube-transcript'
+import {
+  YOUTUBE_GEMINI_CHUNK_SEC,
+} from '@veritas/shared'
 import { AppError } from '../../utils/errors.js'
 import { logger } from '../../utils/logger.js'
 
@@ -31,11 +37,9 @@ const TRANSCRIPT_LANGS = ['en', 'en-US', 'en-GB', 'hi', 'a.en', 'en-IN']
 /** Max seconds of video to pull via Gemini clips (keeps latency/quota sane). */
 const GEMINI_MAX_COVERAGE_SEC = 960 // 16 minutes
 const GEMINI_CHUNK_SEC = 480 // 8 minutes per clip (local dev)
-/** Vercel has a 60s function cap; ~120s of video transcribes in ~30s via Gemini. */
-const GEMINI_CHUNK_SEC_VERCEL = 120
-const GEMINI_TIMEOUT_MS_VERCEL = 40_000
+const GEMINI_TIMEOUT_MS_VERCEL = 45_000
 const GEMINI_TIMEOUT_MS = 50_000
-const VERCEL_TRANSCRIPT_DEADLINE_MS = 52_000
+const VERCEL_TRANSCRIPT_DEADLINE_MS = 55_000
 
 export function extractYouTubeVideoId(url: string): string | null {
   const match = url.trim().match(VIDEO_ID_RE)
@@ -327,6 +331,42 @@ async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+/** Return the first non-null result from parallel tasks (optionally within a deadline). */
+async function firstSuccessful(
+  tasks: Array<() => Promise<string | null>>,
+  options?: { timeoutMs?: number },
+): Promise<string | null> {
+  if (tasks.length === 0) return null
+
+  return new Promise((resolve) => {
+    let pending = tasks.length
+    let settled = false
+
+    const finish = (value: string | null) => {
+      if (settled) return
+      settled = true
+      if (timer) clearTimeout(timer)
+      resolve(value)
+    }
+
+    const timer = options?.timeoutMs
+      ? setTimeout(() => finish(null), options.timeoutMs)
+      : null
+
+    for (const task of tasks) {
+      task()
+        .then((result) => {
+          if (result && result.length >= 20) finish(result)
+        })
+        .catch(() => {})
+        .finally(() => {
+          pending--
+          if (!settled && pending === 0) finish(null)
+        })
+    }
+  })
+}
+
 async function geminiGenerateClip(input: {
   apiKey: string
   model: string
@@ -434,10 +474,14 @@ async function geminiGenerateClip(input: {
 }
 
 /**
- * Root Gemini path: process long videos as short clips.
- * Full-length free-tier calls return empty / hit timeouts (e.g. 49-min videos).
+ * Gemini clip transcription for a specific time range.
+ * Used for chunked long-video extraction (one clip per serverless call).
  */
-async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
+async function fetchViaGeminiClip(
+  videoId: string,
+  startSec: number,
+  endSec: number,
+): Promise<string | null> {
   const apiKey =
     process.env.GEMINI_API_KEY?.trim() ||
     process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim()
@@ -445,62 +489,67 @@ async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
 
   const watchUrl = `https://www.youtube.com/watch?v=${videoId}`
   const onVercel = process.env.VERCEL === '1'
-  const chunkSec = onVercel ? GEMINI_CHUNK_SEC_VERCEL : GEMINI_CHUNK_SEC
-
-  let duration: number | null = null
-  if (!onVercel) {
-    try {
-      const { player } = await fetchWatchPage(videoId)
-      duration = getDurationSeconds(player)
-    } catch {
-      /* duration optional */
-    }
-  }
-
-  const maxCoverage = onVercel ? chunkSec : GEMINI_MAX_COVERAGE_SEC
-  const coverage = Math.min(duration ?? chunkSec, maxCoverage)
-  const clips: Array<{ start: number; end: number }> = onVercel
-    ? [{ start: 0, end: chunkSec }]
-    : []
-  if (!onVercel) {
-    for (let start = 0; start < coverage; start += chunkSec) {
-      clips.push({
-        start,
-        end: Math.min(start + chunkSec, coverage),
-      })
-    }
-    if (clips.length === 0) clips.push({ start: 0, end: chunkSec })
-  }
-
   const models = onVercel
     ? ['gemini-flash-latest', 'gemini-2.0-flash-lite']
-    : ['gemini-flash-latest', 'gemini-2.0-flash-lite', 'gemini-3.5-flash']
-  const parts: string[] = []
+    : ['gemini-flash-latest', 'gemini-2.0-flash-lite', 'gemini-2.5-flash']
 
-  for (const clip of clips) {
-    let clipText: string | null = null
-    for (const model of models) {
-      clipText = await geminiGenerateClip({
-        apiKey,
+  for (const model of models) {
+    const clipText = await geminiGenerateClip({
+      apiKey,
+      model,
+      watchUrl,
+      startSec,
+      endSec,
+      timeoutMs: onVercel ? GEMINI_TIMEOUT_MS_VERCEL : GEMINI_TIMEOUT_MS,
+      maxAttempts: onVercel ? 2 : 3,
+      maxOutputTokens: onVercel ? 4096 : 8192,
+    })
+    if (clipText && clipText.length >= 20) {
+      logger.info('YouTube Gemini clip ok', {
+        videoId,
         model,
-        watchUrl,
-        startSec: clip.start,
-        endSec: clip.end,
-        timeoutMs: onVercel ? GEMINI_TIMEOUT_MS_VERCEL : GEMINI_TIMEOUT_MS,
-        maxAttempts: onVercel ? 2 : 3,
-        maxOutputTokens: onVercel ? 4096 : 8192,
+        start: startSec,
+        end: endSec,
+        chars: clipText.length,
       })
-      if (clipText && clipText.length >= 20) {
-        logger.info('YouTube Gemini clip ok', {
-          videoId,
-          model,
-          start: clip.start,
-          end: clip.end,
-          chars: clipText.length,
-        })
-        break
-      }
+      return clipText
     }
+  }
+
+  return null
+}
+
+/**
+ * Root Gemini path: process long videos as short clips (local dev only).
+ * On Vercel, use fetchYouTubeTranscriptChunk from the frontend instead.
+ */
+async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
+  const onVercel = process.env.VERCEL === '1'
+  if (onVercel) {
+    return fetchViaGeminiClip(videoId, 0, YOUTUBE_GEMINI_CHUNK_SEC)
+  }
+
+  let duration: number | null = null
+  try {
+    const { player } = await fetchWatchPage(videoId)
+    duration = getDurationSeconds(player)
+  } catch {
+    /* duration optional */
+  }
+
+  const coverage = Math.min(duration ?? GEMINI_CHUNK_SEC, GEMINI_MAX_COVERAGE_SEC)
+  const clips: Array<{ start: number; end: number }> = []
+  for (let start = 0; start < coverage; start += GEMINI_CHUNK_SEC) {
+    clips.push({
+      start,
+      end: Math.min(start + GEMINI_CHUNK_SEC, coverage),
+    })
+  }
+  if (clips.length === 0) clips.push({ start: 0, end: GEMINI_CHUNK_SEC })
+
+  const parts: string[] = []
+  for (const clip of clips) {
+    const clipText = await fetchViaGeminiClip(videoId, clip.start, clip.end)
     if (clipText) parts.push(clipText)
   }
 
@@ -537,43 +586,35 @@ async function fetchViaSupadata(videoId: string): Promise<string | null> {
 export async function fetchYouTubeTranscript(videoId: string): Promise<string> {
   const onVercel = process.env.VERCEL === '1'
 
-  // Vercel: scrapers fail on datacenter IPs — Gemini clips are the reliable path.
-  // Local: try native captions first (instant + free).
-  const attempts = onVercel
-    ? [
-        () => fetchViaGeminiYoutube(videoId),
-        () => fetchViaWatchPageCaptions(videoId),
-        () => fetchViaSupadata(videoId),
-      ]
-    : [
-        () => fetchViaWatchPageCaptions(videoId),
-        () => fetchViaInnertubeAndroid(videoId),
-        () => fetchViaHallelx(videoId),
-        () => fetchViaGeminiYoutube(videoId),
-        () => fetchViaSupadata(videoId),
-      ]
-
-  const runAttempts = async () => {
-    for (const attempt of attempts) {
-      try {
-        const text = await attempt()
-        if (text && text.length >= 20) return text
-      } catch (error) {
-        logger.warn('YouTube transcript attempt failed', {
-          videoId,
-          error: error instanceof Error ? error.message : String(error),
-        })
-      }
-    }
-    return null
+  let durationSec: number | null = null
+  try {
+    const { player } = await fetchWatchPage(videoId)
+    durationSec = getDurationSeconds(player)
+  } catch {
+    /* optional */
   }
 
+  const isLongVideo =
+    durationSec != null && durationSec > YOUTUBE_GEMINI_CHUNK_SEC
+
+  // Long videos: captions return the full transcript in one fast call.
+  // Gemini only covers the first clip — skip it here so the frontend can chunk.
+  const captionAttempts = [
+    () => fetchViaWatchPageCaptions(videoId),
+    () => fetchViaInnertubeAndroid(videoId),
+    () => fetchViaHallelx(videoId),
+    () => fetchViaSupadata(videoId),
+  ]
+  const shortVideoAttempts = [
+    ...captionAttempts,
+    () => fetchViaGeminiYoutube(videoId),
+  ]
+
+  const attempts = isLongVideo ? captionAttempts : shortVideoAttempts
+
   const text = onVercel
-    ? await Promise.race([
-        runAttempts(),
-        sleep(VERCEL_TRANSCRIPT_DEADLINE_MS).then(() => null),
-      ])
-    : await runAttempts()
+    ? await firstSuccessful(attempts, { timeoutMs: VERCEL_TRANSCRIPT_DEADLINE_MS })
+    : await firstSuccessful(attempts)
 
   if (text && text.length >= 20) return text
 
@@ -584,8 +625,59 @@ export async function fetchYouTubeTranscript(videoId: string): Promise<string> {
 
   throw new AppError(
     hasGemini
-      ? 'Could not extract speech from this YouTube video right now (Gemini quota/busy, or no captions). Wait a minute and retry, try a shorter video, or paste the transcript as text.'
+      ? 'Could not extract a transcript from this video (no captions found, and speech extraction failed). For long videos we retry in parts automatically — if this persists, wait a minute and retry, or paste the transcript as text.'
       : 'YouTube blocks caption downloads from cloud servers. Add GEMINI_API_KEY from https://aistudio.google.com/apikey, or paste the transcript as text.',
+    'MESH_ERROR',
+    502,
+  )
+}
+
+export interface YouTubeVideoMeta {
+  videoId: string
+  title: string | null
+  durationSec: number | null
+}
+
+export async function getYouTubeVideoMeta(url: string): Promise<YouTubeVideoMeta> {
+  const videoId = extractYouTubeVideoId(url)
+  if (!videoId) {
+    throw new AppError(
+      'Invalid YouTube URL. Use a link like https://www.youtube.com/watch?v=…',
+      'VALIDATION_ERROR',
+      400,
+    )
+  }
+
+  const { player } = await fetchWatchPage(videoId)
+  return {
+    videoId,
+    title: getTitleFromPlayer(player),
+    durationSec: getDurationSeconds(player),
+  }
+}
+
+/** Transcribe one time range — safe for Vercel's 60s function limit. */
+export async function fetchYouTubeTranscriptChunk(
+  videoId: string,
+  startSec: number,
+  endSec: number,
+): Promise<string> {
+  if (endSec <= startSec) {
+    throw new AppError('Invalid clip range', 'VALIDATION_ERROR', 400)
+  }
+  if (endSec - startSec > YOUTUBE_GEMINI_CHUNK_SEC + 30) {
+    throw new AppError(
+      `Clip too long (max ${YOUTUBE_GEMINI_CHUNK_SEC}s per request)`,
+      'VALIDATION_ERROR',
+      400,
+    )
+  }
+
+  const text = await fetchViaGeminiClip(videoId, startSec, endSec)
+  if (text && text.length >= 20) return text.slice(0, 10_000)
+
+  throw new AppError(
+    'Could not extract speech from this clip (Gemini quota/busy or no speech in range). Retry in a minute.',
     'MESH_ERROR',
     502,
   )

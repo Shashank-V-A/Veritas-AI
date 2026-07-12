@@ -1,4 +1,8 @@
 import { API_BASE_URL } from '@/lib/constants'
+import {
+  YOUTUBE_GEMINI_CHUNK_SEC,
+  YOUTUBE_MAX_DURATION_SEC,
+} from '@veritas/shared'
 import type {
   AnalyzeRequest,
   AnalyzeResponse,
@@ -240,23 +244,43 @@ export const api = {
     return handleResponse<AnalyzeResponse>(response)
   },
 
+  async getYoutubeMeta(url: string): Promise<{
+    videoId: string
+    title: string | null
+    durationSec: number | null
+  }> {
+    const response = await fetch(
+      `${API_BASE_URL}/analyze/youtube/meta?url=${encodeURIComponent(url)}`,
+      { credentials: 'include' },
+    )
+    return handleResponse(response)
+  },
+
+  async fetchYoutubeTranscriptChunk(
+    url: string,
+    startSec: number,
+    endSec: number,
+  ): Promise<{ content: string; videoId: string }> {
+    const response = await fetch(`${API_BASE_URL}/analyze/youtube/transcript/chunk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ url, startSec, endSec }),
+    })
+    const data = await handleResponse<{
+      content: string
+      videoId: string
+      startSec: number
+      endSec: number
+    }>(response)
+    return { content: data.content, videoId: data.videoId }
+  },
+
   async analyzeYoutube(
     url: string,
     options?: { title?: string; category?: string },
   ): Promise<AnalyzeResponse> {
-    // Two-step so Gemini transcript + Mesh analysis each stay under Vercel's 60s limit.
-    const transcriptRes = await fetch(`${API_BASE_URL}/analyze/youtube/transcript`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ url }),
-    })
-    const transcript = await handleResponse<{
-      content: string
-      title: string
-      videoId: string
-      sourceUrl: string
-    }>(transcriptRes)
+    const transcript = await this.fetchYoutubeTranscript(url)
 
     const response = await fetch(`${API_BASE_URL}/analyze/youtube`, {
       method: 'POST',
@@ -270,6 +294,76 @@ export const api = {
       }),
     })
     return handleResponse<AnalyzeResponse>(response)
+  },
+
+  /** Full transcript: fast path first, then chunked Gemini for long videos. */
+  async fetchYoutubeTranscript(url: string): Promise<{
+    content: string
+    title: string
+    videoId: string
+    sourceUrl: string
+  }> {
+    try {
+      const transcriptRes = await fetch(`${API_BASE_URL}/analyze/youtube/transcript`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ url }),
+      })
+      return await handleResponse(transcriptRes)
+    } catch (firstError) {
+      if (!(firstError instanceof ApiClientError) || firstError.status !== 502) {
+        throw firstError
+      }
+
+      const meta = await this.getYoutubeMeta(url)
+      const knownDuration = meta.durationSec
+
+      if (knownDuration != null && knownDuration <= YOUTUBE_GEMINI_CHUNK_SEC) {
+        throw firstError
+      }
+      if (knownDuration != null && knownDuration > YOUTUBE_MAX_DURATION_SEC) {
+        throw new ApiClientError(
+          `This video is ${Math.round(knownDuration / 60)} minutes long. Veritas supports up to ${YOUTUBE_MAX_DURATION_SEC / 60} minutes — paste the transcript as text for longer videos.`,
+          'VALIDATION_ERROR',
+          400,
+        )
+      }
+
+      const maxSec = knownDuration ?? YOUTUBE_GEMINI_CHUNK_SEC * 10
+      const parts: string[] = []
+      let consecutiveFails = 0
+
+      for (let start = 0; start < maxSec; start += YOUTUBE_GEMINI_CHUNK_SEC) {
+        const end = Math.min(start + YOUTUBE_GEMINI_CHUNK_SEC, maxSec)
+        try {
+          const chunk = await this.fetchYoutubeTranscriptChunk(url, start, end)
+          if (chunk.content.trim()) {
+            parts.push(chunk.content.trim())
+            consecutiveFails = 0
+          } else {
+            consecutiveFails++
+          }
+        } catch {
+          consecutiveFails++
+          if (consecutiveFails >= 2) break
+        }
+
+        if (start + YOUTUBE_GEMINI_CHUNK_SEC < maxSec) {
+          await new Promise((resolve) => setTimeout(resolve, 800))
+        }
+      }
+
+      const merged = parts.join('\n\n').trim()
+      if (merged.length < 20) throw firstError
+
+      return {
+        videoId: meta.videoId,
+        title: meta.title ?? `YouTube transcript · ${meta.videoId}`,
+        content: merged.slice(0, 10_000),
+        sourceUrl: url,
+      }
+    }
   },
 
   async analyzeImage(file: File, title?: string): Promise<AnalyzeResponse> {

@@ -8,7 +8,7 @@ import {
   assessForwardRisk,
   shouldAutoDetectForward,
 } from '../../services/forward/assessForward.js'
-import { extractYouTubeContent, extractYouTubeVideoId } from '../../services/media/youtube.js'
+import { extractYouTubeContent, extractYouTubeVideoId, fetchYouTubeTranscriptChunk, getYouTubeVideoMeta } from '../../services/media/youtube.js'
 import { extractTextFromImage } from '../../services/media/ocr.js'
 import { extractTextFromPdf } from '../../services/pdf/extract.js'
 import { extractFromUrl } from '../../services/url/extract.js'
@@ -282,6 +282,43 @@ analyzeRouter.post('/youtube/transcript', async (req, res, next) => {
       content: extracted.content,
       sourceUrl: url,
     })
+  } catch (error) {
+    next(error)
+  }
+})
+
+/** Video metadata (duration) — used by the frontend to plan chunked transcription. */
+analyzeRouter.get('/youtube/meta', async (req, res, next) => {
+  try {
+    const url = typeof req.query.url === 'string' ? req.query.url.trim() : ''
+    if (!url) throw new AppError('YouTube URL is required', 'VALIDATION_ERROR', 400)
+
+    const meta = await getYouTubeVideoMeta(url)
+    res.json(meta)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/** Transcribe one clip of a long video (each call stays under Vercel's 60s cap). */
+analyzeRouter.post('/youtube/transcript/chunk', async (req, res, next) => {
+  try {
+    const url = typeof req.body?.url === 'string' ? req.body.url.trim() : ''
+    if (!url) throw new AppError('YouTube URL is required', 'VALIDATION_ERROR', 400)
+
+    const startSec = Number(req.body?.startSec)
+    const endSec = Number(req.body?.endSec)
+    if (!Number.isFinite(startSec) || !Number.isFinite(endSec)) {
+      throw new AppError('startSec and endSec are required', 'VALIDATION_ERROR', 400)
+    }
+
+    const videoId = extractYouTubeVideoId(url)
+    if (!videoId) {
+      throw new AppError('Invalid YouTube URL', 'VALIDATION_ERROR', 400)
+    }
+
+    const content = await fetchYouTubeTranscriptChunk(videoId, startSec, endSec)
+    res.json({ videoId, content, startSec, endSec })
   } catch (error) {
     next(error)
   }

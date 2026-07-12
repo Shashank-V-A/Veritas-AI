@@ -159,7 +159,7 @@
     "hintYoutube": "Video link → transcript",
     "hintImage": "Screenshot or meme",
     "hintPdf": "Upload a document",
-    "youtubeHelp": "We'll pull the transcript and check claims in the video.",
+    "youtubeHelp": "We'll pull the transcript and check claims in the video. Long videos are transcribed in parts automatically.",
     "urlHelp": "We'll fetch the page and analyze the article content.",
     "dropImage": "Drop a screenshot or meme, or",
     "dropImageHint": "PNG, JPG, WebP · max 4 MB · OCR extracts meme/screenshot text",
