@@ -1,9 +1,8 @@
 export const APP_NAME = 'Veritas AI'
 export const APP_TAGLINE = "Don't consume information. Verify it."
 
-/** YouTube walkthrough — replace with your final video URL when uploaded */
-export const DEMO_VIDEO_URL =
-  'https://www.youtube.com/watch?v=REPLACE_WITH_YOUR_VIDEO_ID'
+/** YouTube walkthrough for landing "Watch demo" */
+export const DEMO_VIDEO_URL = 'https://www.youtube.com/watch?v=zP1oLZabzsI'
 
 export const ROUTES = {
   home: '/',
