@@ -1,22 +1,45 @@
 import { useState } from 'react'
-import { Check, ChevronDown } from 'lucide-react'
+import { Check, ChevronDown, Pin } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import {
   getClaimStatusColor,
   getClaimStatusLabel,
 } from '@/lib/format'
 import { cn } from '@/lib/utils'
+import { api } from '@/services/api'
+import { Button } from '@/components/ui/button'
 import type { Claim } from '@veritas/shared'
 
 interface ClaimCardProps {
   claim: Claim
   index: number
   variant?: 'default' | 'dossier'
+  analysisId?: string
+  allowWatch?: boolean
 }
 
-export function ClaimCard({ claim, index, variant = 'default' }: ClaimCardProps) {
+export function ClaimCard({
+  claim,
+  index,
+  variant = 'default',
+  analysisId,
+  allowWatch = false,
+}: ClaimCardProps) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const [expanded, setExpanded] = useState(index === 0)
+  const [pinned, setPinned] = useState(false)
   const isDossier = variant === 'dossier'
+
+  const watch = useMutation({
+    mutationFn: () => api.addWatch(claim.claim, analysisId),
+    onSuccess: () => {
+      setPinned(true)
+      queryClient.invalidateQueries({ queryKey: ['watchlist'] })
+    },
+  })
 
   return (
     <motion.div
@@ -100,6 +123,21 @@ export function ClaimCard({ claim, index, variant = 'default' }: ClaimCardProps)
                     ))}
                   </ul>
                 </div>
+              )}
+              {allowWatch && analysisId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mt-3 gap-1.5"
+                  disabled={pinned || watch.isPending}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    watch.mutate()
+                  }}
+                >
+                  <Pin className="size-3.5" />
+                  {pinned ? t('watchlist.pinned') : t('watchlist.pin')}
+                </Button>
               )}
             </div>
           </motion.div>

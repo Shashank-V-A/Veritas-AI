@@ -21,6 +21,10 @@ import { domainRouter } from './routes/domain.js'
 import { annotationsRouter } from './routes/annotations.js'
 import { ogRouter } from './routes/og.js'
 import { graphRouter } from './routes/graph.js'
+import { watchlistRouter } from './routes/watchlist.js'
+import { exhibitsRouter } from './routes/exhibits.js'
+import { notificationsRouter } from './routes/notifications.js'
+import { cronRouter } from './routes/cron.js'
 
 export function createApp() {
   const app = express()
@@ -58,6 +62,10 @@ export function createApp() {
   app.use('/api/domain', domainRouter)
   app.use('/api/graph', graphRouter)
   app.use('/api/annotations', annotationsRouter)
+  app.use('/api/watchlist', watchlistRouter)
+  app.use('/api/exhibits', exhibitsRouter)
+  app.use('/api/notifications', notificationsRouter)
+  app.use('/api/cron', cronRouter)
   app.use('/api/report', requireAuth, reportRouter)
 
   app.use(notFoundHandler)

@@ -34,6 +34,8 @@ verifyBtn.addEventListener('click', async () => {
     const appUrl = appUrlInput.value.trim() || DEFAULT_APP
     await chrome.storage.sync.set({ appUrl })
     const target = new URL('/app', appUrl)
+    // Auto-run analysis and land on the full report when signed in
+    target.searchParams.set('autorun', '1')
 
     if (result?.type === 'text' && result.value) {
       target.searchParams.set('q', String(result.value).slice(0, 2000))
@@ -42,7 +44,7 @@ verifyBtn.addEventListener('click', async () => {
     }
 
     await chrome.tabs.create({ url: target.toString() })
-    statusEl.textContent = 'Opened in Veritas'
+    statusEl.textContent = 'Opened — analysis will start automatically'
     statusEl.className = 'status ok'
   } catch (err) {
     statusEl.textContent = err instanceof Error ? err.message : 'Verification failed'

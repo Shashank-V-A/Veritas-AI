@@ -10,10 +10,15 @@ export const ROUTES = {
   dashboard: '/app',
   history: '/app/history',
   graph: '/app/graph',
+  watchlist: '/app/watchlist',
   settings: '/app/settings',
   judge: '/judge',
   analysis: (id: string) => `/app/analysis/${id}`,
+  domain: (domain: string) => `/app/domain/${encodeURIComponent(domain)}`,
   share: (token: string) => `/share/${token}`,
+  /** Prefill workspace for messaging forwards */
+  verifyForward: (text: string, source: 'whatsapp' | 'telegram' = 'whatsapp') =>
+    `/app?text=${encodeURIComponent(text.slice(0, 2000))}&source=${source}`,
   demo: DEMO_VIDEO_URL,
 } as const
 

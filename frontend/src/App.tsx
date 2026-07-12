@@ -51,6 +51,14 @@ const SettingsPage = lazy(() =>
 const GraphPage = lazy(() =>
   import('@/pages/GraphPage').then((m) => ({ default: m.GraphPage })),
 )
+const WatchlistPage = lazy(() =>
+  import('@/pages/WatchlistPage').then((m) => ({ default: m.WatchlistPage })),
+)
+const DomainDossierPage = lazy(() =>
+  import('@/pages/DomainDossierPage').then((m) => ({
+    default: m.DomainDossierPage,
+  })),
+)
 
 const ProtectedRoute = lazy(() =>
   import('@/components/auth/ProtectedRoute').then((m) => ({
@@ -137,6 +145,22 @@ function AnimatedRoutes() {
               element={
                 <Suspense fallback={<RouteFallback />}>
                   <GraphPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="watchlist"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <WatchlistPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="domain/:domain"
+              element={
+                <Suspense fallback={<RouteFallback />}>
+                  <DomainDossierPage />
                 </Suspense>
               }
             />

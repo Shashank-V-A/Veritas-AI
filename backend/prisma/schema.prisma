@@ -9,37 +9,44 @@ datasource db {
 }
 
 model User {
-  id          String           @id @default(uuid())
-  googleId    String           @unique
-  email       String           @unique
-  name        String?
-  avatar      String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  analyses    Analysis[]
-  annotations CaseAnnotation[]
+  id            String            @id @default(uuid())
+  googleId      String            @unique
+  email         String            @unique
+  name          String?
+  avatar        String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  analyses      Analysis[]
+  annotations   CaseAnnotation[]
+  watches       ClaimWatch[]
+  exhibits      CaseExhibit[]
+  feedback      VerdictFeedback[]
+  notifications Notification[]
 }
 
 model Analysis {
-  id            String   @id @default(uuid())
+  id            String            @id @default(uuid())
   title         String?
   content       String
-  sourceType    String   @default("raw")
+  sourceType    String            @default("raw")
   sourceUrl     String?
   trustScore    Int
   report        String
   userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  shareToken    String?  @unique
+  user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  shareToken    String?           @unique
   category      String?
   parentId      String?
   meshModel     String?
   meshLatencyMs Int?
   forwardRisk   Int?
   verdict       String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   annotations   CaseAnnotation[]
+  exhibits      CaseExhibit[]
+  feedback      VerdictFeedback[]
+  watches       ClaimWatch[]
 
   @@index([createdAt])
   @@index([trustScore])
@@ -68,5 +75,89 @@ model CaseAnnotation {
   note       String
   createdAt  DateTime @default(now())
 
+  @@index([analysisId])
+}
+
+model ClaimWatch {
+  id                String          @id @default(uuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  claimText         String
+  claimNorm         String
+  sourceAnalysisId  String?
+  sourceAnalysis    Analysis?       @relation(fields: [sourceAnalysisId], references: [id], onDelete: SetNull)
+  createdAt         DateTime        @default(now())
+  lastSeenAt        DateTime?
+  hitCount          Int             @default(0)
+  lastHitAnalysisId String?
+  emailAlerts       Boolean         @default(true)
+  browserAlerts     Boolean         @default(true)
+  lastWebScanAt     DateTime?
+  webHitCount       Int             @default(0)
+  hits              ClaimWatchHit[]
+
+  @@unique([userId, claimNorm])
+  @@index([userId, claimNorm])
+}
+
+model ClaimWatchHit {
+  id           String     @id @default(uuid())
+  watchId      String
+  watch        ClaimWatch @relation(fields: [watchId], references: [id], onDelete: Cascade)
+  source       String
+  title        String?
+  url          String?
+  snippet      String?
+  analysisId   String?
+  discoveredAt DateTime   @default(now())
+
+  @@index([watchId, discoveredAt])
+  @@index([watchId, source])
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String?
+  href      String?
+  meta      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+model CaseExhibit {
+  id         String   @id @default(uuid())
+  analysisId String
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       String
+  title      String?
+  url        String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([analysisId])
+  @@index([userId])
+}
+
+model VerdictFeedback {
+  id               String   @id @default(uuid())
+  analysisId       String
+  analysis         Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalVerdict  String
+  suggestedVerdict String?
+  reason           String?
+  createdAt        DateTime @default(now())
+
+  @@unique([analysisId, userId])
   @@index([analysisId])
 }

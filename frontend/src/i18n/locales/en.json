@@ -7,6 +7,7 @@
   "nav": {
     "workspace": "Workspace",
     "caseFiles": "Case files",
+    "watchlist": "Claim watchlist",
     "graph": "Knowledge graph",
     "settings": "Settings",
     "newInvestigation": "New investigation",
@@ -19,6 +20,8 @@
     "openMenu": "Open navigation menu",
     "mainNav": "Main navigation",
     "signOut": "Sign out",
+    "collapseSidebar": "Collapse sidebar",
+    "expandSidebar": "Expand sidebar",
     "report": "Report",
     "howItsDifferent": "How It's Different",
     "howItWorks": "How it works",
@@ -235,7 +238,94 @@
     "generalNote": "General note",
     "claimN": "Claim {{n}}",
     "noNotes": "No notes yet.",
-    "linkNoteToClaim": "Link note to claim"
+    "linkNoteToClaim": "Link note to claim",
+    "evidenceSignal": "Evidence strength",
+    "evidenceStrength": {
+      "strong": "Strong supporting context",
+      "moderate": "Moderate supporting context",
+      "thin": "Thin evidence — treat the score cautiously"
+    },
+    "evidenceSignalDetail": "{{count}} live search hits attached"
+  },
+  "domain": {
+    "eyebrow": "Source dossier",
+    "body": "Cases, trust trend, and recurring claims for this outlet.",
+    "back": "Back to case files",
+    "loading": "Loading dossier…",
+    "notFound": "No archive data for this domain yet.",
+    "avgTrust": "Avg trust",
+    "cases": "Cases",
+    "casesShort": "cases",
+    "lowTrust": "Low-trust",
+    "trend": "Trust trend",
+    "commonClaims": "Common claims",
+    "caseList": "Cases from this outlet",
+    "noCases": "No matching cases in your archive.",
+    "openDossier": "Open full dossier →"
+  },
+  "watchlist": {
+    "eyebrow": "Surveillance",
+    "title": "Claim watchlist",
+    "body": "Pinned claims are checked whenever a new analysis lands. Hits appear here.",
+    "bodyExtended": "Watched claims are checked against new Veritas cases and scanned on the live web. Enable email or browser alerts per claim.",
+    "loading": "Loading watchlist…",
+    "empty": "No watched claims yet. Pin a claim from any case dossier.",
+    "hits": "{{count}} hits",
+    "caseHits": "{{count}} case hits",
+    "webHits": "{{count}} web hits",
+    "lastSeen": "Last seen",
+    "lastScan": "Last web scan",
+    "viewHit": "View case",
+    "remove": "Remove",
+    "pin": "Watch this claim",
+    "pinned": "Watching",
+    "scanWeb": "Scan web now",
+    "scanOne": "Scan",
+    "scanning": "Scanning…",
+    "scanResult": "Scanned {{scanned}} claims · {{hits}} new web hits",
+    "showHits": "Hits",
+    "loadingHits": "Loading hits…",
+    "noHitsYet": "No hits recorded yet. Run a web scan or wait for a matching case.",
+    "sourceWeb": "Web",
+    "sourceCase": "Case",
+    "untitledHit": "Matching result",
+    "openSource": "Open source",
+    "emailAlerts": "Email",
+    "browserAlerts": "Browser",
+    "emailNotConfigured": "Email alerts need RESEND_API_KEY + EMAIL_FROM on the server.",
+    "browserHitTitle": "Veritas watchlist",
+    "browserHitBody": "{{count}} new hit(s) on a watched claim"
+  },
+  "notifications": {
+    "title": "Alerts",
+    "empty": "No alerts yet",
+    "markAll": "Mark all read",
+    "close": "Close alerts"
+  },
+  "evidence": {
+    "title": "Evidence locker",
+    "description": "Immutable exhibits — URLs, notes, and screenshot references for this case.",
+    "loading": "Loading exhibits…",
+    "add": "Add exhibit",
+    "save": "Save exhibit",
+    "remove": "Remove exhibit",
+    "titlePlaceholder": "Exhibit title (optional)",
+    "urlPlaceholder": "https://…",
+    "notePlaceholder": "Note or screenshot description",
+    "type": {
+      "url": "URL",
+      "note": "Note",
+      "screenshot": "Screenshot"
+    }
+  },
+  "feedback": {
+    "open": "This verdict is wrong",
+    "title": "Report a false-positive / incorrect verdict",
+    "current": "Current verdict",
+    "reasonPlaceholder": "Why is this verdict wrong?",
+    "submit": "Submit feedback",
+    "cancel": "Cancel",
+    "recorded": "Feedback recorded — thank you"
   },
   "history": {
     "eyebrow": "Case file archive",
@@ -328,7 +418,11 @@
   },
   "judge": {
     "title": "Judge mode",
-    "sample": "Sample case"
+    "sample": "Sample case",
+    "narrativeMode": "Narrative map",
+    "samplesTab": "Demo samples",
+    "narrativesTab": "Live narratives",
+    "sharedClaims": "Shared claims"
   },
   "common": {
     "loading": "Loading…",

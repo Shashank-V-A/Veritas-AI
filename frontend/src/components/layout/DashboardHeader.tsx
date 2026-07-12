@@ -2,6 +2,7 @@ import { useLocation } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 import { ROUTES } from '@/lib/constants'
 
 interface DashboardHeaderProps {
@@ -15,6 +16,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
   const pageTitles: Record<string, string> = {
     [ROUTES.dashboard]: t('nav.workspace'),
     [ROUTES.history]: t('nav.caseFiles'),
+    [ROUTES.watchlist]: t('nav.watchlist'),
     [ROUTES.graph]: t('nav.graph'),
     [ROUTES.settings]: t('nav.settings'),
   }
@@ -37,7 +39,7 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
         <Menu className="size-5" strokeWidth={1.5} />
       </Button>
       <span className="meta-label">{title}</span>
-      <span className="w-9" aria-hidden="true" />
+      <NotificationBell />
     </header>
   )
 }

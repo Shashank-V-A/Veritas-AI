@@ -85,6 +85,93 @@ export interface GraphSnapshot {
   error?: string
 }
 
+export interface ClaimWatchItem {
+  id: string
+  claimText: string
+  claimNorm: string
+  sourceAnalysisId?: string | null
+  createdAt: string
+  lastSeenAt?: string | null
+  hitCount: number
+  lastHitAnalysisId?: string | null
+  emailAlerts?: boolean
+  browserAlerts?: boolean
+  lastWebScanAt?: string | null
+  webHitCount?: number
+}
+
+export interface ClaimWatchHit {
+  id: string
+  watchId: string
+  source: 'web' | 'analysis' | string
+  title?: string | null
+  url?: string | null
+  snippet?: string | null
+  analysisId?: string | null
+  discoveredAt: string
+}
+
+export interface AppNotification {
+  id: string
+  type: string
+  title: string
+  body?: string | null
+  href?: string | null
+  readAt?: string | null
+  createdAt: string
+}
+
+export interface CaseExhibit {
+  id: string
+  analysisId: string
+  userId: string
+  type: 'url' | 'note' | 'screenshot' | string
+  title?: string | null
+  url?: string | null
+  note?: string | null
+  createdAt: string
+}
+
+export interface DomainDossier {
+  domain: string
+  reputation: DomainReputation | null
+  cases: Array<{
+    id: string
+    title?: string | null
+    trustScore: number
+    verdict?: string | null
+    sourceUrl?: string | null
+    createdAt: string
+  }>
+  trend: Array<{ date: string; avgTrustScore: number; caseCount: number }>
+  commonClaims: Array<{ text: string; count: number }>
+}
+
+export interface NarrativeCluster {
+  id: string
+  title: string
+  theme: string
+  caseIds: string[]
+  cases: Array<{
+    id: string
+    title: string | null
+    trustScore: number
+    verdict: string | null
+    createdAt: string
+  }>
+  sharedClaims: string[]
+  avgTrustScore: number
+}
+
+export interface VerdictFeedback {
+  id: string
+  analysisId: string
+  originalVerdict: string
+  suggestedVerdict?: string | null
+  reason?: string | null
+  createdAt: string
+}
+
 export type {
   ClaimRelation,
   ClaimTimelineEvent,
@@ -336,6 +423,160 @@ export const api = {
       cache: 'no-store',
     })
     await handleResponse<{ ok: boolean }>(response)
+  },
+
+  async getDomainDossier(domain: string): Promise<DomainDossier> {
+    const response = await fetch(
+      `${API_BASE_URL}/domain/${encodeURIComponent(domain)}/dossier`,
+      { credentials: 'include' },
+    )
+    return handleResponse<DomainDossier>(response)
+  },
+
+  async getWatchlist(): Promise<{ items: ClaimWatchItem[]; emailConfigured: boolean }> {
+    const response = await fetch(`${API_BASE_URL}/watchlist`, {
+      credentials: 'include',
+    })
+    return handleResponse<{ items: ClaimWatchItem[]; emailConfigured: boolean }>(response)
+  },
+
+  async addWatch(claimText: string, sourceAnalysisId?: string): Promise<ClaimWatchItem> {
+    const response = await fetch(`${API_BASE_URL}/watchlist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ claimText, sourceAnalysisId }),
+    })
+    return handleResponse<ClaimWatchItem>(response)
+  },
+
+  async removeWatch(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/watchlist/${id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    if (!response.ok && response.status !== 204) {
+      await handleResponse(response)
+    }
+  },
+
+  async scanWatchlist(): Promise<{ scanned: number; newHits: number }> {
+    const response = await fetch(`${API_BASE_URL}/watchlist/scan`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    return handleResponse<{ scanned: number; newHits: number }>(response)
+  },
+
+  async scanWatch(id: string): Promise<{ newHits: number; scanned: boolean }> {
+    const response = await fetch(`${API_BASE_URL}/watchlist/${id}/scan`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    return handleResponse<{ newHits: number; scanned: boolean }>(response)
+  },
+
+  async getWatchHits(id: string): Promise<{ hits: ClaimWatchHit[]; watch: ClaimWatchItem }> {
+    const response = await fetch(`${API_BASE_URL}/watchlist/${id}/hits`, {
+      credentials: 'include',
+    })
+    return handleResponse<{ hits: ClaimWatchHit[]; watch: ClaimWatchItem }>(response)
+  },
+
+  async updateWatch(
+    id: string,
+    patch: { emailAlerts?: boolean; browserAlerts?: boolean },
+  ): Promise<ClaimWatchItem> {
+    const response = await fetch(`${API_BASE_URL}/watchlist/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(patch),
+    })
+    return handleResponse<ClaimWatchItem>(response)
+  },
+
+  async getNotifications(limit = 30): Promise<{
+    items: AppNotification[]
+    unreadCount: number
+  }> {
+    const response = await fetch(`${API_BASE_URL}/notifications?limit=${limit}`, {
+      credentials: 'include',
+    })
+    return handleResponse<{ items: AppNotification[]; unreadCount: number }>(response)
+  },
+
+  async markNotificationRead(id: string): Promise<AppNotification> {
+    const response = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    return handleResponse<AppNotification>(response)
+  },
+
+  async markAllNotificationsRead(): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/notifications/read-all`, {
+      method: 'POST',
+      credentials: 'include',
+    })
+    await handleResponse<{ ok: boolean }>(response)
+  },
+
+  async getExhibits(analysisId: string): Promise<{ exhibits: CaseExhibit[] }> {
+    const response = await fetch(`${API_BASE_URL}/exhibits/${analysisId}`, {
+      credentials: 'include',
+    })
+    return handleResponse<{ exhibits: CaseExhibit[] }>(response)
+  },
+
+  async addExhibit(
+    analysisId: string,
+    payload: { type: string; title?: string; url?: string; note?: string },
+  ): Promise<CaseExhibit> {
+    const response = await fetch(`${API_BASE_URL}/exhibits/${analysisId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+    return handleResponse<CaseExhibit>(response)
+  },
+
+  async deleteExhibit(analysisId: string, exhibitId: string): Promise<void> {
+    const response = await fetch(
+      `${API_BASE_URL}/exhibits/${analysisId}/${exhibitId}`,
+      { method: 'DELETE', credentials: 'include' },
+    )
+    if (!response.ok && response.status !== 204) {
+      await handleResponse(response)
+    }
+  },
+
+  async getNarratives(limit = 8): Promise<{ clusters: NarrativeCluster[] }> {
+    const response = await fetch(`${API_BASE_URL}/graph/narratives?limit=${limit}`, {
+      credentials: 'include',
+    })
+    return handleResponse<{ clusters: NarrativeCluster[] }>(response)
+  },
+
+  async submitVerdictFeedback(
+    id: string,
+    payload: { reason?: string; suggestedVerdict?: string },
+  ): Promise<VerdictFeedback> {
+    const response = await fetch(`${API_BASE_URL}/report/${id}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(payload),
+    })
+    return handleResponse<VerdictFeedback>(response)
+  },
+
+  async getVerdictFeedback(id: string): Promise<{ feedback: VerdictFeedback | null }> {
+    const response = await fetch(`${API_BASE_URL}/report/${id}/feedback`, {
+      credentials: 'include',
+    })
+    return handleResponse<{ feedback: VerdictFeedback | null }>(response)
   },
 }
 

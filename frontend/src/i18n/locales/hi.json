@@ -7,6 +7,7 @@
   "nav": {
     "workspace": "कार्यक्षेत्र",
     "caseFiles": "केस फ़ाइलें",
+    "watchlist": "दावा वॉचलिस्ट",
     "graph": "ज्ञान ग्राफ",
     "settings": "सेटिंग्स",
     "newInvestigation": "नई जाँच",
@@ -19,6 +20,8 @@
     "openMenu": "नेविगेशन मेनू खोलें",
     "mainNav": "मुख्य नेविगेशन",
     "signOut": "साइन आउट",
+    "collapseSidebar": "साइडबार संक्षिप्त करें",
+    "expandSidebar": "साइडबार फैलाएँ",
     "report": "रिपोर्ट",
     "howItsDifferent": "यह कैसे अलग है",
     "howItWorks": "यह कैसे काम करता है",
@@ -235,7 +238,94 @@
     "generalNote": "सामान्य नोट",
     "claimN": "दावा {{n}}",
     "noNotes": "अभी कोई नोट नहीं।",
-    "linkNoteToClaim": "नोट को दावे से जोड़ें"
+    "linkNoteToClaim": "नोट को दावे से जोड़ें",
+    "evidenceSignal": "साक्ष्य शक्ति",
+    "evidenceStrength": {
+      "strong": "मजबूत सहायक संदर्भ",
+      "moderate": "मध्यम सहायक संदर्भ",
+      "thin": "कमज़ोर साक्ष्य — स्कोर को सावधानी से देखें"
+    },
+    "evidenceSignalDetail": "{{count}} लाइव खोज परिणाम जुड़े"
+  },
+  "domain": {
+    "eyebrow": "स्रोत डोजियर",
+    "body": "इस आउटलेट के केस, ट्रस्ट ट्रेंड और बार-बार आने वाले दावे।",
+    "back": "केस फ़ाइलों पर वापस",
+    "loading": "डोजियर लोड हो रहा है…",
+    "notFound": "इस डोमेन के लिए अभी कोई आर्काइव डेटा नहीं।",
+    "avgTrust": "औसत ट्रस्ट",
+    "cases": "केस",
+    "casesShort": "केस",
+    "lowTrust": "कम ट्रस्ट",
+    "trend": "ट्रस्ट ट्रेंड",
+    "commonClaims": "सामान्य दावे",
+    "caseList": "इस आउटलेट के केस",
+    "noCases": "आपके आर्काइव में कोई मेल खाता केस नहीं।",
+    "openDossier": "पूरा डोजियर खोलें →"
+  },
+  "watchlist": {
+    "eyebrow": "निगरानी",
+    "title": "दावा वॉचलिस्ट",
+    "body": "पिन किए दावों की जाँच हर नए विश्लेषण पर होती है।",
+    "bodyExtended": "वॉच किए दावों की जाँच नए केस और लाइव वेब दोनों पर होती है। प्रति दावा ईमेल या ब्राउज़र अलर्ट चालू करें।",
+    "loading": "वॉचलिस्ट लोड हो रही है…",
+    "empty": "अभी कोई वॉच नहीं। किसी केस से दावा पिन करें।",
+    "hits": "{{count}} हिट",
+    "caseHits": "{{count}} केस हिट",
+    "webHits": "{{count}} वेब हिट",
+    "lastSeen": "अंतिम बार",
+    "lastScan": "अंतिम वेब स्कैन",
+    "viewHit": "केस देखें",
+    "remove": "हटाएँ",
+    "pin": "इस दावे को वॉच करें",
+    "pinned": "वॉच में",
+    "scanWeb": "अभी वेब स्कैन करें",
+    "scanOne": "स्कैन",
+    "scanning": "स्कैन हो रहा है…",
+    "scanResult": "{{scanned}} दावे स्कैन · {{hits}} नए वेब हिट",
+    "showHits": "हिट",
+    "loadingHits": "हिट लोड हो रहे हैं…",
+    "noHitsYet": "अभी कोई हिट नहीं। वेब स्कैन चलाएँ या मेल खाते केस की प्रतीक्षा करें।",
+    "sourceWeb": "वेब",
+    "sourceCase": "केस",
+    "untitledHit": "मेल खाता परिणाम",
+    "openSource": "स्रोत खोलें",
+    "emailAlerts": "ईमेल",
+    "browserAlerts": "ब्राउज़र",
+    "emailNotConfigured": "ईमेल अलर्ट के लिए सर्वर पर RESEND_API_KEY + EMAIL_FROM चाहिए।",
+    "browserHitTitle": "Veritas वॉचलिस्ट",
+    "browserHitBody": "वॉच दावे पर {{count}} नए हिट"
+  },
+  "notifications": {
+    "title": "अलर्ट",
+    "empty": "अभी कोई अलर्ट नहीं",
+    "markAll": "सभी पढ़े चिह्नित करें",
+    "close": "अलर्ट बंद करें"
+  },
+  "evidence": {
+    "title": "साक्ष्य लॉकर",
+    "description": "केस के लिए URL, नोट और स्क्रीनशॉट संदर्भ।",
+    "loading": "एग्ज़िबिट लोड हो रहे हैं…",
+    "add": "एग्ज़िबिट जोड़ें",
+    "save": "सहेजें",
+    "remove": "हटाएँ",
+    "titlePlaceholder": "शीर्षक (वैकल्पिक)",
+    "urlPlaceholder": "https://…",
+    "notePlaceholder": "नोट या स्क्रीनशॉट विवरण",
+    "type": {
+      "url": "URL",
+      "note": "नोट",
+      "screenshot": "स्क्रीनशॉट"
+    }
+  },
+  "feedback": {
+    "open": "यह वर्डिक्ट गलत है",
+    "title": "गलत वर्डिक्ट की रिपोर्ट करें",
+    "current": "वर्तमान वर्डिक्ट",
+    "reasonPlaceholder": "यह वर्डिक्ट गलत क्यों है?",
+    "submit": "फीडबैक भेजें",
+    "cancel": "रद्द करें",
+    "recorded": "फीडबैक दर्ज — धन्यवाद"
   },
   "history": {
     "eyebrow": "केस फ़ाइल संग्रह",
@@ -328,7 +418,11 @@
   },
   "judge": {
     "title": "जज मोड",
-    "sample": "नमूना केस"
+    "sample": "नमूना केस",
+    "narrativeMode": "कथा मानचित्र",
+    "samplesTab": "डेमो नमूने",
+    "narrativesTab": "लाइव कथाएँ",
+    "sharedClaims": "साझा दावे"
   },
   "common": {
     "loading": "लोड हो रहा है…",

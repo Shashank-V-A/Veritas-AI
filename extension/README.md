@@ -15,7 +15,7 @@ Manifest V3 extension for quick credibility verification.
 
 ## Configuration
 
-Set the Veritas app URL in the popup (default `http://localhost:5173`). Verification opens `/app` with a `q` (text) or `url` query parameter.
+Set the Veritas app URL in the popup (default `http://localhost:5173`). Verification opens `/app` with `q` (text) or `url`, plus `autorun=1` so analysis starts automatically and navigates to the full report when you are signed in.
 
 ## Icons
 

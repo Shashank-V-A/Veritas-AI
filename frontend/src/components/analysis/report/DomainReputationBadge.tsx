@@ -1,7 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Globe, ShieldAlert, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/services/api'
+import { ROUTES } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
 interface DomainReputationBadgeProps {
@@ -34,12 +36,12 @@ export function DomainReputationBadge({ sourceUrl, className }: DomainReputation
   const isLowTrust = avgScore != null && avgScore < 40
 
   return (
-    <div
+    <Link
+      to={ROUTES.domain(domain)}
       className={cn(
-        'flex flex-wrap items-center gap-3 border border-accent/20 bg-accent/5 px-3 py-2',
+        'flex flex-wrap items-center gap-3 border border-accent/20 bg-accent/5 px-3 py-2 transition-colors hover:border-accent/40 hover:bg-accent/10',
         className,
       )}
-      role="status"
       aria-label={t('report.domainReputation')}
     >
       <Globe className="size-4 shrink-0 text-accent-secondary" strokeWidth={1.5} />
@@ -48,6 +50,7 @@ export function DomainReputationBadge({ sourceUrl, className }: DomainReputation
           {t('report.domainReputation')}
         </p>
         <p className="truncate text-sm font-medium text-card-foreground">{domain}</p>
+        <p className="font-mono text-[9px] text-accent">{t('domain.openDossier')}</p>
       </div>
 
       {isLoading ? (
@@ -81,6 +84,6 @@ export function DomainReputationBadge({ sourceUrl, className }: DomainReputation
           {t('report.domainFirst')}
         </span>
       )}
-    </div>
+    </Link>
   )
 }

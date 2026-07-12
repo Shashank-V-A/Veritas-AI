@@ -99,6 +99,14 @@ async function persistAnalysis(
     await recordDomainAnalysis(sourceUrl, record.trustScore)
   }
   await syncAnalysisToGraph(record.id, record.report)
+  try {
+    const { checkWatchlistHits } = await import(
+      '../../services/watchlist/checkHits.js'
+    )
+    await checkWatchlistHits(input.userId, record.id, record.report)
+  } catch {
+    /* watchlist matching is best-effort */
+  }
   return buildAnalyzeResponse(record, meta)
 }
 

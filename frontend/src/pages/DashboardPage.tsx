@@ -43,14 +43,38 @@ export function DashboardPage() {
   const [activeSample, setActiveSample] = useState<string | null>(null)
 
   useEffect(() => {
-    const query = searchParams.get('q')?.trim()
-    if (query) {
-      setPrefill({ content: query, sourceType: 'raw', title: 'Bookmarklet intake' })
+    const text =
+      searchParams.get('text')?.trim() ||
+      searchParams.get('content')?.trim() ||
+      searchParams.get('q')?.trim()
+    const url = searchParams.get('url')?.trim()
+    const source = searchParams.get('source')?.toLowerCase()
+    const autoRun =
+      searchParams.get('autorun') === '1' || searchParams.get('autorun') === 'true'
+    const isForward =
+      source === 'whatsapp' || source === 'telegram' || source === 'forward'
+
+    if (text) {
+      setPrefill({
+        content: text,
+        sourceType: isForward ? 'forward' : 'raw',
+        title: isForward
+          ? source === 'telegram'
+            ? 'Telegram forward'
+            : 'WhatsApp forward'
+          : 'Bookmarklet intake',
+        autoRun,
+      })
       return
     }
-    const url = searchParams.get('url')?.trim()
     if (url) {
-      setPrefill({ content: '', sourceType: 'article', title: 'Page verification', url })
+      setPrefill({
+        content: '',
+        sourceType: 'article',
+        title: 'Page verification',
+        url,
+        autoRun,
+      })
     }
   }, [searchParams])
 
@@ -81,6 +105,13 @@ export function DashboardPage() {
           </h1>
           <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
             {t('dashboard.body')}
+          </p>
+          <p className="mt-2 max-w-xl font-mono text-[11px] text-muted-foreground/80">
+            WhatsApp / Telegram:{' '}
+            <code className="text-accent">/app?text=…&amp;source=whatsapp</code>
+            {' · '}
+            Extension:{' '}
+            <code className="text-accent">autorun=1</code>
           </p>
           <div className="accent-line mt-6 w-28" />
           <MissionControl total={total} items={items} />

@@ -5,6 +5,9 @@ import { EmotionRadar } from '@/components/charts/EmotionRadar'
 import { BiasMeter } from '@/components/analysis/report/BiasMeter'
 import { CaseAnnotations } from '@/components/analysis/report/CaseAnnotations'
 import { ClaimBreakdown } from '@/components/analysis/report/ClaimBreakdown'
+import { EvidenceLocker } from '@/components/analysis/report/EvidenceLocker'
+import { EvidenceSignal } from '@/components/analysis/report/EvidenceSignal'
+import { VerdictFeedbackForm } from '@/components/analysis/report/VerdictFeedbackForm'
 import { ClaimGraph } from '@/components/analysis/report/ClaimGraph'
 import { ClaimTimeline } from '@/components/analysis/report/ClaimTimeline'
 import { ConfidenceIntervalBar } from '@/components/analysis/report/ConfidenceInterval'
@@ -66,6 +69,15 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
     >
       <VerdictBanner verdict={report.verdict} caseId={caseId} />
 
+      {!readOnly && (
+        <motion.div variants={slideUp}>
+          <VerdictFeedbackForm
+            analysisId={record.id}
+            currentVerdict={report.verdict}
+          />
+        </motion.div>
+      )}
+
       {record.previousTrustScore != null && (
         <motion.div variants={slideUp}>
           <VerdictChangelog
@@ -113,8 +125,9 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
         </motion.div>
       )}
 
-      <motion.div variants={slideUp}>
+      <motion.div variants={slideUp} className="space-y-3">
         <MeshAttribution model={record.meshModel} latencyMs={record.meshLatencyMs} />
+        <EvidenceSignal report={report} meshModel={record.meshModel} />
       </motion.div>
 
       <motion.div variants={slideUp} className="grid gap-6 lg:grid-cols-[280px_1fr] print:grid-cols-1">
@@ -173,7 +186,11 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
           title={t('report.evidenceLog')}
           description={t('report.evidenceLogDesc')}
         >
-          <ClaimBreakdown claims={report.claims} />
+          <ClaimBreakdown
+            claims={report.claims}
+            analysisId={record.id}
+            allowWatch={!readOnly}
+          />
         </ReportSection>
       </motion.div>
 
@@ -237,6 +254,14 @@ export function ReportView({ record, readOnly = false }: ReportViewProps) {
               claims={report.claims}
               readOnly={readOnly}
             />
+          </ReportSection>
+        </motion.div>
+      )}
+
+      {!readOnly && (
+        <motion.div variants={slideUp}>
+          <ReportSection title={t('evidence.title')} description={t('evidence.description')}>
+            <EvidenceLocker analysisId={record.id} readOnly={readOnly} />
           </ReportSection>
         </motion.div>
       )}

@@ -96,6 +96,7 @@ export function AnalysisInput({
   const imageInputRef = useRef<HTMLInputElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const analyze = useAnalyze()
+  const pendingAutoRun = useRef(false)
 
   useEffect(() => {
     if (!prefill) return
@@ -110,8 +111,43 @@ export function AnalysisInput({
     setTitle(prefill.title ?? '')
     setPdfFile(null)
     setImageFile(null)
+    pendingAutoRun.current = Boolean(prefill.autoRun)
     onPrefillConsumed?.()
   }, [prefill, onPrefillConsumed])
+
+  useEffect(() => {
+    if (!pendingAutoRun.current || analyze.isPending) return
+    const ready =
+      inputMode === 'url' ? url.trim().length > 0 : content.trim().length > 0
+    if (!ready) return
+
+    pendingAutoRun.current = false
+    const timer = window.setTimeout(() => {
+      investigationAudio.unlock()
+      const shared = {
+        title: title.trim() || undefined,
+        category,
+      }
+      if (inputMode === 'url') {
+        analyze.mutateUrl({ url: url.trim(), ...shared })
+      } else {
+        analyze.mutate({
+          content: content.trim(),
+          sourceType,
+          ...shared,
+        })
+      }
+    }, 150)
+    return () => window.clearTimeout(timer)
+  }, [
+    analyze,
+    category,
+    content,
+    inputMode,
+    sourceType,
+    title,
+    url,
+  ])
 
   useEffect(() => {
     function handleFocusIntake() {

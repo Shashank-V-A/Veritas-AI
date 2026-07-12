@@ -4,11 +4,30 @@ import {
   getGraphSnapshot,
   pruneAnalysesMissingFromDb,
 } from '../../services/graph/neo4j.js'
+import { buildNarrativeClusters } from '../../services/graph/narratives.js'
 import { requireAuth } from '../middleware/auth.js'
 
 export const graphRouter = Router()
 
 graphRouter.use(requireAuth)
+
+graphRouter.get('/narratives', async (req, res, next) => {
+  try {
+    const userId = req.user?.sub
+    if (!userId) {
+      res.status(401).json({
+        error: { code: 'UNAUTHORIZED', message: 'Sign in required' },
+      })
+      return
+    }
+    const parsed = Number.parseInt(String(req.query.limit ?? '8'), 10)
+    const limit = Number.isFinite(parsed) && parsed > 0 ? parsed : 8
+    const clusters = await buildNarrativeClusters(userId, limit)
+    res.json({ clusters })
+  } catch (error) {
+    next(error)
+  }
+})
 
 graphRouter.get('/', async (req, res, next) => {
   try {

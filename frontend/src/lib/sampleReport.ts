@@ -7,6 +7,8 @@ export interface AnalysisPrefill {
   sourceType: SourceType
   title?: string
   url?: string
+  /** When true, AnalysisInput auto-submits after prefill (extension / deep link). */
+  autoRun?: boolean
 }
 
 export const SAMPLE_REPORT: AnalysisRecord = {

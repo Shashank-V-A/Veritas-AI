@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { prisma } from '../../db/prisma.js'
 import { cacheControl } from '../middleware/cacheControl.js'
 import { generateReportMarkdown } from '../../services/export/markdown.js'
 import { generateReportPdf } from '../../services/export/pdf.js'
@@ -7,6 +8,69 @@ import { reportRepository } from '../../services/report/repository.js'
 import { reportIdSchema } from '../../utils/validation.js'
 
 export const reportRouter = Router()
+
+reportRouter.post('/:id/feedback', async (req, res, next) => {
+  try {
+    const { id } = reportIdSchema.parse(req.params)
+    const userId = req.user?.sub
+    if (!userId) {
+      res.status(401).json({
+        error: { code: 'UNAUTHORIZED', message: 'Sign in required' },
+      })
+      return
+    }
+
+    const record = await reportRepository.findById(id, userId)
+    const reason =
+      typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 2000) : undefined
+    const suggestedVerdict =
+      typeof req.body?.suggestedVerdict === 'string'
+        ? req.body.suggestedVerdict.trim().slice(0, 64)
+        : undefined
+
+    const feedback = await prisma.verdictFeedback.upsert({
+      where: {
+        analysisId_userId: { analysisId: id, userId },
+      },
+      create: {
+        analysisId: id,
+        userId,
+        originalVerdict: record.report.verdict,
+        suggestedVerdict: suggestedVerdict || null,
+        reason: reason || null,
+      },
+      update: {
+        originalVerdict: record.report.verdict,
+        suggestedVerdict: suggestedVerdict || null,
+        reason: reason || null,
+      },
+    })
+
+    res.status(201).json(feedback)
+  } catch (error) {
+    next(error)
+  }
+})
+
+reportRouter.get('/:id/feedback', async (req, res, next) => {
+  try {
+    const { id } = reportIdSchema.parse(req.params)
+    const userId = req.user?.sub
+    if (!userId) {
+      res.status(401).json({
+        error: { code: 'UNAUTHORIZED', message: 'Sign in required' },
+      })
+      return
+    }
+    await reportRepository.findById(id, userId)
+    const feedback = await prisma.verdictFeedback.findUnique({
+      where: { analysisId_userId: { analysisId: id, userId } },
+    })
+    res.json({ feedback })
+  } catch (error) {
+    next(error)
+  }
+})
 
 function getPublicBaseUrl(req: import('express').Request): string {
   const configured = process.env.PUBLIC_APP_URL?.replace(/\/$/, '')
@@ -105,6 +169,7 @@ reportRouter.get('/:id', cacheControl(300), async (req, res, next) => {
       title: record.title,
       content: record.content,
       sourceType: record.sourceType,
+      sourceUrl: record.sourceUrl,
       report: record.report,
       createdAt: record.createdAt,
       category: record.category,
@@ -114,6 +179,7 @@ reportRouter.get('/:id', cacheControl(300), async (req, res, next) => {
       meshModel: record.meshModel,
       meshLatencyMs: record.meshLatencyMs,
       shareToken: record.shareToken,
+      forwardRisk: record.forwardRisk,
     })
   } catch (error) {
     next(error)
