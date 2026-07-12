@@ -5,7 +5,6 @@ import { Fingerprint } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { staggerContainer, slideUp } from '@/animations/variants'
 import { AnalysisInput } from '@/components/analysis/AnalysisInput'
-import { RecentAnalyses } from '@/components/analysis/RecentAnalyses'
 import { BatchIntake } from '@/components/dashboard/BatchIntake'
 import { CaseSampleCard } from '@/components/dashboard/CaseSampleCard'
 import { MissionControl } from '@/components/dashboard/MissionControl'
@@ -106,13 +105,6 @@ export function DashboardPage() {
           <p className="mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
             {t('dashboard.body')}
           </p>
-          <p className="mt-2 max-w-xl font-mono text-[11px] text-muted-foreground/80">
-            WhatsApp / Telegram:{' '}
-            <code className="text-accent">/app?text=…&amp;source=whatsapp</code>
-            {' · '}
-            Extension:{' '}
-            <code className="text-accent">autorun=1</code>
-          </p>
           <div className="accent-line mt-6 w-28" />
           <MissionControl total={total} items={items} />
         </motion.header>
@@ -163,22 +155,6 @@ export function DashboardPage() {
             onPrefillConsumed={() => setPrefill(null)}
           />
         </motion.div>
-
-        {total > 0 && (
-          <motion.section
-            variants={reducedMotion ? undefined : slideUp}
-            className="mt-12"
-          >
-            <div className="case-rule mb-5" />
-            <p className="meta-label">{t('dashboard.archive')}</p>
-            <h2 className="mt-1 font-display text-xl text-foreground">
-              {t('dashboard.recentCases')}
-            </h2>
-            <div className="mt-5">
-              <RecentAnalyses limit={5} />
-            </div>
-          </motion.section>
-        )}
       </motion.div>
     </div>
   )
