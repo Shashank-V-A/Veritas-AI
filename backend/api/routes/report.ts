@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { prisma } from '../../db/prisma.js'
 import { cacheControl } from '../middleware/cacheControl.js'
 import { generateReportMarkdown } from '../../services/export/markdown.js'
-import { generateReportPdf } from '../../services/export/pdf.js'
 import { deleteAnalysisFromGraph } from '../../services/graph/neo4j.js'
 import { reportRepository } from '../../services/report/repository.js'
 import { reportIdSchema } from '../../utils/validation.js'
@@ -147,6 +146,7 @@ reportRouter.get('/:id/export', async (req, res, next) => {
   try {
     const { id } = reportIdSchema.parse(req.params)
     const record = await reportRepository.findById(id, req.user?.sub)
+    const { generateReportPdf } = await import('../../services/export/pdf.js')
     const pdfBuffer = await generateReportPdf(record)
 
     const filename = `${(record.title ?? 'veritas-report').replace(/[^a-z0-9-_]+/gi, '-').slice(0, 60)}.pdf`

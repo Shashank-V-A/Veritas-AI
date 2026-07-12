@@ -5,3 +5,5 @@ dist
 *.db
 backend/dev.db
 .DS_Store
+
+.vercel
