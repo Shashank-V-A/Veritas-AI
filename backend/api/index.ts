@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import compression from 'compression'
 import express from 'express'
+import { getDatabaseUrl, isPersistentDatabase } from '../db/databaseEnv.js'
 import { ensureDatabase } from '../db/init.js'
 import { getCorsOptions } from '../utils/cors.js'
 import { optionalAuth } from './middleware/auth.js'
@@ -49,15 +50,16 @@ export function createApp() {
   app.use(optionalAuth)
 
   app.get('/api/health', (_req, res) => {
-    const dbUrl = process.env.DATABASE_URL ?? ''
-    const persistent =
-      dbUrl.startsWith('libsql://') ||
-      (dbUrl.startsWith('https://') && dbUrl.includes('.turso.io'))
+    const dbUrl = getDatabaseUrl()
     res.json({
       status: 'ok',
       service: 'veritas-api',
       env: process.env.VERCEL ? 'vercel' : 'local',
-      database: persistent ? 'turso' : dbUrl.includes('/tmp') ? 'ephemeral' : 'sqlite',
+      database: isPersistentDatabase()
+        ? 'turso'
+        : dbUrl.includes('/tmp')
+          ? 'ephemeral'
+          : 'sqlite',
     })
   })
 

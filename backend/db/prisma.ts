@@ -1,15 +1,12 @@
 import { PrismaClient } from '@prisma/client'
+import { getDatabaseUrl, isLibsqlUrl } from './databaseEnv.js'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-function isLibsqlUrl(url: string): boolean {
-  return (
-    url.startsWith('libsql://') ||
-    (url.startsWith('https://') && url.includes('.turso.io'))
-  )
-}
+// Bootstrap before Prisma reads env (Vercel Turso integration uses TURSO_DATABASE_URL).
+getDatabaseUrl()
 
 /**
  * Prisma client for SQLite (local file) and Turso/libSQL (production).
@@ -18,7 +15,7 @@ function isLibsqlUrl(url: string): boolean {
  * bundle does not hit ERR_REQUIRE_ESM on a static import.
  */
 async function createPrismaClient(): Promise<PrismaClient> {
-  const url = process.env.DATABASE_URL ?? 'file:./dev.db'
+  const url = getDatabaseUrl()
 
   if (isLibsqlUrl(url)) {
     const token = process.env.TURSO_AUTH_TOKEN?.trim()
@@ -58,7 +55,4 @@ async function getPrisma(): Promise<PrismaClient> {
 /** Singleton Prisma client (awaits Turso adapter bootstrap when needed). */
 export const prisma = await getPrisma()
 
-export function isPersistentDatabase(): boolean {
-  const url = process.env.DATABASE_URL ?? ''
-  return isLibsqlUrl(url)
-}
+export { isPersistentDatabase } from './databaseEnv.js'

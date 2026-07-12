@@ -1,15 +1,25 @@
 /**
- * Push Prisma schema to Turso when DATABASE_URL is libsql://…
- * Skips silently for local file: SQLite (dev) and ephemeral /tmp URLs.
+ * Ensure Turso schema exists at build time (Prisma CLI only accepts file: for sqlite).
+ * Runtime also calls ensureDatabase() on first request.
  */
-import { execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 
-const url = process.env.DATABASE_URL ?? ''
-const isTurso =
-  url.startsWith('libsql://') ||
-  (url.startsWith('https://') && url.includes('.turso.io'))
+function isLibsqlUrl(url) {
+  return (
+    url.startsWith('libsql://') ||
+    (url.startsWith('https://') && url.includes('.turso.io'))
+  )
+}
+
+let url = process.env.DATABASE_URL?.trim() ?? ''
+const tursoUrl = process.env.TURSO_DATABASE_URL?.trim() ?? ''
+if (!isLibsqlUrl(url) && tursoUrl && isLibsqlUrl(tursoUrl)) {
+  process.env.DATABASE_URL = tursoUrl
+  url = tursoUrl
+}
+
+const isTurso = isLibsqlUrl(url)
 
 if (!isTurso) {
   console.log('[db] Skipping remote push — DATABASE_URL is not Turso/libsql')
@@ -17,17 +27,16 @@ if (!isTurso) {
 }
 
 if (!process.env.TURSO_AUTH_TOKEN?.trim()) {
-  console.error('[db] TURSO_AUTH_TOKEN is required for Turso db push')
+  console.error('[db] TURSO_AUTH_TOKEN is required for Turso schema setup')
   process.exit(1)
 }
 
 const backendDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-console.log('[db] Pushing schema to Turso…')
+const initModule = path.join(backendDir, 'dist', 'db', 'init.js')
 
-execSync('npx prisma db push --skip-generate', {
-  cwd: backendDir,
-  stdio: 'inherit',
-  env: process.env,
-})
+console.log('[db] Applying schema to Turso via ensureDatabase…')
+
+const { ensureDatabase } = await import(initModule)
+await ensureDatabase()
 
 console.log('[db] Turso schema ready')
