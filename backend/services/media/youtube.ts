@@ -1,14 +1,12 @@
 /**
- * YouTube transcript extraction with serverless-friendly fallbacks.
+ * YouTube transcript extraction — serverless-safe.
  *
- * Why Vercel fails: YouTube blocks `timedtext` from datacenter IPs.
- * Datacenter Webshare endpoint lists often make this worse.
- *
- * Strategy (in order):
- * 1. Innertube ANDROID → caption track → timedtext (no proxy)
- * 2. @hallelx/youtube-transcript without proxy (+ optional residential Webshare)
- * 3. Gemini YouTube URL understanding (free AI Studio key) — works from any IP
- * 4. Supadata (optional free tier key)
+ * Root constraints on Vercel:
+ * - YouTube blocks `timedtext` from datacenter IPs (scrapers fail).
+ * - Datacenter Webshare lists are also blocked.
+ * - Gemini can read public YouTube URLs, but long videos (30–60+ min)
+ *   must be processed in short clips or the model returns empty / times out.
+ * - Free Gemini keys hit 429 quota — need retries + lighter models.
  */
 import {
   YouTubeTranscriptApi,
@@ -30,22 +28,25 @@ const ANDROID_UA =
 
 const TRANSCRIPT_LANGS = ['en', 'en-US', 'en-GB', 'hi', 'a.en', 'en-IN']
 
+/** Max seconds of video to pull via Gemini clips (keeps latency/quota sane). */
+const GEMINI_MAX_COVERAGE_SEC = 960 // 16 minutes
+const GEMINI_CHUNK_SEC = 480 // 8 minutes per clip (local dev)
+/** Vercel has a 60s function cap; ~120s of video transcribes in ~30s via Gemini. */
+const GEMINI_CHUNK_SEC_VERCEL = 120
+const GEMINI_TIMEOUT_MS_VERCEL = 40_000
+const GEMINI_TIMEOUT_MS = 50_000
+const VERCEL_TRANSCRIPT_DEADLINE_MS = 52_000
+
 export function extractYouTubeVideoId(url: string): string | null {
   const match = url.trim().match(VIDEO_ID_RE)
   return match?.[1] ?? null
 }
 
 function buildResidentialProxyConfig(): ProxyConfig | undefined {
-  // Only use Webshare *rotating residential* gateway — NOT ip:port datacenter lists.
-  // Datacenter endpoint lists are also blocked by YouTube and can force IpBlocked.
-  if (process.env.WEBSHARE_USE_ENDPOINT_LIST === 'true') {
-    return undefined
-  }
+  if (process.env.WEBSHARE_USE_ENDPOINT_LIST === 'true') return undefined
   const username = process.env.WEBSHARE_PROXY_USERNAME?.trim()
   const password = process.env.WEBSHARE_PROXY_PASSWORD?.trim()
   if (!username || !password) return undefined
-  // If only a datacenter list was provided earlier, still try rotating gateway
-  // with the same username/password (works for residential plans).
   return new WebshareProxyConfig({
     proxyUsername: username,
     proxyPassword: password,
@@ -98,6 +99,120 @@ function bodyToTranscript(body: string): string {
   return parseTimedTextXml(trimmed)
 }
 
+function decodeHtml(text: string): string {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+}
+
+function extractPlayerResponse(html: string): Record<string, unknown> | null {
+  const marker = 'var ytInitialPlayerResponse = '
+  const start = html.indexOf(marker)
+  if (start < 0) return null
+  const from = start + marker.length
+  let depth = 0
+  let end = from
+  for (let i = from; i < Math.min(html.length, from + 2_500_000); i++) {
+    const ch = html[i]
+    if (ch === '{') depth++
+    else if (ch === '}') {
+      depth--
+      if (depth === 0) {
+        end = i + 1
+        break
+      }
+    }
+  }
+  try {
+    return JSON.parse(html.slice(from, end)) as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+async function fetchWatchPage(videoId: string): Promise<{
+  html: string
+  player: Record<string, unknown> | null
+}> {
+  const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
+    headers: {
+      'User-Agent': BROWSER_UA,
+      'Accept-Language': 'en-US,en;q=0.9',
+    },
+    signal: AbortSignal.timeout(12_000),
+  })
+  if (!res.ok) return { html: '', player: null }
+  const html = await res.text()
+  return { html, player: extractPlayerResponse(html) }
+}
+
+function getDurationSeconds(player: Record<string, unknown> | null): number | null {
+  const details = player?.videoDetails as { lengthSeconds?: string } | undefined
+  const n = Number(details?.lengthSeconds)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function getTitleFromPlayer(player: Record<string, unknown> | null): string | null {
+  const details = player?.videoDetails as { title?: string } | undefined
+  return details?.title?.trim() || null
+}
+
+function getCaptionTracks(player: Record<string, unknown> | null): Array<{
+  languageCode?: string
+  baseUrl?: string
+}> {
+  const captions = player?.captions as
+    | {
+        playerCaptionsTracklistRenderer?: {
+          captionTracks?: Array<{ languageCode?: string; baseUrl?: string }>
+        }
+      }
+    | undefined
+  return captions?.playerCaptionsTracklistRenderer?.captionTracks ?? []
+}
+
+async function fetchViaWatchPageCaptions(videoId: string): Promise<string | null> {
+  try {
+    const { player } = await fetchWatchPage(videoId)
+    const tracks = getCaptionTracks(player)
+    if (tracks.length === 0) return null
+    const preferred =
+      tracks.find((t) =>
+        TRANSCRIPT_LANGS.some((l) =>
+          (t.languageCode ?? '').toLowerCase().startsWith(l.split('-')[0]!),
+        ),
+      ) ?? tracks[0]
+    const baseUrl = preferred?.baseUrl
+    if (!baseUrl) return null
+
+    for (const fmt of ['json3', 'srv3', '']) {
+      const url =
+        fmt === ''
+          ? baseUrl
+          : `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}fmt=${fmt}`
+      const captionRes = await fetch(url, {
+        headers: { 'User-Agent': BROWSER_UA },
+        signal: AbortSignal.timeout(12_000),
+      })
+      if (!captionRes.ok) continue
+      const text = bodyToTranscript(await captionRes.text())
+      if (text.length >= 20) {
+        logger.info('YouTube transcript via watch-page captions', { videoId, fmt })
+        return text.slice(0, 10_000)
+      }
+    }
+  } catch (error) {
+    logger.warn('Watch-page caption fetch failed', {
+      videoId,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
+  return null
+}
+
 async function fetchViaInnertubeAndroid(videoId: string): Promise<string | null> {
   try {
     const playerRes = await fetch(
@@ -122,31 +237,19 @@ async function fetchViaInnertubeAndroid(videoId: string): Promise<string | null>
           contentCheckOk: true,
           racyCheckOk: true,
         }),
-        signal: AbortSignal.timeout(20_000),
+        signal: AbortSignal.timeout(15_000),
       },
     )
     if (!playerRes.ok) return null
-    const player = (await playerRes.json()) as {
-      captions?: {
-        playerCaptionsTracklistRenderer?: {
-          captionTracks?: Array<{
-            baseUrl?: string
-            languageCode?: string
-          }>
-        }
-      }
-    }
-    const tracks =
-      player.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? []
+    const player = (await playerRes.json()) as Record<string, unknown>
+    const tracks = getCaptionTracks(player)
     if (tracks.length === 0) return null
-
     const preferred =
       tracks.find((t) =>
         TRANSCRIPT_LANGS.some((l) =>
           (t.languageCode ?? '').toLowerCase().startsWith(l.split('-')[0]!),
         ),
       ) ?? tracks[0]
-
     const baseUrl = preferred?.baseUrl
     if (!baseUrl) return null
 
@@ -157,13 +260,13 @@ async function fetchViaInnertubeAndroid(videoId: string): Promise<string | null>
           : `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}fmt=${fmt}`
       const captionRes = await fetch(url, {
         headers: { 'User-Agent': ANDROID_UA },
-        signal: AbortSignal.timeout(18_000),
+        signal: AbortSignal.timeout(12_000),
       })
       if (!captionRes.ok) continue
       const text = bodyToTranscript(await captionRes.text())
       if (text.length >= 20) {
         logger.info('YouTube transcript via ANDROID innertube', { videoId, fmt })
-        return text
+        return text.slice(0, 10_000)
       }
     }
   } catch (error) {
@@ -176,9 +279,9 @@ async function fetchViaInnertubeAndroid(videoId: string): Promise<string | null>
 }
 
 async function fetchViaHallelx(videoId: string): Promise<string | null> {
-  const proxyConfig = buildResidentialProxyConfig()
-  const api = new YouTubeTranscriptApi({ proxyConfig })
-
+  const api = new YouTubeTranscriptApi({
+    proxyConfig: buildResidentialProxyConfig(),
+  })
   try {
     try {
       const list = await api.list(videoId)
@@ -195,7 +298,7 @@ async function fetchViaHallelx(videoId: string): Promise<string | null> {
         .join(' ')
         .replace(/\s+/g, ' ')
         .trim()
-      return text.length >= 20 ? text : null
+      return text.length >= 20 ? text.slice(0, 10_000) : null
     } catch {
       const transcript = await api.fetch(videoId, { languages: TRANSCRIPT_LANGS })
       const text = transcript.snippets
@@ -203,42 +306,43 @@ async function fetchViaHallelx(videoId: string): Promise<string | null> {
         .join(' ')
         .replace(/\s+/g, ' ')
         .trim()
-      return text.length >= 20 ? text : null
+      return text.length >= 20 ? text.slice(0, 10_000) : null
     }
   } catch (error) {
-    const blocked =
-      error instanceof RequestBlocked ||
-      (error instanceof Error &&
-        /requestblocked|ipblocked|blocked|bot/i.test(
-          `${error.constructor.name} ${error.message}`,
-        ))
     logger.warn('Hallelx transcript failed', {
       videoId,
-      blocked,
+      blocked:
+        error instanceof RequestBlocked ||
+        (error instanceof Error &&
+          /requestblocked|ipblocked|blocked|bot/i.test(
+            `${error.constructor.name} ${error.message}`,
+          )),
       error: error instanceof Error ? error.message : String(error),
     })
     return null
   }
 }
 
-/**
- * Free path: Google AI Studio / Gemini can read public YouTube URLs directly
- * (no timedtext scrape). Create a key at https://aistudio.google.com/apikey
- */
-async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
-  const apiKey =
-    process.env.GEMINI_API_KEY?.trim() ||
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim()
-  if (!apiKey) return null
+async function sleep(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms))
+}
 
-  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`
-  // Prefer models that work for new AI Studio keys; keep the list short so we
-  // stay under Vercel's 60s function budget (transcript + Mesh analysis).
-  const models = ['gemini-flash-latest', 'gemini-3.5-flash']
+async function geminiGenerateClip(input: {
+  apiKey: string
+  model: string
+  watchUrl: string
+  startSec: number
+  endSec: number
+  timeoutMs?: number
+  maxAttempts?: number
+  maxOutputTokens?: number
+}): Promise<string | null> {
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${input.model}:generateContent?key=${input.apiKey}`
+  const timeoutMs = input.timeoutMs ?? GEMINI_TIMEOUT_MS
+  const maxAttempts = input.maxAttempts ?? 3
 
-  for (const model of models) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -249,17 +353,21 @@ async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
               parts: [
                 {
                   text: [
-                    'From this YouTube video, extract the spoken words as plain text for a credibility investigation.',
-                    'Prefer the official captions/subtitles when available.',
-                    'If the video is long, include the full intro plus every factual claim, statistic, accusation, and conclusion that is spoken — continuous prose, not a bullet summary.',
-                    'Hard limit: about 9000 characters. Do not add commentary, titles, or timestamps.',
-                    'If there is no speech, return exactly: NO_SPEECH',
+                    'Extract spoken words from this YouTube clip as plain continuous prose.',
+                    'Prefer official captions/subtitles when available.',
+                    'Include factual claims, numbers, advice, and conclusions that are spoken.',
+                    'No titles, timestamps, or commentary.',
+                    'If no speech in this clip, return exactly: NO_SPEECH',
                   ].join(' '),
                 },
                 {
                   fileData: {
-                    fileUri: watchUrl,
+                    fileUri: input.watchUrl,
                     mimeType: 'video/*',
+                  },
+                  videoMetadata: {
+                    startOffset: `${input.startSec}s`,
+                    endOffset: `${input.endSec}s`,
                   },
                 },
               ],
@@ -267,26 +375,37 @@ async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
           ],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 4096,
+            maxOutputTokens: input.maxOutputTokens ?? 8192,
           },
         }),
-        // Leave headroom for Mesh analysis inside the same or follow-up request.
-        signal: AbortSignal.timeout(45_000),
+        signal: AbortSignal.timeout(timeoutMs),
       })
 
       const raw = await res.text()
-      if (!res.ok) {
-        logger.warn('Gemini YouTube transcript HTTP error', {
-          model,
+
+      if (res.status === 429 || res.status === 503) {
+        logger.warn('Gemini clip rate-limited, retrying', {
+          model: input.model,
           status: res.status,
-          body: raw.slice(0, 200),
+          attempt: attempt + 1,
         })
+        await sleep(1500 * (attempt + 1))
         continue
+      }
+
+      if (!res.ok) {
+        logger.warn('Gemini clip HTTP error', {
+          model: input.model,
+          status: res.status,
+          body: raw.slice(0, 220),
+        })
+        return null
       }
 
       const data = JSON.parse(raw) as {
         candidates?: Array<{
           content?: { parts?: Array<{ text?: string }> }
+          finishReason?: string
         }>
       }
       const text = data.candidates?.[0]?.content?.parts
@@ -295,41 +414,117 @@ async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
         .replace(/\s+/g, ' ')
         .trim()
 
-      if (!text || text === 'NO_SPEECH') continue
-      if (text.length < 20) continue
-
-      logger.info('YouTube transcript via Gemini', { videoId, model })
-      return text.slice(0, 10_000)
+      if (!text || text === 'NO_SPEECH') return null
+      return text
     } catch (error) {
-      logger.warn('Gemini YouTube transcript failed', {
-        videoId,
-        model,
-        error: error instanceof Error ? error.message : String(error),
+      const message = error instanceof Error ? error.message : String(error)
+      const timedOut = /abort|timeout/i.test(message)
+      logger.warn('Gemini clip request failed', {
+        model: input.model,
+        attempt: attempt + 1,
+        timedOut,
+        error: message,
       })
+      if (timedOut) return null
+      await sleep(1000 * (attempt + 1))
     }
   }
 
   return null
 }
 
+/**
+ * Root Gemini path: process long videos as short clips.
+ * Full-length free-tier calls return empty / hit timeouts (e.g. 49-min videos).
+ */
+async function fetchViaGeminiYoutube(videoId: string): Promise<string | null> {
+  const apiKey =
+    process.env.GEMINI_API_KEY?.trim() ||
+    process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim()
+  if (!apiKey) return null
+
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`
+  const onVercel = process.env.VERCEL === '1'
+  const chunkSec = onVercel ? GEMINI_CHUNK_SEC_VERCEL : GEMINI_CHUNK_SEC
+
+  let duration: number | null = null
+  if (!onVercel) {
+    try {
+      const { player } = await fetchWatchPage(videoId)
+      duration = getDurationSeconds(player)
+    } catch {
+      /* duration optional */
+    }
+  }
+
+  const maxCoverage = onVercel ? chunkSec : GEMINI_MAX_COVERAGE_SEC
+  const coverage = Math.min(duration ?? chunkSec, maxCoverage)
+  const clips: Array<{ start: number; end: number }> = onVercel
+    ? [{ start: 0, end: chunkSec }]
+    : []
+  if (!onVercel) {
+    for (let start = 0; start < coverage; start += chunkSec) {
+      clips.push({
+        start,
+        end: Math.min(start + chunkSec, coverage),
+      })
+    }
+    if (clips.length === 0) clips.push({ start: 0, end: chunkSec })
+  }
+
+  const models = onVercel
+    ? ['gemini-flash-latest', 'gemini-2.0-flash-lite']
+    : ['gemini-flash-latest', 'gemini-2.0-flash-lite', 'gemini-3.5-flash']
+  const parts: string[] = []
+
+  for (const clip of clips) {
+    let clipText: string | null = null
+    for (const model of models) {
+      clipText = await geminiGenerateClip({
+        apiKey,
+        model,
+        watchUrl,
+        startSec: clip.start,
+        endSec: clip.end,
+        timeoutMs: onVercel ? GEMINI_TIMEOUT_MS_VERCEL : GEMINI_TIMEOUT_MS,
+        maxAttempts: onVercel ? 2 : 3,
+        maxOutputTokens: onVercel ? 4096 : 8192,
+      })
+      if (clipText && clipText.length >= 20) {
+        logger.info('YouTube Gemini clip ok', {
+          videoId,
+          model,
+          start: clip.start,
+          end: clip.end,
+          chars: clipText.length,
+        })
+        break
+      }
+    }
+    if (clipText) parts.push(clipText)
+  }
+
+  const merged = parts.join('\n\n').replace(/\s+/g, ' ').trim()
+  if (merged.length < 20) return null
+  return merged.slice(0, 10_000)
+}
+
 async function fetchViaSupadata(videoId: string): Promise<string | null> {
   const apiKey = process.env.SUPADATA_API_KEY?.trim()
   if (!apiKey) return null
-
   try {
     const url = new URL('https://api.supadata.ai/v1/transcript')
     url.searchParams.set('url', `https://www.youtube.com/watch?v=${videoId}`)
     url.searchParams.set('text', 'true')
     url.searchParams.set('mode', 'native')
-
     const res = await fetch(url, {
       headers: { 'x-api-key': apiKey },
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(25_000),
     })
     if (!res.ok) return null
     const data = (await res.json()) as { content?: string; text?: string }
     const text = (data.content ?? data.text ?? '').replace(/\s+/g, ' ').trim()
-    return text.length >= 20 ? text : null
+    return text.length >= 20 ? text.slice(0, 10_000) : null
   } catch (error) {
     logger.warn('Supadata transcript fallback failed', {
       videoId,
@@ -340,22 +535,47 @@ async function fetchViaSupadata(videoId: string): Promise<string | null> {
 }
 
 export async function fetchYouTubeTranscript(videoId: string): Promise<string> {
-  // On Vercel, timedtext scrapes almost always fail (datacenter IP block) and
-  // burn the 60s budget before Gemini/Mesh can finish. Skip straight to Gemini.
   const onVercel = process.env.VERCEL === '1'
+
+  // Vercel: scrapers fail on datacenter IPs — Gemini clips are the reliable path.
+  // Local: try native captions first (instant + free).
   const attempts = onVercel
-    ? [() => fetchViaGeminiYoutube(videoId), () => fetchViaSupadata(videoId)]
+    ? [
+        () => fetchViaGeminiYoutube(videoId),
+        () => fetchViaWatchPageCaptions(videoId),
+        () => fetchViaSupadata(videoId),
+      ]
     : [
+        () => fetchViaWatchPageCaptions(videoId),
         () => fetchViaInnertubeAndroid(videoId),
         () => fetchViaHallelx(videoId),
         () => fetchViaGeminiYoutube(videoId),
         () => fetchViaSupadata(videoId),
       ]
 
-  for (const attempt of attempts) {
-    const text = await attempt()
-    if (text && text.length >= 20) return text
+  const runAttempts = async () => {
+    for (const attempt of attempts) {
+      try {
+        const text = await attempt()
+        if (text && text.length >= 20) return text
+      } catch (error) {
+        logger.warn('YouTube transcript attempt failed', {
+          videoId,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      }
+    }
+    return null
   }
+
+  const text = onVercel
+    ? await Promise.race([
+        runAttempts(),
+        sleep(VERCEL_TRANSCRIPT_DEADLINE_MS).then(() => null),
+      ])
+    : await runAttempts()
+
+  if (text && text.length >= 20) return text
 
   const hasGemini = Boolean(
     process.env.GEMINI_API_KEY?.trim() ||
@@ -364,8 +584,8 @@ export async function fetchYouTubeTranscript(videoId: string): Promise<string> {
 
   throw new AppError(
     hasGemini
-      ? 'Could not fetch captions for this YouTube video (model busy or video unavailable). Try again in a moment, use a shorter public video, or paste the transcript as text.'
-      : 'YouTube blocks caption downloads from cloud servers. Free fix: add GEMINI_API_KEY from https://aistudio.google.com/apikey (no credit card), or paste the transcript as text.',
+      ? 'Could not extract speech from this YouTube video right now (Gemini quota/busy, or no captions). Wait a minute and retry, try a shorter video, or paste the transcript as text.'
+      : 'YouTube blocks caption downloads from cloud servers. Add GEMINI_API_KEY from https://aistudio.google.com/apikey, or paste the transcript as text.',
     'MESH_ERROR',
     502,
   )
@@ -373,15 +593,9 @@ export async function fetchYouTubeTranscript(videoId: string): Promise<string> {
 
 async function fetchYouTubeTitle(videoId: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-      headers: {
-        'User-Agent': BROWSER_UA,
-        'Accept-Language': 'en-US,en;q=0.9',
-      },
-      signal: AbortSignal.timeout(10_000),
-    })
-    if (!res.ok) return null
-    const html = await res.text()
+    const { html, player } = await fetchWatchPage(videoId)
+    const fromPlayer = getTitleFromPlayer(player)
+    if (fromPlayer) return fromPlayer
     const og = html.match(/<meta\s+property="og:title"\s+content="([^"]+)"/i)
     if (og?.[1]) return decodeHtml(og[1])
     const titleTag = html.match(/<title>([^<]+)<\/title>/i)
@@ -389,18 +603,9 @@ async function fetchYouTubeTitle(videoId: string): Promise<string | null> {
       return decodeHtml(titleTag[1].replace(/\s*-\s*YouTube\s*$/i, '').trim())
     }
   } catch {
-    /* title is optional */
+    /* title optional */
   }
   return null
-}
-
-function decodeHtml(text: string): string {
-  return text
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
 }
 
 export async function extractYouTubeContent(url: string): Promise<{

@@ -20,7 +20,7 @@
     "db:push": "npm run db:push --workspace=@veritas/backend",
     "db:studio": "npm run db:studio --workspace=@veritas/backend",
     "lint": "npm run lint --workspace=frontend",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm run build && npm run db:push:remote --workspace=@veritas/backend"
   },
   "devDependencies": {
     "concurrently": "^9.2.0"

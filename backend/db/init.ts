@@ -1,9 +1,10 @@
-import { prisma } from './prisma.js'
+import { prisma, isPersistentDatabase } from './prisma.js'
 import { logger } from '../utils/logger.js'
 
 let initialized = false
 
 function isEphemeralDatabase(): boolean {
+  if (isPersistentDatabase()) return false
   const url = process.env.DATABASE_URL ?? ''
   return (
     process.env.VERCEL === '1' ||
@@ -233,10 +234,21 @@ async function createTablesIfNeeded(): Promise<void> {
 export async function ensureDatabase(): Promise<void> {
   if (initialized) return
 
-  if (isEphemeralDatabase()) {
-    logger.info('Initializing ephemeral SQLite database', {
-      databaseUrl: process.env.DATABASE_URL,
+  if (isPersistentDatabase()) {
+    logger.info('Using persistent Turso database', {
+      databaseUrl: process.env.DATABASE_URL?.replace(/\/\/.*@/, '//***@'),
     })
+    // Schema is applied via `prisma db push` during vercel-build.
+    initialized = true
+    return
+  }
+
+  if (isEphemeralDatabase()) {
+    logger.warn(
+      'Using ephemeral SQLite — case files will NOT persist across Vercel cold starts. ' +
+        'Set DATABASE_URL=libsql://… and TURSO_AUTH_TOKEN for production persistence.',
+      { databaseUrl: process.env.DATABASE_URL },
+    )
     await createTablesIfNeeded()
     logger.info('Database schema ready')
   }

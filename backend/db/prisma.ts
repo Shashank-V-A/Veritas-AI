@@ -4,24 +4,41 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+function isLibsqlUrl(url: string): boolean {
+  return (
+    url.startsWith('libsql://') ||
+    (url.startsWith('https://') && url.includes('.turso.io'))
+  )
+}
+
 /**
- * Prisma client for SQLite (local + Vercel /tmp).
+ * Prisma client for SQLite (local file) and Turso/libSQL (production).
  *
- * Important: do not statically import `@prisma/adapter-libsql` here.
- * That package is ESM-only and causes `ERR_REQUIRE_ESM` in the Vercel
- * serverless bundle even when DATABASE_URL is a local SQLite file.
- *
- * For Turso in production, use a dedicated libsql bootstrap or upgrade
- * the adapter wiring — Hobby deploys should use `file:/tmp/veritas.db`.
+ * Uses dynamic import for the libsql adapter so Vercel's mixed CJS/ESM
+ * bundle does not hit ERR_REQUIRE_ESM on a static import.
  */
-function createPrismaClient(): PrismaClient {
+async function createPrismaClient(): Promise<PrismaClient> {
   const url = process.env.DATABASE_URL ?? 'file:./dev.db'
 
-  if (url.startsWith('libsql://') || url.startsWith('https://')) {
-    throw new Error(
-      'Turso/libSQL is configured, but the ESM adapter is disabled in this build. ' +
-        'Set DATABASE_URL to file:/tmp/veritas.db on Vercel, or restore a Vercel-safe Turso adapter.',
-    )
+  if (isLibsqlUrl(url)) {
+    const token = process.env.TURSO_AUTH_TOKEN?.trim()
+    if (!token) {
+      throw new Error(
+        'TURSO_AUTH_TOKEN is required when DATABASE_URL points to Turso (libsql://…).',
+      )
+    }
+
+    const { PrismaLibSQL } = await import('@prisma/adapter-libsql')
+
+    const adapter = new PrismaLibSQL({
+      url,
+      authToken: token,
+    })
+
+    return new PrismaClient({
+      adapter,
+      log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    })
   }
 
   return new PrismaClient({
@@ -29,8 +46,19 @@ function createPrismaClient(): PrismaClient {
   })
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+async function getPrisma(): Promise<PrismaClient> {
+  if (globalForPrisma.prisma) return globalForPrisma.prisma
+  const client = await createPrismaClient()
+  if (process.env.NODE_ENV !== 'production') {
+    globalForPrisma.prisma = client
+  }
+  return client
+}
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
+/** Singleton Prisma client (awaits Turso adapter bootstrap when needed). */
+export const prisma = await getPrisma()
+
+export function isPersistentDatabase(): boolean {
+  const url = process.env.DATABASE_URL ?? ''
+  return isLibsqlUrl(url)
 }

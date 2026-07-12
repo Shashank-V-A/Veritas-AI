@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '../../db/prisma.js'
 import {
+  ensureAnalysesSyncedToGraph,
   getGraphSnapshot,
   pruneAnalysesMissingFromDb,
 } from '../../services/graph/neo4j.js'
@@ -45,7 +46,7 @@ graphRouter.get('/', async (req, res, next) => {
     // Scope the constellation to this user's case files
     const rows = await prisma.analysis.findMany({
       where: { userId },
-      select: { id: true },
+      select: { id: true, report: true },
       orderBy: { createdAt: 'desc' },
       take: 200,
     })
@@ -54,6 +55,9 @@ graphRouter.get('/', async (req, res, next) => {
     // Drop Neo4j leftovers from deleted cases (global DB ids keep other users safe)
     const allExisting = await prisma.analysis.findMany({ select: { id: true } })
     await pruneAnalysesMissingFromDb(allExisting.map((row) => row.id))
+
+    // Re-sync any case files missing from Neo4j (e.g. silent sync failure on analyze)
+    await ensureAnalysesSyncedToGraph(rows)
 
     const snapshot = await getGraphSnapshot(limit, { analysisIds })
     res.json(snapshot)

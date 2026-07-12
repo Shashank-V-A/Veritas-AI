@@ -243,6 +243,49 @@ export async function deleteAnalysisFromGraph(analysisId: string): Promise<void>
   }
 }
 
+/** Backfill Neo4j when Prisma has analyses that never synced (silent failures / cold starts). */
+export async function ensureAnalysesSyncedToGraph(
+  rows: Array<{ id: string; report: string }>,
+): Promise<void> {
+  const db = getDriver()
+  if (!db || rows.length === 0) return
+
+  let database: string
+  try {
+    database = await ensureConnected(db)
+  } catch {
+    return
+  }
+
+  const session = db.session({ database })
+  try {
+    const ids = rows.map((row) => row.id)
+    const result = await session.run(
+      `MATCH (a:Analysis) WHERE a.id IN $ids RETURN a.id AS id`,
+      { ids },
+    )
+    const synced = new Set(
+      result.records.map((record) => String(record.get('id') ?? '')),
+    )
+
+    for (const row of rows) {
+      if (synced.has(row.id)) continue
+      try {
+        const report = JSON.parse(row.report) as CredibilityReport
+        await syncAnalysisToGraph(row.id, report)
+      } catch (error) {
+        console.error(
+          '[neo4j] backfill sync failed:',
+          row.id,
+          error instanceof Error ? error.message : error,
+        )
+      }
+    }
+  } finally {
+    await session.close()
+  }
+}
+
 /**
  * Remove Neo4j analyses (and their claims) that no longer exist in the app DB.
  * Safe for multi-user: only deletes graph nodes whose ids are absent from Prisma.
@@ -262,6 +305,9 @@ export async function pruneAnalysesMissingFromDb(existingIds: string[]): Promise
   try {
     await session.executeWrite(async (tx) => {
       if (existingIds.length === 0) {
+        // On Vercel, /tmp SQLite often reads empty on cold instances — never wipe
+        // the shared Neo4j graph or we delete other users' synced investigations.
+        if (process.env.VERCEL === '1') return
         await tx.run(`MATCH (c:Claim) DETACH DELETE c`)
         await tx.run(`MATCH (a:Analysis) DETACH DELETE a`)
       } else {

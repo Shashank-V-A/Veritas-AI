@@ -9,12 +9,13 @@
     "start": "node dist/api/server.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:push:remote": "node scripts/push-remote-db.mjs",
     "db:studio": "prisma studio"
   },
   "dependencies": {
     "@hallelx/youtube-transcript": "^0.2.0",
     "@libsql/client": "^0.17.4",
-    "@prisma/adapter-libsql": "^7.8.0",
+    "@prisma/adapter-libsql": "6.19.3",
     "@prisma/client": "^6.9.0",
     "@veritas/shared": "*",
     "compression": "^1.8.1",

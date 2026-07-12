@@ -49,10 +49,15 @@ export function createApp() {
   app.use(optionalAuth)
 
   app.get('/api/health', (_req, res) => {
+    const dbUrl = process.env.DATABASE_URL ?? ''
+    const persistent =
+      dbUrl.startsWith('libsql://') ||
+      (dbUrl.startsWith('https://') && dbUrl.includes('.turso.io'))
     res.json({
       status: 'ok',
       service: 'veritas-api',
       env: process.env.VERCEL ? 'vercel' : 'local',
+      database: persistent ? 'turso' : dbUrl.includes('/tmp') ? 'ephemeral' : 'sqlite',
     })
   })
 

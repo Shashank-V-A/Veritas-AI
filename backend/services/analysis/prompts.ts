@@ -147,6 +147,12 @@ Analysis steps you MUST perform:
 9. Explain Like I'm 15 — simple plain-language summary
 10. Overall Verdict — credible, mixed, misleading, or unsupported
 
+Verdict guidance:
+- credible: well-supported claims, low manipulation, reliable sourcing
+- mixed: some accurate points alongside unverified or weakly supported claims
+- misleading: significant false claims, heavy manipulation, or deceptive framing
+- unsupported: ONLY when content is too short, non-factual, off-topic, or genuinely impossible to evaluate — do NOT default to unsupported when claims can be assessed
+
 Rules:
 - Base assessments on reasoning and evidence, not political opinion
 - Flag uncertainty via confidence scores
