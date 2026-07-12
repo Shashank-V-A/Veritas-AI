@@ -30,6 +30,7 @@
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfkit": "^0.19.1",
+    "undici": "^7.28.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

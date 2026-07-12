@@ -8,7 +8,7 @@ import {
   assessForwardRisk,
   shouldAutoDetectForward,
 } from '../../services/forward/assessForward.js'
-import { extractYouTubeContent } from '../../services/media/youtube.js'
+import { extractYouTubeContent, extractYouTubeVideoId } from '../../services/media/youtube.js'
 import { extractTextFromImage } from '../../services/media/ocr.js'
 import { extractTextFromPdf } from '../../services/pdf/extract.js'
 import { extractFromUrl } from '../../services/url/extract.js'
@@ -190,7 +190,19 @@ analyzeRouter.post('/youtube', async (req, res, next) => {
         : undefined
     const category = categoryRaw as AnalysisCategory | undefined
 
-    const extracted = await extractYouTubeContent(url)
+    // Prefer client-supplied transcript (two-step flow) to stay under Vercel 60s.
+    const prefetched =
+      typeof req.body?.content === 'string' && req.body.content.trim().length >= 20
+        ? req.body.content.trim()
+        : undefined
+
+    const extracted = prefetched
+      ? {
+          content: prefetched.slice(0, 10_000),
+          title: titleOverride ?? `YouTube transcript`,
+          videoId: extractYouTubeVideoId(url) ?? 'unknown',
+        }
+      : await extractYouTubeContent(url)
     const title = titleOverride ?? extracted.title
 
     const pipeline = await runAnalysis({
@@ -215,6 +227,24 @@ analyzeRouter.post('/youtube', async (req, res, next) => {
     )
 
     res.status(201).json(response)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/** Extract transcript only — keeps Gemini under the 60s limit before Mesh runs. */
+analyzeRouter.post('/youtube/transcript', async (req, res, next) => {
+  try {
+    const url = typeof req.body?.url === 'string' ? req.body.url.trim() : ''
+    if (!url) throw new AppError('YouTube URL is required', 'VALIDATION_ERROR', 400)
+
+    const extracted = await extractYouTubeContent(url)
+    res.json({
+      videoId: extracted.videoId,
+      title: extracted.title,
+      content: extracted.content,
+      sourceUrl: url,
+    })
   } catch (error) {
     next(error)
   }

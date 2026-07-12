@@ -35,8 +35,8 @@ export function createApp() {
   app.use(cookieParser())
   app.use(express.json({ limit: '1mb' }))
   app.use(rateLimiter)
-  app.use(optionalAuth)
 
+  // Schema must exist before optionalAuth may touch Prisma (ephemeral /tmp on Vercel).
   app.use(async (_req, _res, next) => {
     try {
       await ensureDatabase()
@@ -45,6 +45,8 @@ export function createApp() {
       next(error)
     }
   })
+
+  app.use(optionalAuth)
 
   app.get('/api/health', (_req, res) => {
     res.json({

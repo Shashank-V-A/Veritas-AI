@@ -234,11 +234,30 @@ export const api = {
     url: string,
     options?: { title?: string; category?: string },
   ): Promise<AnalyzeResponse> {
+    // Two-step so Gemini transcript + Mesh analysis each stay under Vercel's 60s limit.
+    const transcriptRes = await fetch(`${API_BASE_URL}/analyze/youtube/transcript`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ url }),
+    })
+    const transcript = await handleResponse<{
+      content: string
+      title: string
+      videoId: string
+      sourceUrl: string
+    }>(transcriptRes)
+
     const response = await fetch(`${API_BASE_URL}/analyze/youtube`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ url, ...options }),
+      body: JSON.stringify({
+        url,
+        content: transcript.content,
+        title: options?.title ?? transcript.title,
+        category: options?.category,
+      }),
     })
     return handleResponse<AnalyzeResponse>(response)
   },
