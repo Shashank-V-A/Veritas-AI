@@ -97,9 +97,11 @@ export function AnalysisInput({
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const analyze = useAnalyze()
   const pendingAutoRun = useRef(false)
+  const pendingSampleId = useRef<AnalysisPrefill['sampleId']>(undefined)
 
   useEffect(() => {
     if (!prefill) return
+
     if (prefill.url) {
       setInputMode('url')
       setUrl(prefill.url)
@@ -109,14 +111,34 @@ export function AnalysisInput({
     }
     setSourceType(prefill.sourceType)
     setTitle(prefill.title ?? '')
+    if (prefill.category) setCategory(prefill.category)
     setPdfFile(null)
     setImageFile(null)
-    pendingAutoRun.current = Boolean(prefill.autoRun)
+
+    if (prefill.autoRun) {
+      pendingAutoRun.current = true
+      if (prefill.sampleId) {
+        pendingSampleId.current = prefill.sampleId
+      }
+    }
+
     onPrefillConsumed?.()
   }, [prefill, onPrefillConsumed])
 
   useEffect(() => {
     if (!pendingAutoRun.current || analyze.isPending) return
+
+    const sampleId = pendingSampleId.current
+    if (sampleId) {
+      pendingAutoRun.current = false
+      pendingSampleId.current = undefined
+      const timer = window.setTimeout(() => {
+        investigationAudio.unlock()
+        analyze.mutateSample(sampleId)
+      }, 150)
+      return () => window.clearTimeout(timer)
+    }
+
     const ready =
       inputMode === 'url' ? url.trim().length > 0 : content.trim().length > 0
     if (!ready) return

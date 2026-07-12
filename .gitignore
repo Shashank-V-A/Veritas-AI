@@ -5,6 +5,8 @@ dist
 *.db
 backend/dev.db
 .DS_Store
+.tmp_restore
+health_body.txt
 
 .vercel
 .env*

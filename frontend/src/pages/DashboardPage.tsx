@@ -14,21 +14,9 @@ import { useHistory } from '@/hooks/useHistory'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 const SAMPLE_I18N = [
-  {
-    labelKey: 'dashboard.sampleHealth',
-    categoryKey: 'dashboard.categoryHealth',
-    riskKey: 'dashboard.riskHigh',
-  },
-  {
-    labelKey: 'dashboard.samplePolitical',
-    categoryKey: 'dashboard.categoryPolitical',
-    riskKey: 'dashboard.riskHigh',
-  },
-  {
-    labelKey: 'dashboard.sampleNews',
-    categoryKey: 'dashboard.categoryNews',
-    riskKey: 'dashboard.riskCredible',
-  },
+  { labelKey: 'dashboard.sampleHealth', categoryKey: 'dashboard.categoryHealth', riskKey: 'dashboard.riskHigh' },
+  { labelKey: 'dashboard.samplePolitical', categoryKey: 'dashboard.categoryPolitical', riskKey: 'dashboard.riskHigh' },
+  { labelKey: 'dashboard.sampleNews', categoryKey: 'dashboard.categoryNews', riskKey: 'dashboard.riskCredible' },
 ] as const
 
 export function DashboardPage() {
@@ -78,13 +66,21 @@ export function DashboardPage() {
   }, [searchParams])
 
   function handleSampleSelect(example: (typeof EXAMPLE_PROMPTS)[number]) {
-    const next: AnalysisPrefill = {
+    setActiveSample(example.label)
+    setPrefill({
       content: example.content,
       sourceType: example.sourceType,
       title: example.title,
-    }
-    setActiveSample(example.label)
-    setPrefill(next)
+      category: example.category,
+      sampleId: example.sampleId,
+      autoRun: true,
+    })
+    window.requestAnimationFrame(() => {
+      document.getElementById('analysis-intake')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
   }
 
   return (
@@ -139,6 +135,8 @@ export function DashboardPage() {
                     content: example.content,
                     sourceType: example.sourceType,
                     title: example.title,
+                    category: example.category,
+                    sampleId: example.sampleId,
                   }}
                   isActive={activeSample === example.label}
                   onSelect={() => handleSampleSelect(example)}

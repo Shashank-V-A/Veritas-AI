@@ -27,6 +27,3 @@ export type {
   ConfidenceInterval,
   SourceLineageItem,
 } from '@veritas/shared'
-
-/** @deprecated Use ApiErrorBody from @veritas/shared */
-export type { ApiErrorBody as ApiError } from '@veritas/shared'

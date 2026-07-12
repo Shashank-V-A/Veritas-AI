@@ -3,7 +3,6 @@ import { AppError } from '../../utils/errors.js'
 import { logger } from '../../utils/logger.js'
 import { createMeshClient } from '../mesh/client.js'
 import { buildSearchContext, searchWeb } from '../search/webSearch.js'
-import { syncAnalysisToGraph } from '../graph/neo4j.js'
 import {
   buildRepairPrompt,
   buildUserPrompt,
@@ -227,14 +226,5 @@ export async function runAnalysis(input: AnalysisInput): Promise<AnalysisPipelin
     throw new AppError('Analysis pipeline failed', 'INTERNAL', 500)
   }
 
-  return result
-}
-
-export async function runAnalysisAndSyncGraph(
-  analysisId: string,
-  input: AnalysisInput,
-): Promise<AnalysisPipelineResult> {
-  const result = await runAnalysis(input)
-  await syncAnalysisToGraph(analysisId, result.report)
   return result
 }

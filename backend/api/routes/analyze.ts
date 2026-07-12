@@ -19,6 +19,7 @@ import {
   urlAnalyzeRequestSchema,
 } from '../../utils/validation.js'
 import { AppError } from '../../utils/errors.js'
+import { getSampleCase } from '../../services/analysis/sampleCases.js'
 
 export const analyzeRouter = Router()
 
@@ -135,6 +136,42 @@ analyzeRouter.post('/', async (req, res, next) => {
         userId: req.user?.sub,
       },
       pipeline,
+    )
+
+    res.status(201).json(response)
+  } catch (error) {
+    next(error)
+  }
+})
+
+/** Reference dossiers — instant pre-built reports (no Mesh call). */
+analyzeRouter.post('/sample', async (req, res, next) => {
+  try {
+    const sampleId = typeof req.body?.sample === 'string' ? req.body.sample.trim() : ''
+    const sample = getSampleCase(sampleId)
+    if (!sample) {
+      throw new AppError(
+        'Unknown sample case. Use health, political, or news.',
+        'VALIDATION_ERROR',
+        400,
+      )
+    }
+
+    const { forwardRisk } = resolveSourceType(sample.content, sample.sourceType)
+
+    const response = await persistAnalysis(
+      {
+        content: sample.content,
+        sourceType: sample.sourceType,
+        title: sample.title,
+        category: sample.category,
+        report: sample.report,
+        meshModel: 'veritas-reference-dossier',
+        meshLatencyMs: 0,
+        forwardRisk,
+        userId: req.user?.sub,
+      },
+      { meshModel: 'veritas-reference-dossier', meshLatencyMs: 0 },
     )
 
     res.status(201).json(response)

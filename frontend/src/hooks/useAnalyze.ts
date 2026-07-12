@@ -22,6 +22,11 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
     onSuccess: handleSuccess,
   })
 
+  const sampleMutation = useMutation({
+    mutationFn: (sample: 'health' | 'political' | 'news') => api.analyzeSample(sample),
+    onSuccess: handleSuccess,
+  })
+
   const urlMutation = useMutation({
     mutationFn: (payload: UrlAnalyzeRequest) => api.analyzeUrl(payload),
     onSuccess: handleSuccess,
@@ -59,6 +64,7 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
 
   const isPending =
     textMutation.isPending ||
+    sampleMutation.isPending ||
     urlMutation.isPending ||
     pdfMutation.isPending ||
     youtubeMutation.isPending ||
@@ -67,6 +73,7 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
 
   const isError =
     textMutation.isError ||
+    sampleMutation.isError ||
     urlMutation.isError ||
     pdfMutation.isError ||
     youtubeMutation.isError ||
@@ -75,6 +82,7 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
 
   const error =
     textMutation.error ??
+    sampleMutation.error ??
     urlMutation.error ??
     pdfMutation.error ??
     youtubeMutation.error ??
@@ -83,6 +91,7 @@ export function useAnalyze(options?: { onSuccess?: (id: string) => void }) {
 
   return {
     mutate: textMutation.mutate,
+    mutateSample: sampleMutation.mutate,
     mutateUrl: urlMutation.mutate,
     mutatePdf: pdfMutation.mutate,
     mutateYoutube: youtubeMutation.mutate,

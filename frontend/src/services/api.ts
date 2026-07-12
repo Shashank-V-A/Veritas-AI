@@ -220,6 +220,16 @@ export const api = {
     return handleResponse<AnalyzeResponse>(response)
   },
 
+  async analyzeSample(sample: 'health' | 'political' | 'news'): Promise<AnalyzeResponse> {
+    const response = await fetch(`${API_BASE_URL}/analyze/sample`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ sample }),
+    })
+    return handleResponse<AnalyzeResponse>(response)
+  },
+
   async analyzeUrl(payload: UrlAnalyzeRequest): Promise<AnalyzeResponse> {
     const response = await fetch(`${API_BASE_URL}/analyze/url`, {
       method: 'POST',

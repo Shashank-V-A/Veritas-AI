@@ -1,12 +1,17 @@
-import type { AnalysisRecord, SourceType } from '@veritas/shared'
+import type { AnalysisRecord, SourceType, AnalysisCategory } from '@veritas/shared'
 
 /** Static demo dossier — visible on landing without sign-in */
+
+export type SampleCaseId = 'health' | 'political' | 'news'
 
 export interface AnalysisPrefill {
   content: string
   sourceType: SourceType
   title?: string
   url?: string
+  category?: AnalysisCategory
+  /** Reference dossier id — uses instant pre-built report on the server. */
+  sampleId?: SampleCaseId
   /** When true, AnalysisInput auto-submits after prefill (extension / deep link). */
   autoRun?: boolean
 }
@@ -127,7 +132,9 @@ export const SAMPLE_ORIGINAL_SNIPPET =
 export const EXAMPLE_PROMPTS = [
   {
     label: 'Viral health claim',
-    category: 'HEALTH',
+    sampleId: 'health' as const,
+    category: 'health' as const,
+    categoryKey: 'HEALTH',
     trustScore: 22,
     riskLabel: 'High risk',
     sourceType: 'forward' as const,
@@ -137,7 +144,9 @@ export const EXAMPLE_PROMPTS = [
   },
   {
     label: 'Political post',
-    category: 'POLITICAL',
+    sampleId: 'political' as const,
+    category: 'politics' as const,
+    categoryKey: 'POLITICAL',
     trustScore: 31,
     riskLabel: 'High risk',
     sourceType: 'social' as const,
@@ -147,7 +156,9 @@ export const EXAMPLE_PROMPTS = [
   },
   {
     label: 'News excerpt',
-    category: 'NEWS',
+    sampleId: 'news' as const,
+    category: 'news' as const,
+    categoryKey: 'NEWS',
     trustScore: 78,
     riskLabel: 'Credible',
     sourceType: 'article' as const,
