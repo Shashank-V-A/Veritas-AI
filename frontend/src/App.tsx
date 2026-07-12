@@ -13,6 +13,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 import { CommandPaletteProvider, useCommandPalette } from '@/contexts/CommandPaletteContext'
+import { BootGate } from '@/components/brand/BootSplash'
 import { queryClient } from '@/lib/queryClient'
 
 const LandingLayout = lazy(() =>
@@ -202,10 +203,12 @@ export default function App() {
             <CommandPaletteProvider>
               <BrowserRouter>
                 <AuthProvider>
-                  <AppShell>
-                    <AnimatedRoutes />
-                  </AppShell>
-                  <CommandPaletteLoader />
+                  <BootGate>
+                    <AppShell>
+                      <AnimatedRoutes />
+                    </AppShell>
+                    <CommandPaletteLoader />
+                  </BootGate>
                 </AuthProvider>
               </BrowserRouter>
             </CommandPaletteProvider>

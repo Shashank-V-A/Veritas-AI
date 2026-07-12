@@ -356,6 +356,17 @@
     "muteSound": "Mute investigation sound",
     "unmuteSound": "Unmute investigation sound"
   },
+  "boot": {
+    "aria": "Veritas AI is loading",
+    "eyebrow": "Investigation desk",
+    "tagline": "Don't consume information. Verify it.",
+    "classified": "Classified workspace · Secure boot",
+    "tapForSound": "Tap anywhere for audio",
+    "statusSecure": "Establishing secure desk…",
+    "statusMesh": "Connecting analysis mesh…",
+    "statusArchive": "Preparing case archive…",
+    "statusOpen": "Opening Veritas…"
+  },
   "command": {
     "title": "Command palette",
     "searchPlaceholder": "Search case files and claims…",
