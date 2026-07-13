@@ -88,7 +88,7 @@ function AnimatedRoutes() {
   const isDashboard = location.pathname.startsWith('/app')
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         <Route
           element={
