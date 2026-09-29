@@ -26,10 +26,39 @@ function getDriver(): Driver | null {
   return driver
 }
 
+function friendlyNeo4jError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error)
+  if (/no routing servers|could not perform discovery|serviceunavailable/i.test(message)) {
+    return (
+      'Neo4j Aura is unreachable (instance paused, deleted, or credentials stale). ' +
+      'Open https://console.neo4j.io → resume or create a Free instance → copy URI/username/password/database ' +
+      'into NEO4J_* env vars on Vercel (and backend/.env), then redeploy.'
+    )
+  }
+  if (/unauthorized|authentication/i.test(message)) {
+    return (
+      'Neo4j authentication failed. Reset the password in Aura Console and update NEO4J_PASSWORD ' +
+      '(and NEO4J_USERNAME) on Vercel and in backend/.env.'
+    )
+  }
+  return message
+}
+
 async function ensureConnected(db: Driver): Promise<string> {
   const { database } = neo4jConfig()
   if (!verified) {
-    await db.verifyConnectivity({ database })
+    try {
+      await db.verifyConnectivity({ database })
+    } catch (error) {
+      // Stale driver after Aura pause/resume — rebuild once before failing
+      await closeNeo4jDriver()
+      const retry = getDriver()
+      if (!retry) throw error
+      await retry.verifyConnectivity({ database })
+      verified = true
+      console.info(`[neo4j] Connected to ${neo4jConfig().uri} (db=${database}) after driver reset`)
+      return database
+    }
     verified = true
     console.info(`[neo4j] Connected to ${neo4jConfig().uri} (db=${database})`)
   }
@@ -61,13 +90,7 @@ export async function syncAnalysisToGraph(
   try {
     database = await ensureConnected(db)
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    console.error(
-      `[neo4j] Connection failed: ${message}. ` +
-        'Reset the password in Neo4j Aura Console → instance → … → Reset password, ' +
-        'then update NEO4J_PASSWORD (and NEO4J_USERNAME if shown) in backend/.env and restart the backend.',
-    )
-    // Drop cached driver so the next attempt reloads credentials after .env change
+    console.error(`[neo4j] Connection failed: ${friendlyNeo4jError(error)}`)
     await closeNeo4jDriver()
     return
   }
@@ -403,12 +426,13 @@ export async function getGraphSnapshot(
   try {
     database = await ensureConnected(db)
   } catch (error) {
+    await closeNeo4jDriver()
     return {
       configured: true,
       connected: false,
       nodes: [],
       edges: [],
-      error: error instanceof Error ? error.message : 'Connection failed',
+      error: friendlyNeo4jError(error),
     }
   }
 

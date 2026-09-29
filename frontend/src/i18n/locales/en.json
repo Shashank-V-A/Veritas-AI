@@ -366,6 +366,7 @@
     "loadFailed": "Could not load the knowledge graph.",
     "notConfigured": "Neo4j is not configured. Add NEO4J_URI and credentials in the backend environment to enable the graph.",
     "error": "Graph error",
+    "auraDownHint": "Aura Free instances pause after inactivity. Resume or create a new Free instance at console.neo4j.io, then update NEO4J_* on Vercel.",
     "empty": "No graph data yet. Run an investigation to populate claims, sources, and domains.",
     "stats": "{{nodes}} nodes · {{edges}} edges",
     "typeAnalysis": "Analysis",

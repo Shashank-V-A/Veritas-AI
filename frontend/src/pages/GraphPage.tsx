@@ -207,8 +207,23 @@ export function GraphPage() {
             </div>
           )}
           {data?.error && (
-            <div className="mb-4 border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-foreground">
-              {t('graph.error')}: {data.error}
+            <div className="mb-4 space-y-2 border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-foreground">
+              <p>
+                {t('graph.error')}: {data.error}
+              </p>
+              {/routing servers|unreachable|paused|aura/i.test(data.error) && (
+                <p className="text-muted-foreground">
+                  {t('graph.auraDownHint')}{' '}
+                  <a
+                    href="https://console.neo4j.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent underline underline-offset-2"
+                  >
+                    console.neo4j.io
+                  </a>
+                </p>
+              )}
             </div>
           )}
           {data?.configured && data.connected && data.nodes.length === 0 && !data.error && (
