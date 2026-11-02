@@ -305,11 +305,11 @@ async function fetchViaHallelx(videoId: string): Promise<string | null> {
       return text.length >= 20 ? text.slice(0, 10_000) : null
     } catch {
       const transcript = await api.fetch(videoId, { languages: TRANSCRIPT_LANGS })
-      const text = transcript.snippets
-        .map((s) => s.text)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim()
+    const text = transcript.snippets
+      .map((s) => s.text)
+      .join(' ')
+      .replace(/\s+/g, ' ')
+      .trim()
       return text.length >= 20 ? text.slice(0, 10_000) : null
     }
   } catch (error) {
@@ -623,14 +623,14 @@ export async function fetchYouTubeTranscript(videoId: string): Promise<string> {
       process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim(),
   )
 
-  throw new AppError(
+      throw new AppError(
     hasGemini
       ? 'Could not extract a transcript from this video (no captions found, and speech extraction failed). For long videos we retry in parts automatically — if this persists, wait a minute and retry, or paste the transcript as text.'
       : 'YouTube blocks caption downloads from cloud servers. Add GEMINI_API_KEY from https://aistudio.google.com/apikey, or paste the transcript as text.',
-    'MESH_ERROR',
-    502,
-  )
-}
+        'MESH_ERROR',
+        502,
+      )
+    }
 
 export interface YouTubeVideoMeta {
   videoId: string
@@ -678,9 +678,9 @@ export async function fetchYouTubeTranscriptChunk(
 
   throw new AppError(
     'Could not extract speech from this clip (Gemini quota/busy or no speech in range). Retry in a minute.',
-    'MESH_ERROR',
-    502,
-  )
+      'MESH_ERROR',
+      502,
+    )
 }
 
 async function fetchYouTubeTitle(videoId: string): Promise<string | null> {
